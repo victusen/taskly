@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taskly - View your jobs</title>
+  <style>
+    * { margin: 0; box-sizing: border-box; }
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      padding: 12px 15px;
+      height: 50px;
+      display: flex;
+      background-color: white;
+      border: 1px solid lightgray;
+      justify-content: space-between;
+      z-index: 5px;
+    }
+    .banner-left {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .banner-right {
+      display: flex;
+    }
+    .banner-right div {
+      height: 30px; width: 30px; border-radius: 20px;
+      background-color: red;
+      display: flex; align-items: center; justify-content: center;
+    }
+    main {
+      margin-top: 80px;
+      padding: 12px 15px;
+      display: flex; flex-direction: column; gap: 15px;
+    }
+    .dash-top {
+      margin-bottom: 6px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .business-overviews {
+      display: flex; flex-direction: column; gap: 20px;
+      width: 100%;
+      margin-top: 20px;
+      margin-bottom: 30px
+    }
+    .projs {
+      padding: 15px;
+      border: 1px solid grey;
+      display: flex; flex-direction: column; gap:25px; justify-content: space-between;
+    }
+    .projs:active {
+      background-color: lightgray;
+    }
+    .title {
+      font-weight: 700;
+    }
+    .project-tag {
+      font-size: 15px;
+      padding: 6px 8px;
+      background-color: green; color: white;
+    }
+    a {
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="banner-left">
+      <img src="menu.png" style="height: 30px;" />
+      <a href="index.html"><p style="font-size: 20px;">Taskly.com</p></a>
+      <img src="drop-arrow.png" style="height: 20px;"/>
+    </div>
+    <div class="banner-right">
+      <div>S</div>
+    </div>
+  </header>
+  <main>
+    <div class="dash-top">
+      <h2>Overview</h2> 
+      <h4>Night Owl!</h4>
+    </div> 
+    <p>The overview of business schedules running on your taskly profile.</p>
+    <div class="business-overviews">
+      <h3>Businesses</h3>
+      <a href="jobs.html">
+        <div class="projs">
+          <h4 class="title"> Saja Restaurant</h4>
+          <p class="project-tag">36 jobs are live and running</p>
+        </div>
+      </a>
+      <a href="jobs.html">
+        <div class="projs">
+          <h4 class="title"> Glassdoor Schedules</h4>
+          <p class="project-tag">114 jobs ready to run today</p>
+        </div>
+      </a>
+      <a href="jobs.html">
+        <div class="projs">
+          <h4 class="title">Matchsub</h4>
+          <p class="project-tag">You scheduled 6 jobs today</p>
+        </div>
+      </a>
+      <div style="height: 60px; padding: 10px; display: flex; flex-direction: row; text-align: center; align-items: center; justify-content: center; border: 1px dashed red;">
+        <img src="" />
+        <p style="font-size: 16px;">Add a new taskly project.</p>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

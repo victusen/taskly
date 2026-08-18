@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taskly - Your projects are ready</title>
+  <style>
+    * { margin: 0; box-sizing: border-box; }
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      padding: 12px 15px;
+      height: 50px;
+      display: flex;
+      background-color: white;
+      border: 1px solid lightgray;
+      justify-content: space-between;
+      z-index: 5px;
+    }
+    .banner-left {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .banner-right {
+      display: flex;
+    }
+    .banner-right div {
+      height: 30px; width: 30px; border-radius: 20px;
+      background-color: red;
+      display: flex; align-items: center; justify-content: center; align-self: center;
+    }
+    .drop-down{
+      pointer-events: none;
+      position: absolute;
+      bottom: -95px; left: 0; right: 0; z-index: 12;
+    }
+    .taskly-projs {
+      padding: 10px 12px;
+      width: 100%;
+      display: flex; align-items: center; gap: 10px; 
+      /* border: 1px dashed grey;
+      background-color: white; */
+    }
+    .taskly-projs:hover {
+      background-color: green;
+    }
+    main {
+      margin-top: 65px;
+      display: flex; flex-direction: column; gap: 15px;
+    }
+    .proj-display {
+      display: flex; 
+      flex-direction: column; gap: 20px; 
+      border-top: 1px solid lightgray;
+      border-bottom: 2px solid lightgray;
+      padding: 30px 15px;
+    }
+    .proj-display button { 
+      display: flex;
+      align-items: center; 
+      align-self: start;
+      /* width: 50%; */
+      padding: 10px 20px;
+      background-color: inherit;
+      border: 1px solid lightgray;
+    }
+    .task-toggle { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 10px;
+    } 
+    .toggles { 
+      display: flex; 
+      /* overflow: scroll; */
+      border: 1px solid grey;
+    }
+    .toggle {
+      padding: 6px; 
+      background-color: lightgray;
+      color: black;
+      font-size: 14px;
+    }
+    .task-list {
+      display: flex; flex-direction: column; gap: 30px;
+      width: 100%; 
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .task {
+      display: flex; flex-direction: column; gap:8px;
+    }
+
+    .close-btn {
+      background-color: lightgray; 
+      width: 35px; height: 35px; 
+      padding: 4px;
+      border-radius:50px;
+      display: flex;
+      align-items: center; justify-content: center;
+      pointer-events: all;
+    }
+    .shedule-new {
+      border: 1px solid lightgray;
+      height: auto;
+    }
+    .schedule-overlay {
+      display: none; 
+      align-items: center; 
+      justify-content: center; 
+      height: 100vh; 
+      top:0; bottom:0; left:0; right:0; 
+      background-color: #000000e4; 
+      position: fixed; 
+      z-index: 20;
+    }
+    .job-board {
+      display: flex; 
+      flex-direction: column;
+      justify-content: space-between;
+      background-color: white; 
+      width: 95%; height: 340px; 
+      border-radius: 10px; 
+      padding: 15px;
+    }
+      
+    .add-hidden {display: none}
+    .show {display: block}
+    .active {background-color: green; color: white;}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="banner-left">
+      <img src="menu.png" style="height: 30px;" />
+      <a href="index.html"><p style="font-size: 20px;">Taskly.com</p></a>
+       <div class="position: relative; display: flex;">
+        <img onclick="document.querySelector(`.drop`).classList.toggle(`show`);" src="drop-arrow.png" style="height: 20px;"/>
+        <div class="drop-down">
+          <div class="drop add-hidden" style=" width:200px; margin: 0 auto; border-radius: 12px; overflow: hidden; background-color: white; ">
+            <div class="taskly-projs">
+              <img src="Check.png" style="height: 12px;">
+              <p style="font-size: 13px;">Saja Restaurant</p>
+            </div>
+            <div class="taskly-projs">
+              <img src="Check.png" style="height: 12px;">
+              <p style="font-size: 13px;">Glassdoor schedules</p>
+            </div>
+            <div class="taskly-projs">
+              <img src="Check.png" style="height: 12px;">
+              <p style="font-size: 13px;">Matchsub</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="banner-right">
+      <div>S</div>
+    </div>
+  </header>
+  
+  <main>
+    <div class="select-project" style="display: flex; gap: 10px; align-items: center; height: 20px; padding: 10px 15px;">
+      <h3>Open projects</h3>
+      <img src="Menu.png" height="200%" />
+    </div>
+    
+    <div class="proj-display">
+      <p style="font-size: 16px; color: grey;">MY PROJECTS</p>
+      <h2 style="font-size: 30px;">MatchSub</h2>
+      <button id="add-schedule" style="">
+        <span style="font-size: 20px; color: black; margin-right: 10px;">+</span>
+        <p style="font-size: 16px;">Add a new task</p>
+      </button>
+    </div>
+    
+    <div class="manage-project-tasks" style="display: flex; flex-direction: column; gap: 10px; padding: 10px 15px;">
+      <div class="task-toggle">
+        <h2 style="font-size: 22px;">Tasks</h2>
+        <div class="toggles">
+          <div class="toggle active">All (14)</div>
+          <div class="toggle ">Running (3)</div>
+          <div class="toggle">New (10)</div>
+          <div class="toggle">Paused (1)</div>
+          <!-- <div class="toggle">Alive (1)</div> -->
+        </div> 
+
+        <!-- Tasks appear here -->
+        <div class="task-list" id="" style="margin-bottom: 75px;">
+          <div class="task" id="1" style="">
+            <!-- Row one -->
+            <div style="display:flex; justify-content: space-between;">
+              <div style="display: flex; gap: 5px;">
+                <input type="checkbox">
+                <p class="taskname">Send future emails</p>
+              </div>
+              <div>Last-run: ()</div>
+            </div>
+            <!-- Row two -->
+            <div style="display: flex; background-color: green; overflow-x: scroll; ">
+              <div class="" style="background-color: red; padding: 0 20px; height: 100px; display: flex; align-items: center; ">Edit</div>
+              <table style="color: white;" >
+                <tr style="color: white; font-size: 14px; border: 1px solid grey">
+                  <th id="1">STATUS</th>
+                  <th id="2">TYPE</th>
+                  <th id="3">DATE FIXED</th>
+                  <th id="4">NEXT-RUN</th>
+                  <th id="5">SCHEDULER</th>
+                </tr>
+                <tr>
+                  <td id="1">Running</td>
+                  <td id="2">Email</td>
+                  <td id="3">04/05/26</td>
+                  <td id="4">04/05/27</td>
+                  <td id="5">usenvictor40@gmail.com</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="task" id="2" style="">
+            <!-- Row one -->
+            <div style="display:flex; justify-content: space-between;">
+              <div style="display: flex; gap: 5px;">
+                <input type="checkbox">
+                <p class="taskname">Reach contacts</p>
+              </div>
+              <div>Last-run: ()</div>
+            </div>
+            <!-- Row two -->
+            <div style="display: flex; background-color: green; overflow-x: scroll; ">
+              <div class="" style="background-color: lightgray; padding: 0 20px; height: 100px; display: flex; align-items: center; ">Edit</div>
+              <table >
+                <tr style="font-size: 14px; border: 1px solid grey">
+                  <th id="1">STATUS</th>
+                  <th id="2">TYPE</th>
+                  <th id="3">DATE FIXED</th>
+                  <th id="4">NEXT-RUN</th>
+                  <th id="5">SCHEDULER</th>
+                </tr>
+                <tr>
+                  <td id="1">Running</td>
+                  <td id="2">Phone Number</td>
+                  <td id="3">04/05/26</td>
+                  <td id="4">04/05/27</td>
+                  <td id="5">victorusen51@gmail.com</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="task" id="3" style="">
+            <!-- Row one -->
+            <div style="display:flex; justify-content: space-between;">
+              <div style="display: flex; gap: 5px;">
+                <input type="checkbox">
+                <p class="taskname">Reach contacts</p>
+              </div>
+              <div>Last-run: ()</div>
+            </div>
+            <!-- Row two -->
+            <div style="display: flex; background-color: green; overflow-x: scroll; ">
+              <div class="" style="background-color: lightgray; padding: 0 20px; height: 100px; display: flex; align-items: center; ">Edit</div>
+              <table >
+                <tr style="border: 1px solid grey">
+                  <th id="1">STATUS</th>
+                  <th id="2">TYPE</th>
+                  <th id="3">DATE FIXED</th>
+                  <th id="4">NEXT-RUN</th>
+                  <th id="5">SCHEDULER</th>
+                </tr>
+                <tr>
+                  <td id="1">Running</td>
+                  <td id="2">WhatsApp</td>
+                  <td id="3">04/05/26</td>
+                  <td id="4">04/05/27</td>
+                  <td id="5">bolanlesport@outlook.com</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="task" id="4" style="">
+            <!-- Row one -->
+            <div style="display:flex; justify-content: space-between;">
+              <div style="display: flex; gap: 5px;">
+                <input type="checkbox">
+                <p class="taskname">Reach contacts</p>
+              </div>
+              <div>Last-run: ()</div>
+            </div>
+            <!-- Row two -->
+            <div style="display: flex; background-color: green; border-radius: 6px; overflow-x: scroll; ">
+              <div class="" style="background-color: lightgray; padding: 0 20px; height: 100px; display: flex; align-items: center; ">Edit</div>
+              <table >
+                <tr style="border: 1px solid grey">
+                  <th id="1">STATUS</th>
+                  <th id="2">TYPE</th>
+                  <th id="3">DATE FIXED</th>
+                  <th id="4">NEXT-RUN</th>
+                  <th id="5">SCHEDULER</th>
+                </tr>
+                <tr>
+                  <td id="1">Running</td>
+                  <td id="2">WhatsApp</td>
+                  <td id="3">04/05/26</td>
+                  <td id="4">04/05/27</td>
+                  <td id="5">bolanlesport@outlook.com</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Add new task overlay -->
+  <div class="schedule-overlay" id="schedule-overlay" style="">
+    <!-- Job board -->
+    <div class="job-board" style="">
+      <!-- Close icon -->
+      <div style="display:flex; align-items: center; justify-content:space-between; margin-bottom:10px;">
+        <h3 style="line-height:1.2; font-size: 20px;">Create a new <br><span style="color: green;">Schedule</span></h3>
+        <div class="close-btn" id="close-btn">
+          <img src="Close.png" style="pointer-events: none;" height="100%">
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap: 10px; justify-content:space-between; align-self: end;">
+        <div style="display: flex;">
+          <div class="shedule-new">
+            <button>Select a Date:</button>
+            <input type="date"><br>
+            <button>Choose a time:</button>
+            <input type="time"><br>
+            <button>Frequency:</button>
+            <select>
+              <option>Daily</option>
+              <option>Weekly</option>
+              <option>Monthly</option>
+              <option>Yearly</option>
+              <option>Every Christmas</option>
+              <option>Every New-year</option>
+              <option>Every 1st</option>
+            </select><br>
+            <button>Schedule type:</button>
+            <select>
+              <option>Email</option>
+              <option>WhatsApp</option>
+              <option>SMS</option>
+              <option>Telegram</option>
+              <option>Payloads</option>
+            </select><br>
+          </div>
+          <textarea style="width:100%;"></textarea>
+        </div>
+        <button style="font-weight: 500; border: none; border-radius: 6px; background-color: green; color: white; width: 100%; margin-top: 10px; padding: 12px;">Write this Schedule</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="job.js"></script>
+</body>
+</html>

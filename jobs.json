@@ -1,0 +1,14 @@
+[
+  {
+    "taskName": "Send Emails"
+    "status": "running",
+    "type": "email",
+    "dateFixed": "2026-08-03",
+    "nextRun": "2026-08-04",
+    "scheduler": "usenvictor40@gmail.com",
+    "lastEdited": "2026-09-03T15:32:50Z"
+  },
+  {
+    
+  },
+]
