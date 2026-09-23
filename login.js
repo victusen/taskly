@@ -1,6 +1,12 @@
 // console.log(window.supabase.createClient);
+import {
+  signIn,
+  signInWithGoogle,
+  signInWithFacebook,
+  signInWithX,
+  resetPassword
+} from './scripts/auth/auth.js';
 
-import { signIn, signUp, signOut, signInWithGoogle, signInWithGithub, signInWithFacebook, signInWithX, resetPassword } from './scripts/auth/auth.js';
 
 const form = document.querySelector('form');
 const forgotPassword = document.querySelector('.forgot-password')
@@ -54,9 +60,23 @@ form.addEventListener('submit', async (event) => {
     alert(error.message);
   }
 });
+
 forgotPassword.addEventListener('click', async (event) => {
   event.preventDefault();
 
-  await resetPassword();
-})
+  const email = form.querySelector('input[type="email"]').value;
 
+  if (!email) {
+    alert('Enter your email address first.');
+    return;
+  }
+
+  try {
+    await resetPassword(email);
+
+    alert('Password reset email sent. Check your inbox.');
+  } catch (error) {
+    console.error(error.message);
+    alert(error.message);
+  }
+});

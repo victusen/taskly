@@ -1,6 +1,6 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
 
-console.log(createClient)
+// console.log(createClient);
 
 const SUPABASE_URL = 'https://xpawzghnnydtjtloxxvt.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_hmxDBByNrcbAjzTKAJlRUA_aB8XZFlt';
@@ -47,7 +47,9 @@ export async function signInWithX() {
 }
 
 export async function signIn(email, password) {
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { 
+    data, error 
+  } = await supabase.auth.signInWithPassword({
     email,
     password
   });
@@ -63,6 +65,18 @@ export async function signUp(email, password) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function resetPassword(email) {
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: 'http://localhost:8158/reset-password.html'
   });
 
   if (error) {
