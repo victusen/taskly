@@ -1,4 +1,5 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
+import { ensureNetworkConnection } from '../utils/network.js';
 
 // console.log(createClient);
 
@@ -11,6 +12,7 @@ export const supabase = createClient(
 );
 
 export async function signInWithGoogle() {
+  ensureNetworkConnection();
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
@@ -20,6 +22,7 @@ export async function signInWithGoogle() {
 }
 
 export async function signInWithGithub() {
+  ensureNetworkConnection();
   return supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
@@ -29,6 +32,7 @@ export async function signInWithGithub() {
 }
 
 export async function signInWithFacebook() {
+  ensureNetworkConnection();
   return supabase.auth.signInWithOAuth({
     provider: 'facebook',
     options: {
@@ -38,6 +42,7 @@ export async function signInWithFacebook() {
 }
 
 export async function signInWithX() {
+  ensureNetworkConnection();
   return supabase.auth.signInWithOAuth({
     provider: 'x',
     options: {
@@ -47,6 +52,7 @@ export async function signInWithX() {
 }
 
 export async function signIn(email, password) {
+  ensureNetworkConnection();
   const { 
     data, error 
   } = await supabase.auth.signInWithPassword({
@@ -62,6 +68,7 @@ export async function signIn(email, password) {
 }
 
 export async function signUp(email, password) {
+  ensureNetworkConnection();
   const { data, error } = await supabase.auth.signUp({
     email,
     password
@@ -75,6 +82,7 @@ export async function signUp(email, password) {
 }
 
 export async function resetPassword(email) {
+  ensureNetworkConnection();
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: 'http://localhost:8158/reset-password.html'
   });
@@ -87,6 +95,7 @@ export async function resetPassword(email) {
 }
 
 export async function signOut() {
+  ensureNetworkConnection();
   const { error } = await supabase.auth.signOut();
 
   if (error) {
@@ -95,6 +104,7 @@ export async function signOut() {
 }
 
 export async function updatePassword(newPassword) {
+  ensureNetworkConnection();
   const { data, error } = await supabase.auth.updateUser({
     password: newPassword
   });

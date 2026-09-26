@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Taskly - Your projects are ready</title>
+  <link rel="stylesheet" href="scripts/ui/toast.css">
   <style>
     * { margin: 0; box-sizing: border-box; }
     header {
@@ -103,14 +104,21 @@
       height: auto;
     }
     .schedule-overlay {
-      display: none; 
-      align-items: center; 
-      justify-content: center; 
-      height: 100vh; 
-      top:0; bottom:0; left:0; right:0; 
-      background-color: #000000e4; 
-      position: fixed; 
+      display: none;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: #000000e4;
+      position: fixed;
       z-index: 20;
+    }
+    
+    .schedule-overlay.open {
+      display: flex;
     }
     .job-board {
       display: flex; 
@@ -355,6 +363,11 @@
     </div>
   </div>
 
-  <script type="module" src="jobs.js"></script>
+  <script
+  type="module"
+  src="scripts/ui/toast.js"
+></script>
+<script type="module" src="jobs.js"
+></script>
 </body>
 </html>

@@ -1,0 +1,288 @@
+#taskly-toast-container {
+  position: fixed;
+
+  top: 16px;
+  right: 16px;
+
+  width: min(
+    380px,
+    calc(100vw - 32px)
+  );
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+
+  z-index: 99999;
+
+  pointer-events: none;
+}
+
+
+.taskly-toast {
+  position: relative;
+
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 12px;
+
+  width: 100%;
+
+  padding: 14px;
+
+  border: 1px solid;
+
+  border-radius: 12px;
+
+  background: white;
+
+  box-shadow:
+    0 12px 35px rgba(0, 0, 0, 0.12);
+
+  pointer-events: auto;
+
+  overflow: hidden;
+
+  opacity: 1;
+
+  transform: translateY(0);
+
+  transition:
+    opacity 250ms ease,
+    transform 250ms ease;
+}
+
+
+.toast-success {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #14532d;
+}
+
+
+.toast-warning {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+
+
+.toast-error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+
+.toast-info {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e3a8a;
+}
+
+
+.toast-loading {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+
+.toast-icon {
+  width: 30px;
+  height: 30px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  font-weight: 700;
+}
+
+
+.toast-success .toast-icon {
+  background: #dcfce7;
+}
+
+
+.toast-warning .toast-icon {
+  background: #ffedd5;
+}
+
+
+.toast-error .toast-icon {
+  background: #fee2e2;
+}
+
+
+.toast-info .toast-icon {
+  background: #dbeafe;
+}
+
+
+.toast-loading .toast-icon {
+  background: #e2e8f0;
+}
+
+
+.toast-content {
+  flex: 1;
+
+  min-width: 0;
+}
+
+
+.toast-content strong {
+  display: block;
+
+  font-size: 14px;
+
+  margin-bottom: 3px;
+}
+
+
+.toast-content p {
+  margin: 0;
+
+  font-size: 13px;
+
+  line-height: 1.45;
+
+  overflow-wrap: anywhere;
+}
+
+
+.toast-close {
+  border: none;
+
+  background: transparent;
+
+  padding: 0;
+
+  font-size: 20px;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  opacity: 0.45;
+}
+
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+
+.toast-progress {
+  position: absolute;
+
+  left: 0;
+  bottom: 0;
+
+  height: 3px;
+
+  width: 100%;
+
+  transform-origin: left;
+
+  animation-name: taskly-toast-progress;
+
+  animation-timing-function: linear;
+
+  animation-fill-mode: forwards;
+}
+
+
+.toast-success .toast-progress {
+  background: #86efac;
+}
+
+
+.toast-warning .toast-progress {
+  background: #fb923c;
+}
+
+
+.toast-error .toast-progress {
+  background: #f87171;
+}
+
+
+.toast-info .toast-progress {
+  background: #60a5fa;
+}
+
+
+.toast-spinner {
+  width: 15px;
+  height: 15px;
+
+  border: 2px solid #cbd5e1;
+
+  border-top-color: #475569;
+
+  border-radius: 50%;
+
+  animation:
+    taskly-spin 0.8s linear infinite;
+}
+
+
+.toast-hide {
+  opacity: 0;
+
+  transform:
+    translateX(20px);
+}
+
+
+@keyframes taskly-toast-progress {
+
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+
+}
+
+
+@keyframes taskly-spin {
+
+  to {
+    transform: rotate(360deg);
+  }
+
+}
+
+
+@media (max-width: 600px) {
+
+  #taskly-toast-container {
+
+    top: 12px;
+
+    right: 12px;
+
+    width:
+      calc(100vw - 24px);
+
+  }
+
+  .taskly-toast {
+
+    padding: 12px;
+
+  }
+
+}

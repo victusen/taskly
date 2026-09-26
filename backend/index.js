@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import authRoute from './routes/authRoute.js';
 import paymentRoute from './routes/paymentRoute.js';
+import scheduleRoute from './routes/scheduleRoute.js';
 
 dotenv.config();
 
@@ -16,7 +17,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', authRoute);
 app.use('/api/payment', paymentRoute);
-
+app.use('/api/schedules', scheduleRoute);
 
 app.listen(PORT, () => {
   console.log(`Server is listening on http://localhost:${PORT}`);

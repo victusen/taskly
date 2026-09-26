@@ -1,71 +1,122 @@
 import { supabase } from './auth.js';
 import { getCurrentSession } from './session.js';
 
-const BACKEND_URL = 'http://localhost:3000'; 
+import {
+  showToast,
+  updateToast,
+  dismissToast
+} from '../ui/toast.js';
 
-/**
- * Ensures the session is valid, refreshing it if the access token has expired.
- */
+
+const BACKEND_URL =
+  'http://localhost:3000';
+
+
 async function ensureValidSession() {
-  const session = await getCurrentSession();
-  
-  if (!session) {
-    throw new Error('No active session');
-  }
 
-  // Check if token is expired or about to expire (within 60 seconds)
-  const now = Math.floor(Date.now() / 1000);
-  if (session.expires_at && session.expires_at - now < 60) {
-    const { data, error } = await supabase.auth.refreshSession();
-    if (error) {
-      throw error;
-    }
-    return data.session;
+  const session =
+    await getCurrentSession();
+
+  if (!session) {
+
+    throw new Error(
+      'No active session'
+    );
+
   }
 
   return session;
 }
 
-/**
- * Helper to get authenticated headers
- */
 async function getAuthHeaders() {
-  const session = await ensureValidSession();
+
+  const session =
+    await ensureValidSession();
+
   return {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${session.access_token}`
+    'Content-Type':
+      'application/json',
+
+    'Authorization':
+      `Bearer ${session.access_token}`
   };
 }
 
-/**
- * Wrapper for authenticated API requests with automatic token refresh
- */
-export async function authenticatedFetch(url, options = {}) {
+export async function authenticatedFetch(
+  url,
+  options = {}
+) {
+
+  const headers =
+    await getAuthHeaders();
+
+  const response =
+    await fetch(
+      `${BACKEND_URL}${url}`,
+      {
+        ...options,
+
+        headers: {
+          ...headers,
+          ...options.headers
+        }
+      }
+    );
+
+  let body = {};
+
   try {
-    const headers = await getAuthHeaders();
 
-    const response = await fetch(`${BACKEND_URL}${url}`, {
-      ...options,
-      headers: {
-        ...headers,
-        ...options.headers,
-      },
-    });
+    body =
+      await response.json();
 
-    // Handle 401 Unauthorized - could mean token was invalidated
-    if (response.status === 401) {
-      window.location.href = 'index.html';
-      return;
-    }
+  } catch {
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Request failed: ${response.status}`);
-    }
+    body = {};
 
-    return await response.json();
-  } catch (error) {
-    console.error('API Error:', error);
+  }
+
+
+  /* BACKEND NOTICE: If backend included a notice, show it automatically. */
+
+  if (body.notice) {
+
+    showToast(
+      body.notice.type,
+      body.notice.message,
+      {
+        title:
+          body.notice.title,
+
+        duration:
+          body.notice.duration
+      }
+    );
+
+  }
+
+  /* HTTP FAILURE */
+
+  if (!response.ok) {
+
+    const error =
+      new Error(
+        body.message ||
+        body.error ||
+        'Request failed.'
+      );
+
+    error.status =
+      response.status;
+
+    error.code =
+      body.code;
+
+    error.fieldErrors =
+      body.fieldErrors;
+
     throw error;
   }
+
+  return body;
 }
