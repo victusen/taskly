@@ -13,21 +13,28 @@ export async function startPayment() {
     }
   );
 
+  console.log("starting payment");
+
   try {
-    const { data, error } =
-      await supabase.functions.invoke(
-        'https://xpawzghnnydtjtloxxvt.supabase.co/functions/v1/initialize-payment',
-        {
-          body: {}
-        }
-      );
+    const { data: { session } } = await supabase.auth.getSession();
+   console.log("Current Session:", session ? "Exists" : 
+ "MISSING");
+   
+   // IF the client is initialized correctly.
+   const { data, error } = await 
+ supabase.functions.invoke('initialize-payment', {
+     method: 'POST', // Ensure explicit method
+     body: {}
+   });
 
-    if (error) {
-      throw error;
-    }
+   if (error) {
+     // If it's a CORS issue, the browser console will show it.
+     // If it's a 401/403, the response will be here.
+     console.error("Function invocation error:", error);
+     throw error;
+   }
 
-    const accessCode =
-      data?.access_code;
+    const accessCode = data?.payment?.access_code;
 
     if (!accessCode) {
       throw new Error(

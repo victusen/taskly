@@ -6,6 +6,22 @@
   <title>Taskly - Your projects are ready</title>
   <link rel="stylesheet" href="scripts/ui/toast.css">
   <style>
+    body {
+   margin: 0;
+   font-family: sans-serif;
+   line-height: 1.6;
+   background-color: #f4f4f4;
+ }
+
+ main {
+   width: 90%;
+   max-width: 1000px; /* Centering and standard laptop width */
+   margin: 2rem auto;
+   padding: 2rem;
+   background: white;
+   border-radius: 8px;
+   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+ }
     * { margin: 0; box-sizing: border-box; }
     header {
       position: fixed;
@@ -133,6 +149,14 @@
     .add-hidden {display: none}
     .show {display: block}
     .active {background-color: green; color: white;}
+
+       /* Media query for smaller screens if needed */
+ @media (max-width: 600px) {
+   main {
+     width: 95%;
+     padding: 1rem;
+   }
+ }
   </style>
 </head>
 <body>

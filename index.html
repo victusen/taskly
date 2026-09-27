@@ -5,11 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Taskly | A mailing platform</title>
   <Link rel="stylesheet" href="index.css">
+  <Link rel="stylesheet" href="./scripts/ui/toast.css">
 </head>
 <body>
   <main>
     <h1>Welcome to taskly</h1>
-    <h1>We are currently working on this product.</h1>
+    <p>We are currently working on this product.</p>
+
+    <!-- payment UI -->
+
+    <button id="upgrade-btn">
+      Upgrade to Paid
+    </button>
+
+    <script type="module" src="index.js"></script>
+    <script src="https://js.paystack.co/v2/inline.js"></script>
+    <script type="module" src="./scripts/payments/payment.js"></script>
   </main>
 </body>
 </html>

@@ -401,7 +401,6 @@ export function updateToast(
 
   }
 
-
   const duration =
     options.duration ||
     DEFAULT_DURATION;
@@ -423,7 +422,6 @@ export function updateToast(
       Date.now() + duration
 
   };
-
 
   saveToasts(toasts);
 
