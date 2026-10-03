@@ -1,4 +1,5 @@
 // console.log(window.supabase.createClient);
+import { getCurrentSession } from "./scripts/auth/session.js";
 import {
   signIn,
   signInWithGoogle,
@@ -7,6 +8,7 @@ import {
   resetPassword
 } from './scripts/auth/auth.js';
 
+console.log(await getCurrentSession());
 
 const form = document.querySelector('form');
 const forgotPassword = document.querySelector('.forgot-password')

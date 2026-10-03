@@ -17,24 +17,47 @@ export async function startPayment() {
 
   try {
     const { data: { session } } = await supabase.auth.getSession();
-   console.log("Current Session:", session ? "Exists" : 
- "MISSING");
-   
-   // IF the client is initialized correctly.
-   const { data, error } = await 
- supabase.functions.invoke('initialize-payment', {
-     method: 'POST', // Ensure explicit method
-     body: {}
-   });
+   console.log("Current Session:", session);
+    if (!session) {
+  throw new Error(
+    'No active session. Please sign in again.'
+  );
+    }
 
-   if (error) {
-     // If it's a CORS issue, the browser console will show it.
-     // If it's a 401/403, the response will be here.
-     console.error("Function invocation error:", error);
-     throw error;
-   }
+    console.log("starting edge function invokation");
+   const response = await fetch(`${supabase.supabaseUrl}/functions/v1/initialize-payment`, 
+ {
+       method: 'POST',
+       headers: {
+         'Authorization': `Bearer ${session.access_token}`,
+         'Content-Type': 'application/json'
+       },
+       body: JSON.stringify({})
+     });
 
-    const accessCode = data?.payment?.access_code;
+    console.log(response);
+     const result = await response.json();
+    console.log(result);
+
+     if (!response.ok) {
+       console.error("Edge Function failed with status:", 
+ response.status, result);
+       throw new Error(
+  result.error ||
+  result.message ||
+  "Failed to initialize payment"
+);
+     }
+
+    const { payment } = result;
+    console.log(payment);
+    
+   // if (error) {
+   //   console.error("Function invocation error:", error);
+   //   throw error;
+   // }
+
+    const accessCode = payment?.access_code || "";
 
     if (!accessCode) {
       throw new Error(

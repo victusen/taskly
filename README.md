@@ -10,3 +10,4 @@ Imagine forgeting your reminder to your reminder to send a bulk 'new month' mess
 ## How we will achieve this 
 
 Taskly will be design to have a clean stunning UI on the home route, and an immediate route to users dashboard immediately they have been signed in/up to view all businesses they own on their account. By clicking on any of their businesses, the real dashboard where they can manage each of the schedules they have running, paused, waiting, just run, etc and can edit. Each of the screen of the web app is expected to be so professionally designed and developed so users feel warm and welcomed
+

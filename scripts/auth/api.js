@@ -1,5 +1,8 @@
 import { supabase } from './auth.js';
 import { getCurrentSession } from './session.js';
+import {
+  BACKEND_URL
+} from "../config.js";
 
 import {
   showToast,
@@ -8,8 +11,7 @@ import {
 } from '../ui/toast.js';
 
 
-const BACKEND_URL =
-  'http://localhost:3000';
+//const BACKEND_URL = 'http://localhost:3000';
 
 
 async function ensureValidSession() {

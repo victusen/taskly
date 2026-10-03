@@ -7,20 +7,28 @@
   <Link rel="stylesheet" href="index.css">
   <Link rel="stylesheet" href="./scripts/ui/toast.css">
 </head>
-<body>
+<body style="display: flex; flex-direction: column; justify-contents: space-between;">
   <main>
     <h1>Welcome to taskly</h1>
     <p>We are currently working on this product.</p>
 
     <!-- payment UI -->
-
     <button id="upgrade-btn">
       Upgrade to Paid
     </button>
 
-    <script type="module" src="index.js"></script>
+  </main>
+  <div>
+      <p>
+        <a href="/privacy.html">Privacy policy</a>
+      </p>
+      <p>
+        <a href="/terms.html">Terms</a>
+      </p>
+  </div>
+
+  <script type="module" src="index.js"></script>
     <script src="https://js.paystack.co/v2/inline.js"></script>
     <script type="module" src="./scripts/payments/payment.js"></script>
-  </main>
 </body>
 </html>
