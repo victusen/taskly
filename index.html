@@ -4,31 +4,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Taskly | A mailing platform</title>
-  <Link rel="stylesheet" href="index.css">
-  <Link rel="stylesheet" href="./scripts/ui/toast.css">
+  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="./scripts/ui/toast.css">
 </head>
-<body style="display: flex; flex-direction: column; justify-contents: space-between;">
+<body style="text-align: center; display: flex; flex-direction: column; justify-content: space-between; height: 90vh; ">
   <main>
-    <h1>Welcome to taskly</h1>
-    <p>We are currently working on this product.</p>
+    <h1>Welcome to Bzade</h1>
+    <p>This product is built by Victor Usen.</p>
+    <p>We are currently working on it.</p>
 
     <!-- payment UI -->
-    <button id="upgrade-btn">
-      Upgrade to Paid
-    </button>
+    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+      <button style="margin-top: 30px; " id="upgrade-btn">
+        Test Payment
+      </button>
+
+      <a style="margin-top: 20px; font-size: 14px; align-self: center;" href="/login.html">Login</a>
+    </div>
 
   </main>
-  <div>
+  <div style="display: flex; justify-content: center; gap: 30px; font-size: 14px;">
       <p>
-        <a href="/privacy.html">Privacy policy</a>
+          <a href="/terms.html">Terms of service</a>
       </p>
       <p>
-        <a href="/terms.html">Terms</a>
+        <a href="/privacy-policy.html">Privacy policy</a>
       </p>
   </div>
 
-  <script type="module" src="index.js"></script>
     <script src="https://js.paystack.co/v2/inline.js"></script>
-    <script type="module" src="./scripts/payments/payment.js"></script>
+  <script type="module" src="index.js"></script>
 </body>
 </html>

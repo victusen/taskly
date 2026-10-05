@@ -1,13 +1,11 @@
-import { supabase } from './auth.js';
+
 import { getCurrentSession } from './session.js';
 import {
   BACKEND_URL
 } from "../config.js";
 
 import {
-  showToast,
-  updateToast,
-  dismissToast
+  showToast
 } from '../ui/toast.js';
 
 

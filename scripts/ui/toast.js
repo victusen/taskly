@@ -540,7 +540,7 @@ window.addEventListener(
     wasOffline = false;
 
     success(
-      'Your internet connection is back 😂',
+      'Your connection is back',
       {
         title: 'You are now online'
       }
