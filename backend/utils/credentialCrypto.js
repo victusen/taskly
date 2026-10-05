@@ -5,7 +5,8 @@ const IV_LENGTH = 12;
 
 function getEncryptionKey() {
   const value =
-    process.env.TASKLY_CREDENTIAL_ENCRYPTION_KEY;
+  process.env.BZADE_CREDENTIAL_ENCRYPTION_KEY ||
+  process.env.TASKLY_CREDENTIAL_ENCRYPTION_KEY;
 
   if (!value) {
     throw new Error(

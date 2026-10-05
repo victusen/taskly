@@ -46,7 +46,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
+  /* flex-direction: column; */
   padding: 10px 0;
   gap: 6px;
   height: 45px;

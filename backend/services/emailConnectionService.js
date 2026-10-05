@@ -136,3 +136,17 @@ export async function createGoogleConnection({
 
   return data;
 }
+
+export async function listConnections(userId) {
+  const { data, error } = await supabase
+    .from("email_connections")
+    .select("id, provider, connection_type, email_address, status, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}

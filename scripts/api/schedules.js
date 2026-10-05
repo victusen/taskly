@@ -1,20 +1,33 @@
-import { authenticatedFetch } from '../auth/api.js';
+import {
+  authenticatedFetch,
+} from "../auth/api.js";
 
 export async function getSchedules() {
+
   return authenticatedFetch(
-    '/api/schedules',
+    "/api/schedules",
     {
-      method: 'GET'
+      method: "GET",
     }
   );
 }
 
-export async function createSchedule(scheduleData) {
+export async function createSchedule(
+  schedule
+) {
+
   return authenticatedFetch(
-    '/api/schedules',
+    "/api/schedules",
     {
-      method: 'POST',
-      body: JSON.stringify(scheduleData)
+      method: "POST",
+
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+
+      body:
+        JSON.stringify(schedule),
     }
   );
 }

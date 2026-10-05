@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Taskly - Your projects are ready</title>
+  <title>Bzade - Your projects are ready</title>
   <link rel="stylesheet" href="scripts/ui/toast.css">
   <style>
     body {
@@ -32,7 +32,7 @@
       background-color: white;
       border: 1px solid lightgray;
       justify-content: space-between;
-      z-index: 5px;
+      z-index: 5;
     }
     .banner-left {
       display: flex; align-items: center; gap: 8px;
@@ -163,8 +163,8 @@
   <header>
     <div class="banner-left">
       <img src="menu.png" style="height: 30px;" />
-      <a href="index.html"><p style="font-size: 20px;">Taskly.com</p></a>
-       <div class="position: relative; display: flex;">
+      <a href="index.html"><p style="font-size: 20px;">Bzade.app</p></a>
+       <div style="position: relative; display: flex;">
         <img onclick="document.querySelector(`.drop`).classList.toggle(`show`);" src="drop-arrow.png" style="height: 20px;"/>
         <div class="drop-down">
           <div class="drop add-hidden" style=" width:200px; margin: 0 auto; border-radius: 12px; overflow: hidden; background-color: white; ">
@@ -206,7 +206,9 @@
     
     <div class="manage-project-tasks" style="display: flex; flex-direction: column; gap: 10px; padding: 10px 15px;">
       <div class="task-toggle">
-        <h2 style="font-size: 22px;">Tasks</h2>
+        <h2 
+          style="font-size: 22px;">Tasks
+        </h2>
         <div class="toggles">
           <div class="toggle active">All (14)</div>
           <div class="toggle ">Running (3)</div>
@@ -216,127 +218,16 @@
         </div> 
 
         <!-- Tasks appear here -->
-        <div class="task-list" id="" style="margin-bottom: 75px;">
-          <div class="task" id="1" style="">
-            <!-- Row one -->
-            <div style="display:flex; justify-content: space-between;">
-              <div style="display: flex; gap: 5px;">
-                <input type="checkbox">
-                <p class="taskname">Send future emails</p>
-              </div>
-              <div>Last-run: ()</div>
-            </div>
-            <!-- Row two -->
-            <div style="display: flex; background-color: green; overflow-x: scroll; ">
-              <div class="" style="background-color: red; padding: 0 20px; height: 100px; display: flex; align-items: center; ">Edit</div>
-              <table style="color: white;" >
-                <tr style="color: white; font-size: 14px; border: 1px solid grey">
-                  <th id="1">STATUS</th>
-                  <th id="2">TYPE</th>
-                  <th id="3">DATE FIXED</th>
-                  <th id="4">NEXT-RUN</th>
-                  <th id="5">SCHEDULER</th>
-                </tr>
-                <tr>
-                  <td id="1">Running</td>
-                  <td id="2">Email</td>
-                  <td id="3">04/05/26</td>
-                  <td id="4">04/05/27</td>
-                  <td id="5">usenvictor40@gmail.com</td>
-                </tr>
-              </table>
-            </div>
-          </div>
-          <div class="task" id="2" style="">
-            <!-- Row one -->
-            <div style="display:flex; justify-content: space-between;">
-              <div style="display: flex; gap: 5px;">
-                <input type="checkbox">
-                <p class="taskname">Reach contacts</p>
-              </div>
-              <div>Last-run: ()</div>
-            </div>
-            <!-- Row two -->
-            <div style="display: flex; background-color: green; overflow-x: scroll; ">
-              <div class="" style="background-color: lightgray; padding: 0 20px; height: 100px; display: flex; align-items: center; ">Edit</div>
-              <table >
-                <tr style="font-size: 14px; border: 1px solid grey">
-                  <th id="1">STATUS</th>
-                  <th id="2">TYPE</th>
-                  <th id="3">DATE FIXED</th>
-                  <th id="4">NEXT-RUN</th>
-                  <th id="5">SCHEDULER</th>
-                </tr>
-                <tr>
-                  <td id="1">Running</td>
-                  <td id="2">Phone Number</td>
-                  <td id="3">04/05/26</td>
-                  <td id="4">04/05/27</td>
-                  <td id="5">victorusen51@gmail.com</td>
-                </tr>
-              </table>
-            </div>
-          </div>
-          <div class="task" id="3" style="">
-            <!-- Row one -->
-            <div style="display:flex; justify-content: space-between;">
-              <div style="display: flex; gap: 5px;">
-                <input type="checkbox">
-                <p class="taskname">Reach contacts</p>
-              </div>
-              <div>Last-run: ()</div>
-            </div>
-            <!-- Row two -->
-            <div style="display: flex; background-color: green; overflow-x: scroll; ">
-              <div class="" style="background-color: lightgray; padding: 0 20px; height: 100px; display: flex; align-items: center; ">Edit</div>
-              <table >
-                <tr style="border: 1px solid grey">
-                  <th id="1">STATUS</th>
-                  <th id="2">TYPE</th>
-                  <th id="3">DATE FIXED</th>
-                  <th id="4">NEXT-RUN</th>
-                  <th id="5">SCHEDULER</th>
-                </tr>
-                <tr>
-                  <td id="1">Running</td>
-                  <td id="2">WhatsApp</td>
-                  <td id="3">04/05/26</td>
-                  <td id="4">04/05/27</td>
-                  <td id="5">bolanlesport@outlook.com</td>
-                </tr>
-              </table>
-            </div>
-          </div>
-          <div class="task" id="4" style="">
-            <!-- Row one -->
-            <div style="display:flex; justify-content: space-between;">
-              <div style="display: flex; gap: 5px;">
-                <input type="checkbox">
-                <p class="taskname">Reach contacts</p>
-              </div>
-              <div>Last-run: ()</div>
-            </div>
-            <!-- Row two -->
-            <div style="display: flex; background-color: green; border-radius: 6px; overflow-x: scroll; ">
-              <div class="" style="background-color: lightgray; padding: 0 20px; height: 100px; display: flex; align-items: center; ">Edit</div>
-              <table >
-                <tr style="border: 1px solid grey">
-                  <th id="1">STATUS</th>
-                  <th id="2">TYPE</th>
-                  <th id="3">DATE FIXED</th>
-                  <th id="4">NEXT-RUN</th>
-                  <th id="5">SCHEDULER</th>
-                </tr>
-                <tr>
-                  <td id="1">Running</td>
-                  <td id="2">WhatsApp</td>
-                  <td id="3">04/05/26</td>
-                  <td id="4">04/05/27</td>
-                  <td id="5">bolanlesport@outlook.com</td>
-                </tr>
-              </table>
-            </div>
-          </div>
+        <div class="task-list" id="task-list" style="margin-bottom: 75px;">
+          <!-- Every users schedule falls in here -->
+        </div>
+
+        <div id="schedule-empty" hidden style=" text-align:center; padding:40px 20px; color:#777;
+        ">
+          <div style=" font-size:42px; margin-bottom:10px;"> ✉ </div>
+          <h3>No schedules yet</h3>
+          <p>Create your first email schedule to get started.
+          </p>
         </div>
       </div>
     </div>

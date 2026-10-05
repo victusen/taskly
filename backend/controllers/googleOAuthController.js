@@ -18,6 +18,10 @@ import {
 
 const STATE_EXPIRY_MINUTES = 10;
 
+const FRONTEND_URL = (process.env.FRONTEND_URL || "https://bzade.app").replace(/\/+$/, "");
+const GMAIL_SEND_SCOPE = "https://www.googleapis.com/auth/gmail.send";
+const back = (result) => `${FRONTEND_URL}/dashboard.html?google=${result}`;
+
 export async function startGoogleOAuth(
   req,
   res
@@ -73,119 +77,63 @@ export async function startGoogleOAuth(
   }
 }
 
-export async function googleOAuthCallback(
-  req,
-  res
-) {
+export async function googleOAuthCallback(req, res) {
   try {
-    const {
-      code,
-      state,
-      error: oauthError,
-    } = req.query;
+    const { code, state, error: oauthError } = req.query;
 
-    if (!state) {
-      return res.status(400).send(
-        "Invalid OAuth state."
-      );
+    if (typeof state !== "string" || !state || state.length > 200) {
+      return res.status(400).send("Invalid OAuth state.");
     }
 
-    const stateHash = hashState(state);
+    // Finds the state and marks it used in one statement, so it works only once.
+    const now = new Date().toISOString();
 
-    const { data: oauthState, error } =
-      await supabase
-        .from("oauth_states")
-        .select(
-          "id, user_id, provider, expires_at, consumed_at"
-        )
-        .eq("state_hash", stateHash)
-        .eq("provider", "google")
-        .is("consumed_at", null)
-        .single();
+    const { data: oauthState, error } = await supabase
+      .from("oauth_states")
+      .update({ consumed_at: now })
+      .eq("state_hash", hashState(state))
+      .eq("provider", "google")
+      .is("consumed_at", null)
+      .gt("expires_at", now)
+      .select("id, user_id")
+      .maybeSingle();
 
     if (error || !oauthState) {
-      console.error(
-        "[GOOGLE OAUTH CALLBACK] Invalid state",
-        error
-      );
-
-      return res.status(400).send(
-        "Invalid or expired OAuth request."
-      );
-    }
-
-    if (
-      new Date(oauthState.expires_at) <
-      new Date()
-    ) {
-      return res.status(400).send(
-        "OAuth request has expired."
-      );
+      return res.status(400).send("Invalid, used or expired OAuth request.");
     }
 
     if (oauthError) {
-      console.warn(
-        "[GOOGLE OAUTH] User declined/Google returned error:",
-        oauthError
-      );
-
-      return res.redirect(
-        "/dashboard.html?google=cancelled"
-      );
+      return res.redirect(back("cancelled"));
     }
 
-    if (!code) {
-      return res.status(400).send(
-        "Google authorization code missing."
-      );
+    if (typeof code !== "string" || !code) {
+      return res.redirect(back("failed"));
     }
 
-    const {
-      client,
-      tokens,
-    } = await exchangeGoogleCode(code);
+    const { client, tokens } = await exchangeGoogleCode(code);
+
+    // Google lets users untick permissions. Without this one, sending never works.
+    if (!String(tokens.scope || "").split(" ").includes(GMAIL_SEND_SCOPE)) {
+      return res.redirect(back("missing_scope"));
+    }
 
     client.setCredentials(tokens);
+    const account = await getGoogleAccount(client);
 
-    const account =
-      await getGoogleAccount(client);
+    const connection = await createGoogleConnection({
+      userId: oauthState.user_id,
+      email: account.email,
+      tokens,
+    });
 
-    const connection =
-      await createGoogleConnection({
-        userId: oauthState.user_id,
-        email: account.email,
-        tokens,
-      });
+    console.log("[GOOGLE OAUTH] Connected", {
+      userId: oauthState.user_id,
+      connectionId: connection.id,
+    });
 
-      await supabase
-        .from("oauth_states")
-        .update({
-          consumed_at:
-            new Date().toISOString(),
-        })
-        .eq("id", oauthState.id);
-
-      console.log(
-        "[GOOGLE OAUTH] Connection created:",
-        {
-          userId: oauthState.user_id,
-          connectionId: connection.id,
-          email: account.email,
-        }
-      );
-
-    return res.redirect(
-      "https://bzade.app/dashboard.html?google=connected"
-    );
-
+    return res.redirect(back("connected"));
   } catch (error) {
-    console.error(
-      "[GOOGLE OAUTH CALLBACK]",
-      error
-    );
-
-    return res.redirect(
-      "https://bzade.app/dashboard.html?google=failed"
-    );
+    console.error("[GOOGLE OAUTH CALLBACK]", error);
+    return res.redirect(back("failed"));
   }
 }

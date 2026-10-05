@@ -1,4 +1,5 @@
 import { supabase } from "../auth/auth.js";
+import { authenticatedFetch } from "../auth/api.js";
 import { BACKEND_URL } from "../config.js";
 
 export async function addEmailConnection({
@@ -27,7 +28,7 @@ export async function addEmailConnection({
   }
 
   const response = await fetch(
-    `http://localhost:3000/api/email-connections`,
+    `${BACKEND_URL}/api/email-connections`,
     {
       method: "POST",
 
@@ -124,4 +125,12 @@ export async function startGoogleConnection() {
 
   window.location.href =
     data.authorizationUrl;
+}
+
+export async function listEmailConnections() {
+  const body = await authenticatedFetch("/api/email-connections", {
+    method: "GET",
+  });
+
+  return Array.isArray(body.data) ? body.data : [];
 }

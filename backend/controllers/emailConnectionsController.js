@@ -1,5 +1,6 @@
 import {
   createCustomSmtpConnection,
+  listConnections
 } from "../services/emailConnectionService.js";
 
 const EMAIL_REGEX =
@@ -114,6 +115,20 @@ export async function createEmailConnection(req, res) {
     return res.status(500).json({
       message:
         "Unable to add email connection.",
+    });
+  }
+}
+
+export async function listEmailConnections(req, res) {
+  try {
+    const data = await listConnections(req.user.id);
+
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error("[EMAIL CONNECTION LIST]", error);
+
+    return res.status(500).json({
+      message: "Unable to load email connections.",
     });
   }
 }

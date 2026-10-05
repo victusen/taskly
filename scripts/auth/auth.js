@@ -16,7 +16,7 @@ export async function signInWithGoogle() {
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: 'http://localhost:8158/dashboard.html'
+      redirectTo: `${window.location.origin}/dashboard.html`
     }
   })
 }
@@ -26,7 +26,7 @@ export async function signInWithGithub() {
   return supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: 'http://localhost:8158/dashboard.html'
+      redirectTo: `${window.location.origin}/dashboard.html`
     }
   })
 }
@@ -36,7 +36,7 @@ export async function signInWithFacebook() {
   return supabase.auth.signInWithOAuth({
     provider: 'facebook',
     options: {
-      redirectTo: 'http://localhost:8158/dashboard.html'
+      redirectTo: `${window.location.origin}/dashboard.html`
     }
   })
 }
@@ -46,7 +46,7 @@ export async function signInWithX() {
   return supabase.auth.signInWithOAuth({
     provider: 'x',
     options: {
-      redirectTo: 'http://localhost:8158/dashboard.html'
+      redirectTo: `${window.location.origin}/dashboard.html`
     }
   })
 }
@@ -84,7 +84,7 @@ export async function signUp(email, password) {
 export async function resetPassword(email) {
   ensureNetworkConnection();
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: 'http://localhost:8158/reset-password.html'
+    redirectTo: `${window.location.origin}/reset-password.html`
   });
 
   if (error) {
@@ -137,7 +137,7 @@ export async function getUserProfile(userId) {
     .from('users')
     .select('*')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
 

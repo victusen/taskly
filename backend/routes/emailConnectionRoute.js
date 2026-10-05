@@ -1,7 +1,8 @@
 import express from "express";
 
 import {
-  createEmailConnection,
+  createEmailConnection, 
+  listEmailConnections
 } from "../controllers/emailConnectionsController.js";
 
 import {
@@ -21,6 +22,11 @@ router.post(
   authMiddleware,
   createEmailConnection
 );
+
+router.get(
+  "/", 
+  authMiddleware, 
+  listEmailConnections);
 
 router.get(
   "/google/start",

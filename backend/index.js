@@ -16,6 +16,9 @@ const allowedOrigins = new Set([
   "http://127.0.0.1:8158",
   "http://localhost:5500",
   "http://127.0.0.1:5500",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "https:bzade.app"
 ]);
 
 app.use(
@@ -24,10 +27,12 @@ app.use(
       // Allows tools such as curl/Postman with no Origin header.
       if (!origin) {
         return callback(null, true);
+        console.log("CORS origin not allowed")
       }
 
       if (allowedOrigins.has(origin)) {
         return callback(null, true);
+        console.log("CORS origin not allowed")
       }
 
       return callback(
@@ -54,7 +59,7 @@ app.use(
 app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.send('Taskly Backend is running!');
+  res.send('Bzade backend is running!');
 });
 
 app.use('/api/auth', authRoute);
