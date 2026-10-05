@@ -8,8 +8,6 @@ import {
   resetPassword
 } from './scripts/auth/auth.js';
 
-console.log(await getCurrentSession());
-
 const form = document.querySelector('form');
 const forgotPassword = document.querySelector('.forgot-password')
 const facebookButton = document.querySelector('#facebook')

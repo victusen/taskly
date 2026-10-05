@@ -8,13 +8,12 @@ import {
 } from "./scripts/api/schedules.js";
 
 import {
-  success,
   error,
   loading,
   updateToast,
-  dismissToast,
 } from "./scripts/ui/toast.js";
 
+import { listEmailConnections } from "./scripts/api/emailConnections.js";
 
 const session =
   await requireAuth();
@@ -284,170 +283,69 @@ function renderSchedules(
  * --------------------------------
  */
 
-scheduleForm?.addEventListener(
-  "submit",
-  async (event) => {
+scheduleForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-    event.preventDefault();
+  if (submitBtn.disabled) return;
 
-    const form =
-      new FormData(
-        scheduleForm
-      );
+  const form = new FormData(scheduleForm);
+  const type = String(form.get("schedule_type") || "once");
 
-    const recipient =
-      String(
-        form.get(
-          "recipient"
-        ) || ""
-      )
-        .trim()
-        .toLowerCase();
+  const schedule = {
+    job_type: "email",
+    schedule_type: type,
+    email_connection_id: String(form.get("email_connection_id") || ""),
+    timezone: String(form.get("timezone") || browserTimezone),
+    scheduled_for: String(form.get("scheduled_for") || ""),
+    schedule_expression:
+      type === "recurring"
+        ? String(form.get("schedule_expression") || "")
+        : null,
+    config: {
+      recipients: String(form.get("recipient") || "")
+        .split(",")
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean),
+      subject: String(form.get("subject") || "").trim(),
+      body: String(form.get("body") || ""),
+      body_type: "text",
+    },
+  };
 
-    const subject =
-      String(
-        form.get(
-          "subject"
-        ) || ""
-      ).trim();
+  submitBtn.disabled = true;
 
-    const body =
-      String(
-        form.get(
-          "body"
-        ) || ""
-      );
+  const toastId = loading("Creating schedule...", { title: "Schedule" });
 
-    const timezone =
-      String(
-        form.get(
-          "timezone"
-        ) ||
-        "Africa/Lagos"
-      ).trim();
+  try {
+    await createSchedule(schedule);
 
-    const scheduledFor =
-      String(
-        form.get(
-          "scheduled_for"
-        ) || ""
-      );
+    updateToast(toastId, "success", "Schedule created successfully.", {
+      title: "Schedule created",
+    });
 
-    const scheduleType =
-      String(
-        form.get(
-          "schedule_type"
-        ) ||
-        "one_time"
-      );
+    overlay?.classList.remove("open");
+    resetForm();
 
-    const scheduleExpression =
-      String(
-        form.get(
-          "schedule_expression"
-        ) ||
-        ""
-      ).trim();
+    await loadSchedules();
+  } catch (err) {
+    if (handleAuthFailure(err)) return;
 
+    console.error("[CREATE SCHEDULE]", err);
 
-    const schedule = {
+    const firstFieldError = err.fieldErrors
+      ? Object.values(err.fieldErrors)[0]
+      : null;
 
-      job_type:
-        "email",
-
-      schedule_type:
-        scheduleType,
-
-      timezone,
-
-      scheduled_for:
-        scheduleType ===
-        "one_time"
-          ? scheduledFor
-          : null,
-
-      schedule_expression:
-        scheduleType ===
-        "recurring"
-          ? scheduleExpression
-          : null,
-
-      config: {
-
-        recipients:
-          recipient
-            .split(",")
-            .map(
-              email =>
-                email.trim()
-            )
-            .filter(Boolean),
-
-        subject,
-
-        body,
-
-        body_type:
-          "html",
-      },
-    };
-
-
-    const toastId =
-      loading(
-        "Creating schedule...",
-        {
-          title:
-            "Schedule"
-        }
-      );
-
-
-    try {
-
-      const result =
-        await createSchedule(
-          schedule
-        );
-
-      updateToast(
-        toastId,
-        "success",
-        "Schedule created successfully.",
-        {
-          title:
-            "Schedule created"
-        }
-      );
-
-      overlay?.classList.remove(
-        "open"
-      );
-
-      scheduleForm.reset();
-
-      await loadSchedules();
-
-    } catch (err) {
-
-      console.error(
-        "[CREATE SCHEDULE]",
-        err
-      );
-
-      updateToast(
-        toastId,
-        "error",
-        err.message ||
-          "Unable to create schedule.",
-        {
-          title:
-            "Schedule failed"
-        }
-      );
-    }
+    updateToast(
+      toastId,
+      "error",
+      firstFieldError || err.message || "Unable to create schedule.",
+      { title: "Schedule failed" }
+    );
+  } finally {
+    submitBtn.disabled = connectionSelect.value === "";
   }
-);
+});
 
 
 /*

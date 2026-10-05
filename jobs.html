@@ -141,9 +141,13 @@
       flex-direction: column;
       justify-content: space-between;
       background-color: white; 
-      width: 95%; height: 340px; 
-      border-radius: 10px; 
-      padding: 15px;
+      width: 95%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+      /* border-radius: 10px;  */
+      /* padding: 15px; */
+    }
+    .job-board label { display: block; font-size: 13px; margin-top: 8px; }
+    .job-board input, .job-board select, .job-board textarea {
+      width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box;
     }
       
     .add-hidden {display: none}
@@ -234,49 +238,58 @@
   </main>
 
   <!-- Add new task overlay -->
-  <div class="schedule-overlay" id="schedule-overlay" style="">
-    <!-- Job board -->
-    <div class="job-board" style="">
-      <!-- Close icon -->
-      <div style="display:flex; align-items: center; justify-content:space-between; margin-bottom:10px;">
-        <h3 style="line-height:1.2; font-size: 20px;">Create a new <br><span style="color: green;">Schedule</span></h3>
-        <div class="close-btn" id="close-btn">
-          <img src="Close.png" style="pointer-events: none;" height="100%">
-        </div>
-      </div>
-
-      <div style="display:flex; flex-direction:column; gap: 10px; justify-content:space-between; align-self: end;">
-        <div style="display: flex;">
-          <div class="shedule-new">
-            <button>Select a Date:</button>
-            <input type="date"><br>
-            <button>Choose a time:</button>
-            <input type="time"><br>
-            <button>Frequency:</button>
-            <select>
-              <option>Daily</option>
-              <option>Weekly</option>
-              <option>Monthly</option>
-              <option>Yearly</option>
-              <option>Every Christmas</option>
-              <option>Every New-year</option>
-              <option>Every 1st</option>
-            </select><br>
-            <button>Schedule type:</button>
-            <select>
-              <option>Email</option>
-              <option>WhatsApp</option>
-              <option>SMS</option>
-              <option>Telegram</option>
-              <option>Payloads</option>
-            </select><br>
-          </div>
-          <textarea style="width:100%;"></textarea>
-        </div>
-        <button style="font-weight: 500; border: none; border-radius: 6px; background-color: green; color: white; width: 100%; margin-top: 10px; padding: 12px;">Write this Schedule</button>
+  <div class="schedule-overlay" id="schedule-overlay">
+  <form class="job-board" id="schedule-form" novalidate>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+      <h3 style="line-height:1.2; font-size:20px;">Create a new <br><span style="color:green;">Schedule</span></h3>
+      <div class="close-btn" id="close-btn" role="button" aria-label="Close">
+        <img src="Close.png" style="pointer-events:none;" height="100%" alt="">
       </div>
     </div>
-  </div>
+
+    <label>Send from
+      <select name="email_connection_id" id="email-connection" required></select>
+    </label>
+
+    <label>To (separate with commas)
+      <input type="text" name="recipient" autocomplete="off" required>
+    </label>
+
+    <label>Subject
+      <input type="text" name="subject" maxlength="200" required>
+    </label>
+
+    <label>Message (plain text)
+      <textarea name="body" rows="5" maxlength="20000" required></textarea>
+    </label>
+
+    <label>Schedule type
+      <select name="schedule_type" id="schedule-type">
+        <option value="once">One time</option>
+        <option value="recurring">Repeating</option>
+      </select>
+    </label>
+
+    <label>Send at (first send, if repeating)
+      <input type="datetime-local" name="scheduled_for" required>
+    </label>
+
+    <div id="recurring-fields" hidden>
+      <label>Repeat
+        <select name="schedule_expression">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+      </label>
+    </div>
+
+    <input type="hidden" name="timezone" value="Africa/Lagos">
+
+    <button type="submit" id="schedule-submit" style="font-weight:500; border:none; border-radius:6px; background-color:green; color:white; width:100%; margin-top:14px; padding:12px;">Write this Schedule</button>
+  </form>
+</div>
 
   <script
   type="module"

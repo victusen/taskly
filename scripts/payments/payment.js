@@ -17,14 +17,13 @@ export async function startPayment() {
 
   try {
     const { data: { session } } = await supabase.auth.getSession();
-   console.log("Current Session:", session);
     if (!session) {
   throw new Error(
     'No active session. Please sign in again.'
   );
     }
 
-    console.log("starting edge function invokation");
+    console.log("starting edge function invocation");
    const response = await fetch(`${supabase.supabaseUrl}/functions/v1/initialize-payment`, 
  {
        method: 'POST',
@@ -35,9 +34,7 @@ export async function startPayment() {
        body: JSON.stringify({})
      });
 
-    console.log(response);
      const result = await response.json();
-    console.log(result);
 
      if (!response.ok) {
        console.error("Edge Function failed with status:", 
@@ -50,7 +47,6 @@ export async function startPayment() {
      }
 
     const { payment } = result;
-    console.log(payment);
     
    // if (error) {
    //   console.error("Function invocation error:", error);

@@ -151,6 +151,8 @@ function renderToast(toast) {
   if (renderedIds.has(toast.id)) {
     return;
   }
+  
+  document.querySelector(`[data-toast-id="${toast.id}"]`)?.remove();
 
   const container = getContainer();
 

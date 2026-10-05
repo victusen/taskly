@@ -7,7 +7,6 @@ export async function getCurrentSession() {
   if (error) {
     throw error;
   }
-  console.log(data.session)
   return data.session;
 }
 
@@ -15,7 +14,7 @@ export async function requireAuth() {
   const session = await getCurrentSession();
 
   if (!session) {
-    window.location.href = 'index.html';
+    window.location.href = 'login.html';
     return null;
   }
 
