@@ -3,6 +3,7 @@
 node_modules/
 *node_modules/
 .git
+*.txt
 google-test.html
 smtp-test.html
 PROJECT_MEMORY.md
