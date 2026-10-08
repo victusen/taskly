@@ -11,14 +11,20 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const isProduction =
+  process.env.NODE_ENV === "production" || Boolean(process.env.RENDER);
+
 const allowedOrigins = new Set([
-  "http://localhost:8158",
-  "http://127.0.0.1:8158",
-  "http://localhost:5500",
-  "http://127.0.0.1:5500",
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-  "https:bzade.app"
+  "https://bzade.app",
+  "https://www.bzade.app",
+  ...(isProduction
+    ? []
+    : [
+        "http://localhost:8158",
+        "http://127.0.0.1:8158",
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+      ]),
 ]);
 
 app.use(
