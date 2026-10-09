@@ -2,7 +2,6 @@ import express from 'express';
 import cors from "cors";
 import dotenv from 'dotenv';
 import authRoute from './routes/authRoute.js';
-import paymentRoute from './routes/paymentRoute.js';
 import scheduleRoute from './routes/scheduleRoute.js';
 import emailConnectionRoute from './routes/emailConnectionRoute.js';
 
