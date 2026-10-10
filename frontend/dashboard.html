@@ -23,7 +23,10 @@
       display: flex; align-items: center; gap: 8px;
     }
     .banner-right {
-      display: flex;
+      display: flex; gap: 4px; align-items: center;
+    }
+    .logout-btn:hover {
+      text-decoration: underline;
     }
     .banner-right div {
       height: 30px; width: 30px; border-radius: 20px;
@@ -74,6 +77,7 @@
       <img src="drop-arrow.png" style="height: 20px;"/>
     </div>
     <div class="banner-right">
+      <a href="./home.html" id="logout-btn" >Log out</a>
       <div>S</div>
     </div>
   </header>

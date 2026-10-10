@@ -62,7 +62,7 @@
       background-color: green;
     }
     main {
-      margin-top: 65px;
+      margin-top: 50px;
       display: flex; flex-direction: column; gap: 15px;
     }
     .proj-display {
@@ -203,7 +203,7 @@
     <div class="proj-display">
       <p style="font-size: 16px; color: grey;">MY PROJECTS</p>
       <h2 style="font-size: 30px;">MatchSub</h2>
-      <button id="add-schedule" style="">
+      <button id="add-schedule">
         <span style="font-size: 20px; color: black; margin-right: 10px;">+</span>
         <p style="font-size: 16px;">Add a new task</p>
       </button>
@@ -277,11 +277,13 @@
 
     <div id="recurring-fields" hidden>
       <label>Repeat
-        <select name="schedule_expression">
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-          <option value="yearly">Yearly</option>
+        <select name="every">
+          <option value="daily">Every day</option>
+          <option value="weekday">Every weekday</option>
+          <option value="weekends">Every weekend</option>
+          <option value="weekly">Every week</option>
+          <option value="monthly">Every month</option>
+          <option value="yearly">Every year</option>
         </select>
       </label>
     </div>
@@ -294,8 +296,7 @@
 
   <script
   type="module"
-  src="scripts/ui/toast.js"
-></script>
+  src="scripts/ui/toast.js"></script>
 <script type="module" src="jobs.js"
 ></script>
 </body>

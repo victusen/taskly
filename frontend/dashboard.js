@@ -26,7 +26,7 @@ async function protectDashboard() {
     const session = await getSession();
 
     if (!session) {
-      window.location.href = 'index.html';
+      window.location.href = 'login.html';
       return;
     }
 
@@ -35,7 +35,7 @@ async function protectDashboard() {
 
   } catch (error) {
     console.error('Authentication error:', error);
-    window.location.href = 'index.html';
+    window.location.href = 'login.html';
   }
 }
 
@@ -43,7 +43,7 @@ logoutButton?.addEventListener('click', async () => {
   try {
     await signOut();
 
-    window.location.href = 'index.html';
+    window.location.href = 'home.html';
 
   } catch (error) {
     console.error('Logout failed:', error);

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bzade | Data Protection</title>
+  <link rel="icon" type="image/png" href="logo-2.png">
+  <!-- <link rel="stylesheet" href="privacy-policy.css"> -->
+</head>
+<body>
+  <main class="legal-page">
+    <header class="legal-header">
+      <p class="legal-eyebrow"><a href="index.html">Bzade.app</a></p>
+      <h1>Data Protection</h1>
+      <p class="legal-effective">Effective date: October 9, 2026</p>
+    </header>
+
+    <section class="legal-section">
+      <p>
+        This page explains the data protection practices behind Bzade: who is
+        responsible for which data, the legal basis for using it, the safeguards
+        we apply, how to exercise your rights, and how to have your data deleted.
+        It supports our <a href="privacy-policy.html">Privacy Policy</a> and
+        <a href="terms.html">Terms of Use</a>, and follows the Nigeria Data
+        Protection Act 2023 (NDPA).
+      </p>
+    </section>
+
+    <section class="legal-section">
+      <h2>1. Who is responsible for what</h2>
+      <h3>Bzade as controller</h3>
+      <p>
+        For your account data (your name, email address, business name, sign in
+        details, payment records and usage logs), Bzade decides why and how the
+        data is used. Bzade is the data controller.
+      </p>
+      <h3>Bzade as processor</h3>
+      <p>
+        For the data you give Bzade to send your emails, meaning your recipient
+        addresses, the names or other values read from your spreadsheet, and your
+        message content, you decide why and how it is used. You are the controller
+        and Bzade processes it only on your instructions, to store and send what you
+        scheduled. You are responsible for having a lawful basis, such as consent
+        or an existing customer relationship, to contact each recipient.
+      </p>
+      <p>
+        We have not appointed a separate Data Protection Officer. Requests and
+        concerns go to the contact in section 11.
+      </p>
+    </section>
+
+    <section class="legal-section">
+      <h2>2. Data and the basis for using it</h2>
+      <ul>
+        <li><strong>Account and sign in data.</strong> Needed to provide the service you asked for (contract).</li>
+        <li><strong>Mail connections, schedules and message content.</strong> Needed to send what you scheduled (contract and your instructions).</li>
+        <li><strong>Payment records.</strong> Needed to take payment and meet tax and accounting duties (contract and legal obligation).</li>
+        <li><strong>Security logs.</strong> Needed to protect accounts and the service (legitimate interest).</li>
+        <li><strong>Optional features</strong> such as a Google Sheets connection run only after you choose to connect them (consent). You can withdraw consent by disconnecting.</li>
+      </ul>
+    </section>
+
+    <section class="legal-section">
+      <h2>3. Connected Google data</h2>
+      <h3>Gmail</h3>
+      <p>
+        Bzade uses the Gmail send permission only. We do not read, list, search or
+        delete your messages. Bzade's use of information received from Google APIs
+        follows the Google API Services User Data Policy, including the Limited Use
+        requirements. During Google verification, the Gmail connection is available
+        only to approved test users.
+      </p>
+      <h3>Google Sheets (planned)</h3>
+      <p>
+        When Bzade offers a Google Sheets connection, it will use read only access
+        to the spreadsheet and the columns you choose, for example a column of email
+        addresses and a column of names. Bzade will not write to, change or delete
+        your spreadsheet. We will read only the columns you select, we will check
+        and clean every value before it is stored or placed in an email, and we will
+        update this page before the feature is released.
+      </p>
+    </section>
+
+    <section class="legal-section">
+      <h2>4. Safeguards</h2>
+      <h3>Access</h3>
+      <ul>
+        <li>Every request to our backend must carry a valid sign in token.</li>
+        <li>The backend always filters data by the signed in user, so one account cannot read another account's schedules or connections.</li>
+        <li>Database access rules are enabled so that browsers cannot read tables directly, except your own profile row.</li>
+        <li>Access to our hosting, database and provider dashboards is limited to the operator of Bzade.</li>
+      </ul>
+      <h3>Encryption</h3>
+      <ul>
+        <li>All traffic uses HTTPS.</li>
+        <li>SMTP passwords and Google tokens are encrypted with AES-256-GCM before they are saved. The key is kept in our hosting configuration, separate from the database.</li>
+        <li>Providers encrypt stored data at rest according to their own standards.</li>
+      </ul>
+      <h3>Input checking</h3>
+      <ul>
+        <li>Recipient addresses, subjects, message bodies, times and settings are checked in the browser and checked again on the server. The server check is the one that counts.</li>
+        <li>Values read from a spreadsheet, and the content of emails, are cleaned before they are stored or sent, so that scripts and unsafe links cannot be passed on to your recipients.</li>
+        <li>Requests are size limited and rate limited.</li>
+      </ul>
+    </section>
+
+    <section class="legal-section">
+      <h2>5. Providers and where data goes</h2>
+      <p>These providers process data for Bzade, each for a specific purpose.</p>
+      <ul>
+        <li><strong>Supabase:</strong> sign in, database, payment start function.</li>
+        <li><strong>Render:</strong> hosting for the Bzade backend and sending.</li>
+        <li><strong>Cloudflare:</strong> domain name service, traffic protection, support address routing.</li>
+        <li><strong>Paystack:</strong> payments. We receive the result, not your card details.</li>
+        <li><strong>Google:</strong> Gmail sending, Google sign in and, when released, Google Sheets reading.</li>
+        <li><strong>Your own mail provider:</strong> if you connect SMTP, that provider delivers the email under its own terms.</li>
+        <li><strong>Transactional email provider:</strong> delivers Bzade account messages such as password resets.</li>
+      </ul>
+      <p>
+        These providers may store data outside Nigeria. We choose providers that
+        publish security and data protection commitments, and we limit what each
+        one receives. The full list with details is in the
+        <a href="privacy-policy.html">Privacy Policy</a>.
+      </p>
+    </section>
+
+    <section class="legal-section">
+      <h2>6. Retention</h2>
+      <ul>
+        <li>Account, schedule and connection data stays until you delete it or delete your account.</li>
+        <li>Stored mail credentials are deleted when you disconnect that mail account.</li>
+        <li>Completed run history is kept so you can review it, and can be deleted by you.</li>
+        <li>After a deletion request we remove your data within 30 days. Backups are overwritten in the normal backup cycle.</li>
+        <li>Payment records stay for as long as tax and accounting rules require.</li>
+        <li>Server logs are kept for a limited time for security and fault finding.</li>
+      </ul>
+    </section>
+
+    <section class="legal-section">
+      <h2>7. Your rights</h2>
+      <p>Under the NDPA you may:</p>
+      <ul>
+        <li>ask whether we hold your data and receive a copy;</li>
+        <li>ask us to correct wrong data;</li>
+        <li>ask us to delete your data;</li>
+        <li>object to, or ask us to restrict, certain processing;</li>
+        <li>receive your data in a common format;</li>
+        <li>withdraw consent at any time, without affecting what was done before.</li>
+      </ul>
+      <p>
+        Email <a href="mailto:victor@bzade.app">victor@bzade.app</a> from the
+        address on your account. We may ask you to confirm your identity first. We
+        reply within 30 days.
+      </p>
+      <p>
+        If you are a recipient of an email sent through Bzade and want your data
+        corrected or deleted, contact the business that sent it, because that
+        business controls your data. You may also email us and we will pass your
+        request on and act on any instruction from that business.
+      </p>
+    </section>
+
+    <section class="legal-section" id="delete-your-data">
+      <h2>8. Delete your data</h2>
+      <p>You can have your data deleted in either of these ways.</p>
+      <ul>
+        <li><strong>Disconnect a mail account</strong> from the Bzade dashboard. This deletes the stored credentials for that account.</li>
+        <li><strong>Delete your whole account.</strong> Email <a href="mailto:victor@bzade.app?subject=Delete%20my%20Bzade%20account">victor@bzade.app</a> with the subject "Delete my Bzade account" from your account email. We delete your profile, schedules, connections and run history within 30 days and confirm by email.</li>
+      </ul>
+      <p>
+        If you signed in with Google, Facebook or X, also remove Bzade from that
+        provider's list of connected apps. For Google, open your Google Account,
+        choose Security, then Third party apps with account access, and remove
+        Bzade. Removing the app at the provider stops further access, and our
+        deletion request removes the data we hold.
+      </p>
+    </section>
+
+    <section class="legal-section">
+      <h2>9. Personal data breaches</h2>
+      <p>
+        If a breach is likely to put your rights at risk, we will notify the Nigeria
+        Data Protection Commission within 72 hours of becoming aware, as the NDPA
+        requires, and we will tell affected users without undue delay, with what
+        happened, what data was involved, and what to do.
+      </p>
+    </section>
+
+    <section class="legal-section">
+      <h2>10. Complaints</h2>
+      <p>
+        Please contact us first so we can fix the problem. You may also complain to
+        the Nigeria Data Protection Commission at
+        <a href="https://ndpc.gov.ng" target="_blank" rel="noopener">ndpc.gov.ng</a>.
+      </p>
+    </section>
+
+    <section class="legal-section">
+      <h2>11. Contact</h2>
+      <address>
+        Victor Usen, Bzade<br>
+        Nigeria<br>
+        Email: <a href="mailto:victor@bzade.app">victor@bzade.app</a>
+      </address>
+    </section>
+  </main>
+</body>
+</html>

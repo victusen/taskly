@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=">
+  <title>bzade | test grapesjs template</title>
+  <link rel="stylesheet" href="https://unpkg.com/grapesjs/dist/css/grapes.min.css">
+</head>
+<body>
+  <div id="gjs">
+    <h1>Hello from Bzade</h1>
+    <p>Start designing your email here.</p>
+  </div>
+
+  <script src="https://unpkg.com/grapesjs"></script>
+  <script>
+    const editor = grapesjs.init({
+      container: "#gjs",
+      height: "600px",
+      storageManager: false
+    });
+  </script>
+</body>
+</html>

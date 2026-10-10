@@ -14,9 +14,12 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",
     "cors": "^2.8.6",
+    "cron-parser": "^5.10.2",
     "dotenv": "^18.0.0",
     "express": "^5.2.1",
-    "googleapis": "^181.0.0"
+    "get-cron": "^1.1.1",
+    "googleapis": "^181.0.0",
+    "luxon": "^3.7.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

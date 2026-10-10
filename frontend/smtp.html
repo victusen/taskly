@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+  <title>SMTP Connection Test</title>
+  <link rel="stylesheet" href="./scripts/ui/toast.css">
+  <style>
+  .smtp-notice { max-width: 420px; margin-top: 18px; padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; line-height: 1.5; }
+  .smtp-notice p { margin: 0 0 8px; }
+  .smtp-disclaimer { color: #555; font-size: 13px; margin-bottom: 0; }
+  </style>
+</head>
+
+<body>
+
+  <h1>SMTP Connection Test</h1>
+
+  <p id="status">
+    Enter your SMTP details.
+  </p>
+
+  <form id="smtp-form">
+
+    <div>
+      <label for="emailAddress">
+        Sender Email
+      </label>
+
+      <input
+        id="emailAddress"
+        name="emailAddress"
+        type="email"
+        placeholder="you@example.com"
+        required
+      >
+    </div>
+
+    <div>
+      <label for="host">
+        SMTP Host
+      </label>
+
+      <input
+        id="host"
+        name="host"
+        type="text"
+        placeholder="smtp.example.com"
+        required
+      >
+    </div>
+
+    <div>
+      <label for="port">
+        SMTP Port
+      </label>
+
+      <input
+        id="port"
+        name="port"
+        type="number"
+        placeholder="587"
+        required
+      >
+    </div>
+
+    <div>
+      <label for="secure">
+        Secure
+      </label>
+
+      <select
+        id="secure"
+        name="secure"
+        required
+      >
+        <option value="true">
+          true
+        </option>
+
+        <option value="false">
+          false
+        </option>
+      </select>
+    </div>
+
+    <div>
+      <label for="username">
+        SMTP Username
+      </label>
+
+      <input
+        id="username"
+        name="username"
+        type="text"
+        placeholder="you@example.com"
+        required
+      >
+    </div>
+
+    <div>
+      <label for="password">
+        SMTP Password
+      </label>
+
+      <input
+        id="password"
+        name="password"
+        type="password"
+        required
+      >
+    </div>
+
+    <button
+      type="submit"
+      id="save-smtp"
+    >
+      Add SMTP Connection
+    </button>
+
+  </form>
+
+  <aside class="smtp-notice" aria-label="Before you connect">
+  <p><strong>Use a real mailbox.</strong> Be sure the email you connect has a built-in inbox with SMTP access, so Bzade can send your templates for you on the schedule you set. Forwarding-only addresses cannot send mail.</p>
+  <p class="smtp-disclaimer">Our <a href="/privacy-policy.html">privacy policy</a> and <a href="/terms.html">terms of use</a> are very clear. We won't sell or read your emails.</p>
+  </aside>
+
+  <script type="module">
+    import { BACKEND_URL } from "./scripts/config.js";
+    
+    import {
+      addEmailConnection
+    } from "./scripts/api/emailConnections.js";
+
+    const form =
+      document.getElementById(
+        "smtp-form"
+      );
+
+    const status =
+      document.getElementById(
+        "status"
+      );
+
+    form.addEventListener(
+      "submit",
+      async (event) => {
+
+        event.preventDefault();
+
+        status.textContent =
+          "Adding SMTP connection...";
+
+        try {
+
+          const emailAddress =
+            document
+              .getElementById("emailAddress")
+              .value;
+
+          const host =
+            document
+              .getElementById("host")
+              .value;
+
+          const port =
+            Number(
+              document
+                .getElementById("port")
+                .value
+            );
+
+          const secure =
+            document
+              .getElementById("secure")
+              .value === "true";
+
+          const username =
+            document
+              .getElementById("username")
+              .value;
+
+          const password =
+            document
+              .getElementById("password")
+              .value;
+
+          const result =
+            await addEmailConnection({
+              emailAddress,
+              host,
+              port,
+              secure,
+              username,
+              password
+            });
+
+          console.log(
+            "[SMTP TEST]",
+            result
+          );
+
+          status.textContent =
+            "SMTP connection saved successfully.";
+
+        } catch (error) {
+
+          console.error(
+            "[SMTP TEST]",
+            error
+          );
+
+          status.textContent =
+            error.message ||
+            "Unable to add SMTP connection.";
+
+        }
+
+      }
+    );
+
+  </script>
+
+</body>
+</html> 
