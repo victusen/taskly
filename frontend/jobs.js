@@ -13,17 +13,17 @@ import {
   updateToast,
 } from "./scripts/ui/toast.js";
 
+import { getProjects } from "./scripts/api/projects.js";
 import { listEmailConnections } from "./scripts/api/emailConnections.js";
 
-const session =
-  await requireAuth();
+const session = await requireAuth();
+const projectId = new URLSearchParams(window.location.search).get("project");
 
 if (!session) {
   throw new Error(
     "Authentication required."
   );
 }
-
 
 const addTaskBtn =
   document.getElementById(
@@ -113,6 +113,37 @@ closeBtn?.addEventListener(
   }
 );
 
+/*
+ * --------------------------------
+ * LOAD PROJECT
+ * --------------------------------
+ */
+ async function loadProject() {
+  const result = await getProjects();
+  const project = result.data.find((item) => item.id === projectId);
+
+  projectName.textContent = project ? project.name : "Project not found";
+
+  const connections = await listEmailConnections();
+  connection = connections.find((item) => item.status === "active") || null;
+
+  projectMail.textContent = connection
+    ? `Sending from ${connection.email_address}`
+    : "No active mail account connected.";
+
+  connectionSelect.innerHTML = "";
+
+  if (connection) {
+    connectionSelect.add(
+      new Option(`${connection.email_address} (${connection.provider})`, connection.id)
+    );
+  } else {
+    connectionSelect.add(new Option("No mail account connected", ""));
+  }
+
+  addButton.disabled = !canSend() || !project;
+  submitButton.disabled = !canSend() || !project;
+ }
 
 /*
  * --------------------------------
@@ -317,7 +348,8 @@ scheduleForm?.addEventListener("submit", async (event) => {
   const toastId = loading("Creating schedule...", { title: "Schedule" });
 
   try {
-    await createSchedule(schedule);
+    checked.payload.project_id = projectId;
+    await createSchedule(checked.payload);
 
     updateToast(toastId, "success", "Schedule created successfully.", {
       title: "Schedule created",

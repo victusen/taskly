@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from 'dotenv';
 import authRoute from './routes/authRoute.js';
 import scheduleRoute from './routes/scheduleRoute.js';
+import projectRoute from "./routes/projectRoute.js";
 import emailConnectionRoute from './routes/emailConnectionRoute.js';
 
 dotenv.config();
@@ -31,13 +32,13 @@ app.use(
     origin(origin, callback) {
       // Allows tools such as curl/Postman with no Origin header.
       if (!origin) {
-        return callback(null, true);
         console.log("CORS origin not allowed")
+        return callback(null, true);
       }
 
       if (allowedOrigins.has(origin)) {
-        return callback(null, true);
         console.log("CORS origin not allowed")
+        return callback(null, true);
       }
 
       return callback(
@@ -70,8 +71,11 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoute);
 app.use('/api/payment', paymentRoute);
 app.use('/api/schedules', scheduleRoute);
+app.use('/api/projects', projectRoute);
 app.use('/api/email-connections', emailConnectionRoute);
 
 app.listen(PORT, () => {
   console.log(`Server is listening on http://localhost:${PORT}`);
 });
+
+

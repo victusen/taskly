@@ -16,6 +16,8 @@ const ALLOWED_STATUSES = new Set([
 const EMAIL_REGEX =
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const MAX_RECIPIENTS = 50;
 const MAX_SUBJECT_LENGTH = 300;
 const MAX_BODY_LENGTH = 100_000;

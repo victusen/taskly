@@ -1,0 +1,14 @@
+.bz-state { text-align: center; padding: 40px 16px; color: #667085; }
+.bz-state h3 { color: #17202a; font-size: 18px; margin-bottom: 6px; }
+.bz-state p { font-size: 14px; }
+
+.bz-mark { width: 28px; height: 28px; color: #d97757; margin-bottom: 10px; animation: bz-spin 2.4s linear infinite, bz-pulse 1.2s ease-in-out infinite; }
+
+.bz-retry { margin-top: 14px; background: #17202a; color: #ffffff; border: 0; border-radius: 8px; padding: 9px 16px; font: inherit; cursor: pointer; }
+
+@keyframes bz-spin { to { transform: rotate(360deg); } }
+@keyframes bz-pulse { 50% { opacity: 0.45; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .bz-mark { animation: bz-pulse 1.8s ease-in-out infinite; }
+}

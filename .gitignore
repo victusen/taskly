@@ -7,3 +7,4 @@ node_modules/
 google-test.html
 smtp-test.html
 PROJECT_MEMORY.md
+generate_codebase_txt.sh

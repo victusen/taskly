@@ -6,6 +6,7 @@
   <title>bzade - Your jobs are here</title>
   <link rel="icon" type="image/png" href="logo-2.png" />
   <link rel="stylesheet" href="scripts/ui/toast.css">
+  <link rel="stylesheet" href="scripts/ui/states.css">
   <style>
     * { margin: 0; box-sizing: border-box; }
     header {
@@ -67,6 +68,9 @@
     a {
       text-decoration: none;
     }
+    .project-card { display: block; border: 1px solid #e4e7ec; border-radius: 12px; padding: 18px; margin-bottom: 12px; color: inherit; text-decoration: none; }
+    .project-card h3 { font-size: 18px; }
+    .project-card p { color: #667085; font-size: 14px; }
   </style>
 </head>
 <body>
@@ -81,7 +85,7 @@
       <div>S</div>
     </div>
   </header>
-  <main>
+  <!--<main>
     <div class="dash-top">
       <h2>Overview</h2> 
       <button id="connect-google" type="button">Connect Gmail</button>
@@ -112,6 +116,19 @@
         <p style="font-size: 16px;">Add a new Bzade project.</p>
       </div>
     </div>
+  </main>-->
+  <main>
+    <div class="dash-top">
+      <h2>Projects</h2>
+      <div>
+        <button id="connect-google" type="button">Connect Gmail</button>
+        <button id="logout-btn" type="button">Log out</button>
+        <button id="add-project" type="button" disabled title="Coming soon">Add project</button>
+      </div>
+    </div>
+  
+    <section id="project-list"></section>
+    <p id="project-empty" hidden>No projects yet.</p>
   </main>
 
   <script src="https://js.paystack.co/v2/inline.js"></script>
