@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from "cors";
 import dotenv from 'dotenv';
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import scheduleRoute from './routes/scheduleRoute.js';
 import projectRoute from "./routes/projectRoute.js";
 import emailConnectionRoute from './routes/emailConnectionRoute.js';
@@ -53,6 +55,8 @@ app.use(
 
 // app.use(express.json());
 app.set("trust proxy", 2);
+app.use(helmet());
+app.use("/api", rateLimit({ windowMs: 60_000, limit: 120 }));
 app.use(express.json({ limit: "512kb" }));
 
 app.get('/', (req, res) => {

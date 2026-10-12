@@ -2,6 +2,7 @@ import express from "express";
 
 import {
   createEmailConnection, 
+  deleteEmailConnection,
   listEmailConnections
 } from "../controllers/emailConnectionsController.js";
 

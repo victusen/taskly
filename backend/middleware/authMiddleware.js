@@ -1,9 +1,4 @@
-import helmet from "helmet";
-import rateLimit from "express-rate-limit";
 import { supabase } from '../config/supabase.js';
-
-app.use(helmet());
-app.use("/api", rateLimit({ windowMs: 60_000, limit: 120 }));
 
 export async function authMiddleware(req, res, next) {
   try {
