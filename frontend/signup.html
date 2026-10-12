@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bzade | Create account</title>
+  <link rel="icon" type="image/png" href="logo-2.png">
+  <link rel="stylesheet" href="scripts/ui/toast.css">
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+  <main>
+    <div class="banner">
+      <a href="index.html"><img src="logo-wordmark-black.png" alt="Bzade" style="height:28px"></a>
+    </div>
+    <div class="accounts">
+      <h2>Create your account</h2>
+      <div class="acct-groups">
+        <button id="google" class="social-login" type="button"><img src="google.png" alt=""><p>Google</p></button>
+        <button id="facebook" class="social-login" type="button"><img src="facebook.png" alt=""><p>Facebook</p></button>
+        <p class="or-button">or</p>
+      </div>
+    </div>
+    <form id="signup-form">
+      <div class="form-groups"><label for="first">First name</label><input id="first" type="text" autocomplete="given-name" required></div>
+      <div class="form-groups"><label for="last">Last name</label><input id="last" type="text" autocomplete="family-name" required></div>
+      <div class="form-groups"><label for="email">Email</label><input id="email" type="email" autocomplete="email" required></div>
+      <div class="form-groups"><label for="password">Password</label><input id="password" type="password" autocomplete="new-password" minlength="8" required></div>
+      <button type="submit" class="signin-btn">Create account</button>
+      <a class="alt-link" href="login.html">I already have an account</a>
+    </form>
+  </main>
+  <script type="module" src="signup.js"></script>
+</body>
+</html>

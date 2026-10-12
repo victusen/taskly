@@ -119,6 +119,7 @@ export async function createGoogleConnection({
         connection_type: "oauth2",
         email_address: email,
         credentials: encrypted,
+        status: "active",
       },
       {
         onConflict:
@@ -148,5 +149,17 @@ export async function listConnections(userId) {
     throw error;
   }
 
+  return data;
+}
+
+export async function deleteConnection(userId, connectionId) {
+  const { data, error } = await supabase
+    .from("email_connections")
+    .delete()
+    .eq("id", connectionId)
+    .eq("user_id", userId)
+    .select("id")
+    .maybeSingle();
+  if (error) throw error;
   return data;
 }

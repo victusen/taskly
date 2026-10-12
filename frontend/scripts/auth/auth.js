@@ -67,11 +67,15 @@ export async function signIn(email, password) {
   return data;
 }
 
-export async function signUp(email, password) {
+export async function signUp(email, password, firstName, lastName) {
   ensureNetworkConnection();
   const { data, error } = await supabase.auth.signUp({
     email,
-    password
+    password,
+    options: {
+      data: { first_name: firstName, last_name: lastName },
+      emailRedirectTo: `${window.location.origin}/dashboard.html`
+    }
   });
 
   if (error) {

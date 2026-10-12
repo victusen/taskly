@@ -1,6 +1,7 @@
 import {
   createCustomSmtpConnection,
-  listConnections
+  listConnections,
+  deleteConnection
 } from "../services/emailConnectionService.js";
 
 const EMAIL_REGEX =
@@ -112,10 +113,7 @@ export async function createEmailConnection(req, res) {
       error
     );
 
-    return res.status(500).json({
-      message:
-        "Unable to add email connection.",
-    });
+    return res.status(500).json({ success: false, code: "SERVER_ERROR", message: "Unable to load email connections." });
   }
 }
 
@@ -127,8 +125,19 @@ export async function listEmailConnections(req, res) {
   } catch (error) {
     console.error("[EMAIL CONNECTION LIST]", error);
 
-    return res.status(500).json({
-      message: "Unable to load email connections.",
-    });
+    return res.status(500).json({ success: false, code: "SERVER_ERROR", message: "Unable to load email connections." });
+  }
+}
+
+export async function deleteEmailConnection(req, res) {
+  try {
+    const removed = await deleteConnection(req.user.id, req.params.id);
+    if (!removed) {
+      return res.status(404).json({ success: false, code: "NOT_FOUND", message: "Connection not found." });
+    }
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("[EMAIL CONNECTION DELETE]", error);
+    return res.status(500).json({ success: false, code: "SERVER_ERROR", message: "Unable to disconnect." });
   }
 }

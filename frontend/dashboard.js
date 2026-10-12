@@ -1,142 +1,67 @@
-/* import {
-  getSession,
-  getUserProfile,
-  getCurrentUser,
-  signOut
-} from './scripts/auth/auth.js';
-
-import { 
-  requireAuth
-} from './scripts/auth/session.js'; 
-
-import { showToast } from './scripts/ui/toast.js';
-
-import { startGoogleConnection } from './scripts/api/emailConnections.js';
-
-const session = await requireAuth();
-
-if (!session) {
-  // redirect already handled
-}
-
-const logoutButton = document.querySelector('#logout-btn');
-
-async function protectDashboard() {
-  try {
-    const session = await getSession();
-
-    if (!session) {
-      window.location.href = 'login.html';
-      return;
-    }
-
-    const user = await getCurrentUser();
-    const profile = await getUserProfile(user.id);
-
-  } catch (error) {
-    console.error('Authentication error:', error);
-    window.location.href = 'login.html';
-  }
-}
-
-logoutButton?.addEventListener('click', async () => {
-  try {
-    await signOut();
-
-    window.location.href = 'home.html';
-
-  } catch (error) {
-    console.error('Logout failed:', error);
-  }
-});
-
-protectDashboard();
-
-const GOOGLE_RESULTS = {
-  connected: ['success', 'Gmail connected.'],
-  cancelled: ['warning', 'Gmail connection cancelled.'],
-  missing_scope: ['warning', 'Gmail needs the send permission. Connect again and keep it ticked.'],
-  failed: ['error', 'Could not connect Gmail. Try again.'],
-};
-
-const googleResult = new URLSearchParams(window.location.search).get('google');
-
-if (googleResult && GOOGLE_RESULTS[googleResult]) {
-  showToast(...GOOGLE_RESULTS[googleResult]);
-  window.history.replaceState({}, document.title, window.location.pathname);
-}
-
-document.getElementById('connect-google')?.addEventListener('click', () => {
-  startGoogleConnection().catch((err) => showToast('error', err.message));
-}); */
-
 import { showLoading, showEmpty, showError } from "./scripts/ui/states.js";
 import { requireAuth } from "./scripts/auth/session.js";
 import { signOut } from "./scripts/auth/auth.js";
 import { startGoogleConnection } from "./scripts/api/emailConnections.js";
-import { getProjects } from "./scripts/api/projects.js";
-import { error } from "./scripts/ui/toast.js";
+import { getProjects, createProject } from "./scripts/api/projects.js";
+import { error as toastError, success as toastSuccess } from "./scripts/ui/toast.js";
 
-showLoading(projectList, "Loading your projects...");
+const content = document.getElementById("project-content");
+const form = document.getElementById("project-form");
+const logoutButton = document.getElementById("logout-btn");
+const connectButton = document.getElementById("connect-google");
+
+const GOOGLE_RESULTS = {
+  connected: ["success", "Gmail connected."],
+  cancelled: ["warning", "Gmail connection cancelled."],
+  missing_scope: ["warning", "Gmail needs the send permission. Connect again and keep it ticked."],
+  failed: ["error", "Could not connect Gmail. Try again."],
+};
+
+showLoading(content, "Loading your workspace");
 
 const session = await requireAuth();
+if (!session) throw new Error("Authentication required.");
 
-if (!session) {
-  throw new Error("Authentication required.");
-}
-
-const projectList = document.getElementById("project-list");
-const emptyState = document.getElementById("project-empty");
-const connectButton = document.getElementById("connect-google");
-const logoutButton = document.getElementById("logout-btn");
-
-function renderProjects(projects) {
-  projectList.innerHTML = "";
-  emptyState.hidden = projects.length > 0;
-
-  for (const project of projects) {
-    const link = document.createElement("a");
-    link.className = "project-card";
-    link.href = `jobs.html?project=${encodeURIComponent(project.id)}`;
-
-    const title = document.createElement("h3");
-    title.textContent = project.name;
-
-    const meta = document.createElement("p");
-    meta.textContent = `Created ${new Date(project.created_at).toLocaleDateString()}`;
-
-    link.append(title, meta);
-    projectList.appendChild(link);
-  }
-}
-
-async function loadProjects() {
+async function load() {
   try {
     const result = await getProjects();
-    renderProjects(result.data);
-  } catch (err) {
-    console.error("[LOAD PROJECTS]", err);
-
-    if (err.status === 401) {
-      window.location.href = "index.html";
+    const projects = result.data;
+    if (projects.length > 0) {
+      window.location.href = `jobs.html?project=${encodeURIComponent(projects[0].id)}`;
       return;
     }
-
-    error(err.message || "Unable to load projects.");
+    content.innerHTML = "";
+    form.hidden = false;
+  } catch (err) {
+    if (err.status === 401) { window.location.href = "login.html"; return; }
+    showError(content, err.message || "Unable to load your workspace.", load);
   }
 }
 
-connectButton?.addEventListener("click", async () => {
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = form.querySelector("button[type=submit]");
+  button.disabled = true;
   try {
-    await startGoogleConnection();
+    const result = await createProject({
+      project_name: form.elements.project_name.value.trim(),
+      business_name: form.elements.business_name.value.trim(),
+    });
+    window.location.href = `jobs.html?project=${encodeURIComponent(result.data.id)}`;
   } catch (err) {
-    error(err.message);
+    const first = err.fieldErrors ? Object.values(err.fieldErrors)[0] : null;
+    toastError(first || err.message || "Could not create the project.");
+    button.disabled = false;
   }
 });
 
 logoutButton?.addEventListener("click", async () => {
   await signOut();
-  window.location.href = "login.html";
+  window.location.href = "index.html";
 });
 
-await loadProjects();
+connectButton?.addEventListener("click", () => {
+  startGoogleConnection().catch((err) => toastError(err.message));
+});
+
+await load();

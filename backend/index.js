@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from "cors";
 import dotenv from 'dotenv';
-import authRoute from './routes/authRoute.js';
 import scheduleRoute from './routes/scheduleRoute.js';
 import projectRoute from "./routes/projectRoute.js";
 import emailConnectionRoute from './routes/emailConnectionRoute.js';
@@ -30,20 +29,10 @@ const allowedOrigins = new Set([
 app.use(
   cors({
     origin(origin, callback) {
-      // Allows tools such as curl/Postman with no Origin header.
-      if (!origin) {
-        console.log("CORS origin not allowed")
+      if (!origin || allowedOrigins.has(origin)) {
         return callback(null, true);
       }
-
-      if (allowedOrigins.has(origin)) {
-        console.log("CORS origin not allowed")
-        return callback(null, true);
-      }
-
-      return callback(
-        new Error("CORS origin not allowed")
-      );
+      return callback(null, false);
     },
 
     methods: [
@@ -62,17 +51,22 @@ app.use(
   })
 );
 
-app.use(express.json());
+// app.use(express.json());
+app.set("trust proxy", 2);
+app.use(express.json({ limit: "512kb" }));
 
 app.get('/', (req, res) => {
   res.send('Bzade backend is running!');
 });
 
-app.use('/api/auth', authRoute);
-app.use('/api/payment', paymentRoute);
 app.use('/api/schedules', scheduleRoute);
 app.use('/api/projects', projectRoute);
 app.use('/api/email-connections', emailConnectionRoute);
+
+app.use((err, req, res, next) => {
+  console.error("[UNHANDLED]", err);
+  res.status(500).json({ success: false, code: "SERVER_ERROR", message: "Something went wrong. Please try again." });
+});
 
 app.listen(PORT, () => {
   console.log(`Server is listening on http://localhost:${PORT}`);

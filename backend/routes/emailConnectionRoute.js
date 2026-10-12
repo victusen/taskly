@@ -39,4 +39,9 @@ router.get(
   googleOAuthCallback
 );
 
+router.delete(
+  "/:id", 
+  authMiddleware, 
+  deleteEmailConnection);
+
 export default router;

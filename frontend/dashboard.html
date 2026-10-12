@@ -131,6 +131,14 @@
     <p id="project-empty" hidden>No projects yet.</p>
   </main>
 
+  <div id="project-content"></div>
+  <form id="project-form" hidden novalidate>
+    <h1>Create your first project</h1>
+    <label>Project name<input name="project_name" maxlength="120" required autofocus></label>
+    <label>Business name<input name="business_name" maxlength="120" required></label>
+    <button type="submit">Continue</button>
+  </form>
+
   <script src="https://js.paystack.co/v2/inline.js"></script>
   <script type="module" src="dashboard.js"></script>
 </body>

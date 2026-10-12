@@ -1,7 +1,9 @@
 import { authenticatedFetch } from "../auth/api.js";
 
-export function getProjects() {
+export function createProject(project) {
   return authenticatedFetch("/api/projects", {
-    method: "GET",
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(project),
   });
 }
