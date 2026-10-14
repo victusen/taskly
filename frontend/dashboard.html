@@ -81,12 +81,17 @@
       font-weight: 700;
     }
 
-    /* Large Project Cards */
+    /* CTA Card with minimal spacing and no custom button styling overrides */
     .project-cards-grid {
       display: flex;
       flex-direction: column;
       gap: 15px;
       margin-top: 10px;
+    }
+    .project-cards-grid.empty-grid {
+      min-height: 55vh;
+      justify-content: center;
+      align-items: center;
     }
 
     .project-card {
@@ -101,6 +106,7 @@
       color: inherit;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       transition: all 0.2s ease;
+      width: 100%;
     }
     .project-card:hover {
       border-color: #888;
@@ -139,19 +145,23 @@
       color: green;
     }
 
-    /* CTA Card with minimal spacing and no custom button styling overrides */
+    /* CTA Card with red colored dashed border 1px, rectangular in shape centered in the middle of the page */
     .project-card-dashed {
-      border: 2px dashed lightgray;
+      border: 1px dashed red;
       background: #fafafa;
       align-items: center;
       justify-content: center;
       text-align: center;
       cursor: pointer;
-      min-height: 100px;
+      width: 320px;
+      max-width: 100%;
+      min-height: 110px;
+      border-radius: 8px;
+      margin: 0 auto;
     }
     .project-card-dashed:hover {
-      background: #f0f0f0;
-      border-color: #888;
+      background: #fff5f5;
+      border-color: red;
     }
 
     /* Business Creation Modal */
@@ -245,7 +255,34 @@
     </div>
 
     <div class="project-cards-grid" id="project-list">
-      <!-- Injected via dashboard.js -->
+      <a class="project-card" href="jobs.html?project=mock-1">
+        <div>
+          <h3>Saja Restaurant</h3>
+          <p class="biz">Saja Foods Ltd</p>
+        </div>
+        <div class="project-card-meta">
+          <span>Created Sep 14, 2026</span>
+          <span class="badge badge-green">6 emails</span>
+        </div>
+      </a>
+
+      <a class="project-card" href="jobs.html?project=mock-2">
+        <div>
+          <h3>Matchsub</h3>
+          <p class="biz">Matchsub Sports</p>
+        </div>
+        <div class="project-card-meta">
+          <span>Created Oct 2, 2026</span>
+          <span class="badge badge-green">4 emails</span>
+        </div>
+      </a>
+
+      <button type="button" class="project-card project-card-dashed" id="add-business-card">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; color: red;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span style="font-weight: 500;">Create a new business</span>
+        </div>
+      </button>
     </div>
   </main>
 

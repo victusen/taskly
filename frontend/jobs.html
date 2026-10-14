@@ -157,7 +157,7 @@
     .toggle.active:hover { background-color: green; }
     .no-job { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px 20px; color: #777; }
     .no-job[hidden] { display: none; }
-    .no-job svg { width: 64px; height: 64px; margin-bottom: 12px; transform: rotate(-8deg); }
+    .no-job svg { width: 76px; height: 76px; margin-top: 8px; margin-bottom: 24px; transform: rotate(-8deg); }
     .no-job h3 { font-size: 18px; color: #333; margin-bottom: 4px; }
     .no-job p { font-size: 14px; max-width: 320px; }
     .job-board { padding: 16px; }
@@ -309,7 +309,7 @@
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
           <h2 style="font-size: 22px;">Tasks</h2>
           <button id="connect-gmail-btn" class="btn" type="button" style="padding: 4px 10px; background-color: inherit; border: 1px solid lightgray; border-radius: 4px; cursor: pointer; font-weight: normal; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; color: #111;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 7L2 7"/></svg>
+            <img src="gmail-btn.png" style="height: 14px;" alt="Gmail" />
             <span>Connect Gmail</span>
           </button>
         </div>
@@ -333,7 +333,7 @@
             <h3>No results found</h3>
             <p>There are no jobs or tasks available matching your filter at the moment.</p>
           </div>
-          <button id="add-task-cta" class="btn btn-dark" type="button" style="margin: 4px auto 0; background-color: #111; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s;">
+          <button id="add-task-cta" class="btn btn-dark" type="button" style="margin: 4px auto 0; background-color: #111; color: white; border: none; border-radius: 6px; padding: 8px 10px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             <span>Add a new task</span>
           </button>
@@ -341,7 +341,7 @@
 
         <div id="schedule-empty" hidden style=" text-align:center; padding:20px 20px; color:#777;
         ">
-          <div style=" font-size:36px; margin-bottom:6px;"> ✉ </div>
+        <div style=" font-size:42px; margin-top:8px; margin-bottom:6px;"> ✉ </div>
           <h3>No schedules yet</h3>
           <p>Create your first email schedule to get started.
           </p>

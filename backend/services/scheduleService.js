@@ -1,541 +1,287 @@
 import { supabase } from "../config/supabase.js";
 
-const ALLOWED_JOB_TYPES = new Set([
-  "email",
-]);
+import {
+  UUID_PATTERN,
+  ValidationError,
+  validateScheduleInput,
+} from "./scheduleValidation.js";
 
-const ALLOWED_SCHEDULE_TYPES = new Set([
-  "one_time",
-  "recurring",
-]);
+import { computeNextRun } from "./scheduleRule.js";
 
-const ALLOWED_STATUSES = new Set([
-  "active",
-]);
+/* Active plus paused schedules one user may hold, by plan_tier. Change the numbers when pricing is decided. */
+const PLAN_LIMITS = { free: 5, Paid: 50 };
 
-const EMAIL_REGEX =
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+class ServiceError extends Error {
+  constructor(status, code, message) {
+    super(message);
+    this.status = status;
+    this.code = code;
+  }
+}
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const notFound = () => new ServiceError(404, "NOT_FOUND", "Schedule not found.");
 
-const MAX_RECIPIENTS = 50;
-const MAX_SUBJECT_LENGTH = 300;
-const MAX_BODY_LENGTH = 100_000;
+const COLUMNS = `
+  id, project_id, name, job_type, status, schedule_type, schedule_rule,
+  timezone, config, scheduled_for, next_run_at, last_run_at, run_count,
+  retry_count, last_failure_reason, email_connection_id, created_at, updated_at
+`;
 
-function assertString(
-  value,
-  field,
-  maxLength
-) {
-  if (
-    typeof value !== "string" ||
-    value.trim().length === 0
-  ) {
-    throw new Error(
-      `${field} is required.`
-    );
+function assertUuid(value, field) {
+  if (typeof value !== "string" || !UUID_PATTERN.test(value)) {
+    throw new ValidationError({ [field]: "Invalid id." });
+  }
+}
+
+/* The project must belong to this user and not be deleted. */
+async function assertProject(userId, projectId) {
+  const { data, error } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("id", projectId)
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (error) throw error;
+
+  if (!data) {
+    throw new ValidationError({ project_id: "Project not found." });
+  }
+}
+
+/* The mail account must belong to this user and be usable. */
+async function assertConnection(userId, connectionId) {
+  const { data, error } = await supabase
+    .from("email_connections")
+    .select("id, status")
+    .eq("id", connectionId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  if (!data) {
+    throw new ValidationError({ email_connection_id: "Choose one of your connected mail accounts." });
   }
 
-  if (value.length > maxLength) {
-    throw new Error(
-      `${field} is too long.`
+  if (data.status !== "active") {
+    throw new ValidationError({ email_connection_id: "This mail account needs to be reconnected." });
+  }
+}
+
+async function assertUnderPlanLimit(userId) {
+  const { data: profile, error: profileError } = await supabase
+    .from("users")
+    .select("plan_tier")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (profileError) throw profileError;
+
+  const limit = PLAN_LIMITS[profile?.plan_tier] ?? PLAN_LIMITS.free;
+
+  const { count, error } = await supabase
+    .from("schedules")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .in("status", ["active", "paused"]);
+
+  if (error) throw error;
+
+  if ((count || 0) >= limit) {
+    throw new ServiceError(
+      403,
+      "PLAN_LIMIT_REACHED",
+      `Your plan allows ${limit} active schedules. Upgrade to add more.`
     );
   }
 }
 
-function normalizeRecipients(
-  recipients
-) {
-  if (!Array.isArray(recipients)) {
-    throw new Error(
-      "config.recipients must be an array."
-    );
+/*
+ * One atomic status change: the row changes only if it belongs to the user AND is still in
+ * one of the `from` statuses. Two quick clicks cannot both succeed.
+ */
+async function changeStatus(userId, id, from, patch) {
+  assertUuid(id, "id");
+
+  const { data, error } = await supabase
+    .from("schedules")
+    .update(patch)
+    .eq("id", id)
+    .eq("user_id", userId)
+    .in("status", from)
+    .select(COLUMNS)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  if (!data) {
+    const { data: exists, error: existsError } = await supabase
+      .from("schedules")
+      .select("id, status")
+      .eq("id", id)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (existsError) throw existsError;
+    if (!exists) throw notFound();
+
+    throw new ServiceError(409, "INVALID_STATE", `This schedule is ${exists.status} and cannot be changed that way.`);
   }
 
-  if (
-    recipients.length === 0
-  ) {
-    throw new Error(
-      "At least one recipient is required."
-    );
-  }
-
-  if (
-    recipients.length >
-    MAX_RECIPIENTS
-  ) {
-    throw new Error(
-      `A maximum of ${MAX_RECIPIENTS} recipients is allowed.`
-    );
-  }
-
-  const normalized =
-    recipients.map((email) => {
-      if (
-        typeof email !== "string"
-      ) {
-        throw new Error(
-          "Every recipient must be an email address."
-        );
-      }
-
-      const value =
-        email
-          .trim()
-          .toLowerCase();
-
-      if (
-        !EMAIL_REGEX.test(value)
-      ) {
-        throw new Error(
-          `Invalid recipient email: ${email}`
-        );
-      }
-
-      return value;
-    });
-
-  return [
-    ...new Set(normalized),
-  ];
-}
-
-function validateEmailConfig(
-  config
-) {
-  if (
-    !config ||
-    typeof config !== "object" ||
-    Array.isArray(config)
-  ) {
-    throw new Error(
-      "Email config is required."
-    );
-  }
-
-  const {
-    recipients,
-    subject,
-    body,
-    body_type,
-  } = config;
-
-  const normalizedRecipients =
-    normalizeRecipients(
-      recipients
-    );
-
-  assertString(
-    subject,
-    "Email subject",
-    MAX_SUBJECT_LENGTH
-  );
-
-  assertString(
-    body,
-    "Email body",
-    MAX_BODY_LENGTH
-  );
-
-  if (
-    body_type !== "text" &&
-    body_type !== "html"
-  ) {
-    throw new Error(
-      "body_type must be either text or html."
-    );
-  }
-
-  return {
-    recipients:
-      normalizedRecipients,
-
-    subject:
-      subject.trim(),
-
-    body,
-
-    body_type,
-  };
-}
-
-function validateTimezone(
-  timezone
-) {
-  if (
-    typeof timezone !== "string" ||
-    timezone.trim().length === 0
-  ) {
-    throw new Error(
-      "Timezone is required."
-    );
-  }
-
-  try {
-    Intl.DateTimeFormat(
-      "en-US",
-      {
-        timeZone:
-          timezone,
-      }
-    );
-  } catch {
-    throw new Error(
-      "Invalid IANA timezone."
-    );
-  }
-
-  return timezone.trim();
-}
-
-function calculateOneTimeNextRun(
-  scheduledFor
-) {
-  if (
-    typeof scheduledFor !==
-      "string" ||
-    !scheduledFor
-  ) {
-    throw new Error(
-      "scheduled_for is required for a one-time schedule."
-    );
-  }
-
-  const date =
-    new Date(scheduledFor);
-
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-    throw new Error(
-      "scheduled_for must be a valid ISO date."
-    );
-  }
-
-  if (
-    date.getTime() <=
-    Date.now()
-  ) {
-    throw new Error(
-      "scheduled_for must be in the future."
-    );
-  }
-
-  return date.toISOString();
-}
-
-function validateRecurringExpression(
-  expression
-) {
-  if (
-    typeof expression !==
-      "string" ||
-    expression.trim().length === 0
-  ) {
-    throw new Error(
-      "schedule_expression is required for a recurring schedule."
-    );
-  }
-
-  if (
-    expression.length > 100
-  ) {
-    throw new Error(
-      "schedule_expression is too long."
-    );
-  }
-
-  /*
-   * Phase 1 accepts a standard
-   * five-field cron expression.
-   *
-   * Examples:
-   *
-   * Every minute:
-   * * * * *
-   *
-   * Every hour:
-   * 0 * * * *
-   *
-   * Every day at 9 AM:
-   * 0 9 * * *
-   *
-   * Every Monday at 9 AM:
-   * 0 9 * * 1
-   */
-
-  const fields =
-    expression
-      .trim()
-      .split(/\s+/);
-
-  if (
-    fields.length !== 5
-  ) {
-    throw new Error(
-      "Recurring schedule must use a five-field cron expression."
-    );
-  }
-
-  return expression.trim();
+  return data;
 }
 
 export const scheduleService = {
+  async getSchedules(userId, projectId) {
+    assertUuid(projectId, "project_id");
+    await assertProject(userId, projectId);
 
-  async getSchedules(
-    userId
-  ) {
-    const {
-      data,
-      error,
-    } = await supabase
+    const { data, error } = await supabase
       .from("schedules")
-      .select(`
-        id,
-        job_type,
-        status,
-        schedule_expression,
-        timezone,
-        config,
-        scheduled_for,
-        next_run_at,
-        last_run_at,
-        run_count,
-        retry_count,
-        last_failure_reason,
-        created_at,
-        updated_at,
-        schedule_type
-      `)
-      .eq(
-        "user_id",
-        userId
-      )
-      .order(
-        "next_run_at",
-        {
-          ascending: true,
-          nullsFirst: false,
-        }
-      );
+      .select(COLUMNS)
+      .eq("user_id", userId)
+      .eq("project_id", projectId)
+      .neq("status", "cancelled")
+      .order("next_run_at", { ascending: true, nullsFirst: false })
+      .limit(200);
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     return data;
   },
 
-  async createSchedule(
-    userId,
-    input
-  ) {
+  async createSchedule(userId, input) {
+    /* Validates and cleans everything. Throws ValidationError with a message per field. */
+    const value = validateScheduleInput(input);
 
-    if (
-      !input ||
-      typeof input !== "object" ||
-      Array.isArray(input)
-    ) {
-      throw new Error(
-        "Invalid schedule payload."
-      );
-    }
+    await assertProject(userId, value.project_id);
+    await assertConnection(userId, value.email_connection_id);
+    await assertUnderPlanLimit(userId);
 
-    const {
-      job_type,
-      schedule_type,
-      schedule_expression,
-      timezone,
-      config,
-      scheduled_for,
-    } = input;
-
-    /*
-     * ----------------------------------
-     * JOB TYPE
-     * ----------------------------------
-     */
-
-    if (
-      !ALLOWED_JOB_TYPES.has(
-        job_type
-      )
-    ) {
-      throw new Error(
-        "Unsupported job type."
-      );
-    }
-
-    /*
-     * ----------------------------------
-     * SCHEDULE TYPE
-     * ----------------------------------
-     */
-
-    if (
-      !ALLOWED_SCHEDULE_TYPES.has(
-        schedule_type
-      )
-    ) {
-      throw new Error(
-        "schedule_type must be one_time or recurring."
-      );
-    }
-
-    /*
-     * ----------------------------------
-     * TIMEZONE
-     * ----------------------------------
-     */
-
-    const normalizedTimezone =
-      validateTimezone(
-        timezone
-      );
-
-    /*
-     * ----------------------------------
-     * EMAIL CONFIG
-     * ----------------------------------
-     */
-
-    const normalizedConfig =
-      validateEmailConfig(
-        config
-      );
-
-    /*
-     * ----------------------------------
-     * CALCULATE NEXT RUN
-     * ----------------------------------
-     */
-
-    let nextRunAt =
-      null;
-
-    let normalizedScheduledFor =
-      null;
-
-    let normalizedExpression =
-      null;
-
-    if (
-      schedule_type ===
-      "one_time"
-    ) {
-
-      normalizedScheduledFor =
-        calculateOneTimeNextRun(
-          scheduled_for
-        );
-
-      nextRunAt =
-        normalizedScheduledFor;
-
-    }
-
-    if (
-      schedule_type ===
-      "recurring"
-    ) {
-
-      normalizedExpression =
-        validateRecurringExpression(
-          schedule_expression
-        );
-
-      /*
-       * We deliberately do NOT
-       * trust next_run_at from
-       * the browser.
-       *
-       * The scheduler worker will
-       * calculate the actual next
-       * occurrence from the cron
-       * expression.
-       *
-       * For now we leave it null
-       * until the cron calculation
-       * service is connected.
-       */
-      nextRunAt = null;
-    }
-
-    /*
-     * ----------------------------------
-     * DATABASE INSERT
-     * ----------------------------------
-     *
-     * Notice what is NOT here:
-     *
-     * user_id from frontend
-     * status from frontend
-     * run_count
-     * retry_count
-     * next_run_at
-     * last_run_at
-     *
-     * Backend owns those values.
-     */
-
-    const {
-      data,
-      error,
-    } = await supabase
+    /* Only fields the backend chose. The browser never sets user_id, status, run_count or next_run_at. */
+    const { data, error } = await supabase
       .from("schedules")
       .insert({
-        user_id:
-          userId,
-
-        job_type:
-          job_type,
-
-        status:
-          "active",
-
-        schedule_expression:
-          normalizedExpression,
-
-        timezone:
-          normalizedTimezone,
-
-        config:
-          normalizedConfig,
-
-        scheduled_for:
-          normalizedScheduledFor,
-
-        next_run_at:
-          nextRunAt,
-
-        schedule_type:
-          schedule_type,
+        user_id: userId,
+        project_id: value.project_id,
+        status: "active",
+        name: value.name,
+        job_type: value.job_type,
+        schedule_type: value.schedule_type,
+        schedule_rule: value.schedule_rule,
+        timezone: value.timezone,
+        scheduled_for: value.scheduled_for,
+        next_run_at: value.next_run_at,
+        email_connection_id: value.email_connection_id,
+        config: value.config,
       })
-      .select(`
-        id,
-        job_type,
-        status,
-        schedule_expression,
-        timezone,
-        config,
-        scheduled_for,
-        next_run_at,
-        last_run_at,
-        run_count,
-        retry_count,
-        last_failure_reason,
-        created_at,
-        updated_at,
-        schedule_type
-      `)
+      .select(COLUMNS)
       .single();
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     return data;
+  },
+
+  /* Edit: the same rules as create. Allowed only while the schedule is active, paused or failed. */
+    /* Partial edit: send only the fields that changed. Missing fields keep their stored value. */
+  async updateSchedule(userId, id, patch) {
+    assertUuid(id, "id");
+
+    if (!patch || typeof patch !== "object" || Array.isArray(patch)) {
+      throw new ValidationError({ _form: "Nothing to update." });
+    }
+
+    const { data: row, error } = await supabase
+      .from("schedules")
+      .select(COLUMNS)
+      .eq("id", id)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!row) throw notFound();
+
+    const timingKeys = ["schedule_type", "scheduled_for", "timezone", "schedule_rule"];
+    const changesTiming = timingKeys.some((key) => patch[key] !== undefined);
+
+    /* Stored values fill every field the caller did not send. The merged result is validated as a whole. */
+    const merged = {
+      project_id: row.project_id,
+      job_type: row.job_type,
+      name: patch.name !== undefined ? patch.name : row.name,
+      email_connection_id: patch.email_connection_id ?? row.email_connection_id,
+      config: { ...row.config, ...(patch.config && typeof patch.config === "object" ? patch.config : {}) },
+      timezone: patch.timezone ?? row.timezone,
+      /* No timing change: validate as "immediate" so only the content is checked, then ignore the timing result. */
+      schedule_type: changesTiming ? patch.schedule_type : "immediate",
+      scheduled_for: patch.scheduled_for,
+      schedule_rule: patch.schedule_rule,
+    };
+
+    const value = validateScheduleInput(merged);
+
+    await assertConnection(userId, value.email_connection_id);
+
+    const changes = {
+      name: value.name,
+      email_connection_id: value.email_connection_id,
+      config: value.config,
+    };
+
+    /* Timing is rewritten only when the caller sent it. */
+    if (changesTiming) {
+      Object.assign(changes, {
+        schedule_type: value.schedule_type,
+        schedule_rule: value.schedule_rule,
+        timezone: value.timezone,
+        scheduled_for: value.scheduled_for,
+        next_run_at: value.next_run_at,
+      });
+    }
+
+    /* A failed schedule that is edited gets another chance. Paused and active keep their status. */
+    if (row.status === "failed") {
+      Object.assign(changes, { status: "active", retry_count: 0, last_failure_reason: null });
+    }
+
+    return changeStatus(userId, id, ["active", "paused", "failed"], changes);
+  },
+
+  async pauseSchedule(userId, id) {
+    return changeStatus(userId, id, ["active"], { status: "paused" });
+  },
+
+  async resumeSchedule(userId, id) {
+    assertUuid(id, "id");
+
+    const { data: row, error } = await supabase
+      .from("schedules")
+      .select("schedule_type, scheduled_for, schedule_rule, timezone")
+      .eq("id", id)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!row) throw notFound();
+
+    /* Time kept passing while it was paused. Skip missed runs and find the next real one. */
+    const nextRunAt = computeNextRun(row, new Date());
+
+    if (!nextRunAt) {
+      throw new ServiceError(409, "INVALID_STATE", "The send time has passed. Edit the schedule and pick a new time.");
+    }
+
+    return changeStatus(userId, id, ["paused"], { status: "active", next_run_at: nextRunAt });
+  },
+
+  /* "Delete" in the app. The row stays for history, the schedule never runs again. */
+  async cancelSchedule(userId, id) {
+    return changeStatus(userId, id, ["active", "paused", "failed"], {
+      status: "cancelled",
+      next_run_at: null,
+    });
   },
 };

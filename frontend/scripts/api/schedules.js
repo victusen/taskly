@@ -1,33 +1,25 @@
-import {
-  authenticatedFetch,
-} from "../auth/api.js";
+import { authenticatedFetch } from "../auth/api.js";
 
-export async function getSchedules() {
-
-  return authenticatedFetch(
-    "/api/schedules",
-    {
-      method: "GET",
-    }
-  );
+export function getSchedules(projectId) {
+  return authenticatedFetch(`/api/schedules?project_id=${encodeURIComponent(projectId)}`, { method: "GET" });
 }
 
-export async function createSchedule(
-  schedule
-) {
+export function createSchedule(schedule) {
+  return authenticatedFetch("/api/schedules", { method: "POST", body: JSON.stringify(schedule) });
+}
 
-  return authenticatedFetch(
-    "/api/schedules",
-    {
-      method: "POST",
+export function updateSchedule(id, schedule) {
+  return authenticatedFetch(`/api/schedules/${id}`, { method: "PATCH", body: JSON.stringify(schedule) });
+}
 
-      headers: {
-        "Content-Type":
-          "application/json",
-      },
+export function pauseSchedule(id) {
+  return authenticatedFetch(`/api/schedules/${id}/pause`, { method: "POST" });
+}
 
-      body:
-        JSON.stringify(schedule),
-    }
-  );
+export function resumeSchedule(id) {
+  return authenticatedFetch(`/api/schedules/${id}/resume`, { method: "POST" });
+}
+
+export function cancelSchedule(id) {
+  return authenticatedFetch(`/api/schedules/${id}`, { method: "DELETE" });
 }

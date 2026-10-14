@@ -17,4 +17,9 @@ router.post(
   scheduleController.createSchedule
 );
 
+router.patch("/:id", authMiddleware, scheduleController.updateSchedule);
+router.post("/:id/pause", authMiddleware, scheduleController.pauseSchedule);
+router.post("/:id/resume", authMiddleware, scheduleController.resumeSchedule);
+router.delete("/:id", authMiddleware, scheduleController.cancelSchedule);
+
 export default router;

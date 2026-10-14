@@ -1,35 +1,27 @@
-import { showLoading, showError } from "./scripts/ui/states.js";
 import { requireAuth } from "./scripts/auth/session.js";
 import { showToast, error as toastError } from "./scripts/ui/toast.js";
-import { loadProjects, addProject, loadConnections } from "./scripts/data/source.js";
+import { loadConnections, addProject } from "./scripts/data/source.js";
 
-const list = document.getElementById("project-list");
 const modal = document.getElementById("business-modal");
 const form = document.getElementById("business-form");
 const select = document.getElementById("conn-select");
-const sidebar = document.getElementById("dash-sidebar");
 const hamburgerBtn = document.getElementById("hamburger-btn");
 const scrim = document.getElementById("scrim");
-
-let projects = [];
-
-showLoading(list, "Loading your projects");
 
 const session = await requireAuth();
 if (!session) throw new Error("Authentication required.");
 
-// Populate user details in sidebar
+// Populate user details in header avatar / sidebar if present
 const user = session.user;
 const meta = user.user_metadata || {};
 const email = user.email || "";
 const full = meta.full_name || meta.name || "";
 const name = meta.first_name || full.split(" ")[0] || email.split("@")[0] || "User";
 
-document.getElementById("user-name").textContent = full || name;
-document.getElementById("user-email").textContent = email;
-document.getElementById("user-avatar").textContent = name.charAt(0).toUpperCase();
+const avatarEl = document.getElementById("header-avatar");
+if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
 
-document.getElementById("sidebar-logout").addEventListener("click", async () => {
+document.getElementById("sidebar-logout")?.addEventListener("click", async () => {
   try {
     await session.signOut?.();
   } catch (e) {
@@ -37,75 +29,6 @@ document.getElementById("sidebar-logout").addEventListener("click", async () => 
   }
   window.location.href = "index.html";
 });
-
-function toggleSidebar(open) {
-  sidebar.classList.toggle("open", open);
-  scrim.classList.toggle("open", open);
-  document.body.style.overflow = open ? "hidden" : "";
-}
-
-hamburgerBtn?.addEventListener("click", () => toggleSidebar(true));
-scrim?.addEventListener("click", () => toggleSidebar(false));
-
-const formatDate = (iso) =>
-  new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(iso));
-
-function el(tag, className, text) {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
-
-function jobsUrl(project) {
-  return `jobs.html?project=${encodeURIComponent(project.id)}`;
-}
-
-function renderProjects() {
-  list.innerHTML = "";
-
-  for (const project of projects) {
-    const card = el("a", "project-card");
-    card.href = jobsUrl(project);
-
-    const top = el("div");
-    top.append(el("h3", "", project.project_name), el("p", "biz", project.business_name));
-
-    const meta = el("div", "project-card-meta");
-    meta.append(el("span", "", `Created ${formatDate(project.created_at)}`));
-
-    const count = project.schedule_count;
-    meta.append(el("span", count > 0 ? "badge badge-green" : "badge", count === undefined ? "Open" : `${count} ${count === 1 ? "email" : "emails"}`));
-
-    card.append(top, meta);
-    list.append(card);
-  }
-
-  // CTA Card (large dashed card)
-  const tile = el("button", "project-card project-card-dashed", "");
-  tile.type = "button";
-  
-  const inner = el("div", "", "");
-  inner.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; gap: 8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg><span>Add a new business / project</span></div>`;
-  tile.append(inner);
-  tile.addEventListener("click", openModal);
-  list.append(tile);
-}
-
-async function refresh() {
-  showLoading(list, "Loading your projects");
-
-  try {
-    projects = await loadProjects();
-    renderProjects();
-  } catch (err) {
-    if (err.status === 401) {
-      window.location.href = "login.html";
-      return;
-    }
-    showError(list, err.message || "Unable to load your projects.", refresh);
-  }
-}
 
 async function openModal() {
   form.reset();
@@ -137,8 +60,8 @@ function closeModal() {
   modal.classList.remove("open");
 }
 
-document.getElementById("modal-close").addEventListener("click", closeModal);
-document.getElementById("modal-cancel").addEventListener("click", closeModal);
+document.getElementById("modal-close")?.addEventListener("click", closeModal);
+document.getElementById("add-business-card")?.addEventListener("click", openModal);
 modal.addEventListener("click", (event) => {
   if (event.target === modal) closeModal();
 });
@@ -159,10 +82,11 @@ form.addEventListener("submit", async (event) => {
       email_connection_id: form.elements.email_connection_id.value,
     });
 
-    projects.push(project);
-    renderProjects();
     closeModal();
     showToast("success", "Business profile created.");
+    setTimeout(() => {
+      window.location.href = `jobs.html?project=${encodeURIComponent(project.id)}`;
+    }, 500);
   } catch (err) {
     const first = err.fieldErrors ? Object.values(err.fieldErrors)[0] : null;
     toastError(first || err.message || "Could not create the business profile.");
@@ -170,5 +94,3 @@ form.addEventListener("submit", async (event) => {
     button.disabled = false;
   }
 });
-
-await refresh();
