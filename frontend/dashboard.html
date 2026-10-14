@@ -3,12 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>bzade - Your jobs are here</title>
+  <title>bzade - Your dashboard</title>
   <link rel="icon" type="image/png" href="logo-2.png" />
   <link rel="stylesheet" href="scripts/ui/toast.css">
   <link rel="stylesheet" href="scripts/ui/states.css">
   <style>
+    body {
+      margin: 0;
+      line-height: 1.6;
+      background-color: #f4f4f4;
+    }
     * { margin: 0; box-sizing: border-box; }
+
+    /* Header replicated from jobs page */
     header {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -24,122 +31,391 @@
       display: flex; align-items: center; gap: 8px;
     }
     .banner-right {
-      display: flex; gap: 4px; align-items: center;
-    }
-    .logout-btn:hover {
-      text-decoration: underline;
+      display: flex;
     }
     .banner-right div {
       height: 30px; width: 30px; border-radius: 20px;
       background-color: red;
-      display: flex; align-items: center; justify-content: center;
+      display: flex; align-items: center; justify-content: center; align-self: center;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
     }
-    main {
-      margin-top: 80px;
-      padding: 12px 15px;
-      display: flex; flex-direction: column; gap: 15px;
+    .drop-down {
+      pointer-events: none;
+      position: absolute;
+      bottom: -95px; left: 0; right: 0; z-index: 12;
     }
-    .dash-top {
-      margin-bottom: 6px;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .business-overviews {
-      display: flex; flex-direction: column; gap: 20px;
+    .taskly-projs {
+      padding: 10px 12px;
       width: 100%;
-      margin-top: 20px;
-      margin-bottom: 30px
+      display: flex; align-items: center; gap: 10px;
     }
-    .projs {
-      padding: 15px;
-      border: 1px solid grey;
-      display: flex; flex-direction: column; gap:25px; justify-content: space-between;
+    .taskly-projs:hover {
+      background-color: green;
     }
-    .projs:active {
-      background-color: lightgray;
+
+    /* Layout divided into sidebar (~20% width, light grey bg, border demacate) and main */
+    .dash-layout {
+      display: flex;
+      min-height: 100vh;
+      margin-top: 50px;
     }
-    .title {
-      font-weight: 700;
+
+    .dash-sidebar {
+      position: fixed;
+      top: 50px; left: 0; bottom: 0;
+      width: 20%;
+      min-width: 260px;
+      max-width: 320px;
+      background-color: #eaeaea;
+      border-right: 1px solid lightgray;
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
     }
-    .project-tag {
-      font-size: 15px;
-      padding: 6px 8px;
-      background-color: green; color: white;
+    .dash-sidebar.open {
+      transform: translateX(0);
     }
-    a {
+    @media (min-width: 900px) {
+      .dash-sidebar {
+        transform: translateX(0);
+      }
+      .dash-main {
+        margin-left: max(20%, 260px);
+      }
+    }
+
+    .sidebar-content {
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      flex: 1;
+    }
+    .sidebar-section h4 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: #333;
       text-decoration: none;
+      font-size: 14px;
+      transition: background 0.15s;
     }
-    .project-card { display: block; border: 1px solid #e4e7ec; border-radius: 12px; padding: 18px; margin-bottom: 12px; color: inherit; text-decoration: none; }
-    .project-card h3 { font-size: 18px; }
-    .project-card p { color: #667085; font-size: 14px; }
+    .sidebar-nav-item:hover, .sidebar-nav-item.active {
+      background-color: #ddd;
+      color: #111;
+    }
+    .sidebar-footer {
+      border-top: 1px solid #ccc;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #dfdfdf;
+    }
+
+    /* Main section with lightergrey nearing white bg with clear padding and UI design principles */
+    .dash-main {
+      flex: 1;
+      width: 100%;
+      max-width: 1000px;
+      margin: 3rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .dash-top {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      border-bottom: 2px solid lightgray;
+      padding-bottom: 20px;
+    }
+    .dash-top h2 {
+      font-size: 30px;
+      font-weight: 700;
+      color: #111;
+    }
+
+    /* Large Project Cards as requested */
+    .project-cards-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .project-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border: 1px solid lightgray;
+      border-radius: 8px;
+      padding: 24px;
+      background: #fafafa;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: all 0.2s ease;
+    }
+    .project-card:hover {
+      background: #fff;
+      border-color: #888;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .project-card h3 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #111;
+    }
+    .project-card p.biz {
+      font-size: 16px;
+      color: #666;
+    }
+    .project-card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      color: #666;
+      border-top: 1px solid #eee;
+      padding-top: 12px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      background: #eee;
+      color: #333;
+    }
+    .badge-green {
+      background: #e6f4ea;
+      color: green;
+    }
+
+    /* CTA Card / Dashed Card for adding project */
+    .project-card-dashed {
+      border: 2px dashed #10b981;
+      background: #fdfdfd;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #047857;
+      cursor: pointer;
+      min-height: 140px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .project-card-dashed:hover {
+      background: #f0fdf4;
+      border-color: #059669;
+    }
+
+    /* Business Creation Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+    .modal-box {
+      background: white;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 480px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #444;
+    }
+    .form-group input, .form-group select {
+      padding: 10px;
+      border: 1px solid lightgray;
+      border-radius: 6px;
+      outline: none;
+      font-family: inherit;
+    }
+    .form-group input:focus { border-color: #111; }
+
+    .scrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 9;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease;
+    }
+    .scrim.open { opacity: 1; visibility: visible; }
+
+    @media (max-width: 900px) {
+      .dash-main { width: 95%; margin: 1.5rem auto; padding: 1rem; }
+      .dash-sidebar { width: 280px; }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div class="banner-left">
-      <img src="menu.png" style="height: 30px;" />
-      <a href="index.html"><p style="font-size: 20px;">Bzade.app</p></a>
-      <img src="drop-arrow.png" style="height: 20px;"/>
-    </div>
-    <div class="banner-right">
-      <a href="./home.html" id="logout-btn" >Log out</a>
-      <div>S</div>
-    </div>
-  </header>
-  <!--<main>
-    <div class="dash-top">
-      <h2>Overview</h2> 
-      <button id="connect-google" type="button">Connect Gmail</button>
-    </div> 
-    <p>The overview of business schedules running on your Bzade profile.</p>
-    <div class="business-overviews">
-      <h3>Businesses</h3>
-      <a href="jobs.html">
-        <div class="projs">
-          <h4 class="title"> Saja Restaurant</h4>
-          <p class="project-tag">36 jobs are live and running</p>
+
+<header>
+  <div class="banner-left">
+    <img src="menu.png" id="hamburger-btn" style="height: 30px; cursor: pointer;" alt="Menu" />
+    <a href="index.html"><p style="font-size: 20px; color: #111; text-decoration: none; font-weight: 600;">Bzade.app</p></a>
+    <div style="position: relative; display: flex;">
+      <img onclick="document.querySelector(`.drop`).classList.toggle(`show`);" src="drop-arrow.png" style="height: 20px; cursor: pointer;"/>
+      <div class="drop-down">
+        <div class="drop add-hidden" style="width:200px; margin: 0 auto; border-radius: 12px; overflow: hidden; background-color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+          <div class="taskly-projs">
+            <img src="Check.png" style="height: 12px;">
+            <p style="font-size: 13px;">Overview</p>
+          </div>
+          <div class="taskly-projs" onclick="window.location.href='smtp.html'">
+            <img src="Check.png" style="height: 12px;">
+            <p style="font-size: 13px;">Mail Connections</p>
+          </div>
         </div>
-      </a>
-      <a href="jobs.html">
-        <div class="projs">
-          <h4 class="title"> Glassdoor Schedules</h4>
-          <p class="project-tag">114 jobs ready to run today</p>
-        </div>
-      </a>
-      <a href="jobs.html">
-        <div class="projs">
-          <h4 class="title">Matchsub</h4>
-          <p class="project-tag">You scheduled 6 jobs today</p>
-        </div>
-      </a>
-      <div style="height: 60px; padding: 10px; display: flex; flex-direction: row; text-align: center; align-items: center; justify-content: center; border: 1px dashed red;">
-        <img src="" />
-        <p style="font-size: 16px;">Add a new Bzade project.</p>
       </div>
     </div>
-  </main>-->
-  <main>
-    <div class="dash-top">
-      <h2>Projects</h2>
-      <div>
-        <button id="connect-google" type="button">Connect Gmail</button>
-        <button id="logout-btn" type="button">Log out</button>
-        <button id="add-project" type="button" disabled title="Coming soon">Add project</button>
+  </div>
+  <div class="banner-right">
+    <div id="header-avatar">S</div>
+  </div>
+</header>
+
+<div class="dash-layout">
+  <!-- Left Sidebar (~20% width, light grey bg, border demacate) -->
+  <aside class="dash-sidebar" id="dash-sidebar">
+    <div class="sidebar-content">
+      <div class="sidebar-section">
+        <h4>Account Navigation</h4>
+        <a class="sidebar-nav-item active" href="dashboard.html">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+          <span>Projects & Businesses</span>
+        </a>
+        <a class="sidebar-nav-item" href="smtp.html">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 7L2 7"/></svg>
+          <span>Mail Connections</span>
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <h4>Security & Access</h4>
+        <a class="sidebar-nav-item" href="#security">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span>API Keys & Webhooks</span>
+        </a>
+        <a class="sidebar-nav-item" href="#audit">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span>Audit Logs</span>
+        </a>
       </div>
     </div>
-  
-    <section id="project-list"></section>
-    <p id="project-empty" hidden>No projects yet.</p>
+
+    <div class="sidebar-footer">
+      <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+        <div id="user-avatar" style="width: 34px; height: 34px; border-radius: 50%; background: #111; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex: none;">U</div>
+        <div style="min-width: 0; display: flex; flex-direction: column;">
+          <span id="user-name" style="font-size: 13px; font-weight: 600; color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Account User</span>
+          <span id="user-email" style="font-size: 11px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">user@example.com</span>
+        </div>
+      </div>
+      <button type="button" id="sidebar-logout" style="display: flex; align-items: center; gap: 8px; background: white; border: 1px solid #ccc; border-radius: 6px; padding: 6px 10px; font-size: 13px; font-weight: 500; color: #d93838; cursor: pointer;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span>Sign out</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="scrim" id="scrim"></div>
+
+  <!-- Main Section -->
+  <main class="dash-main">
+    <div class="dash-top">
+      <h2>Overview</h2>
+      <p style="color: #666; font-size: 16px;">Manage your project and business profiles, view status, and launch email automations.</p>
+    </div>
+
+    <!-- Large Project Cards and CTA Card -->
+    <div class="project-cards-grid" id="project-list">
+      <!-- Injected via dashboard.js -->
+    </div>
   </main>
+</div>
 
-  <div id="project-content"></div>
-  <form id="project-form" hidden novalidate>
-    <h1>Create your first project</h1>
-    <label>Project name<input name="project_name" maxlength="120" required autofocus></label>
-    <label>Business name<input name="business_name" maxlength="120" required></label>
-    <button type="submit">Continue</button>
-  </form>
+<!-- Business Creation Modal -->
+<div class="modal-backdrop" id="business-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 style="font-size: 18px; font-weight: 600;">Create a New Business Profile</h3>
+      <button id="modal-close" type="button" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+    </div>
+    <form id="business-form" style="display: flex; flex-direction: column; gap: 14px;" novalidate>
+      <div class="form-group">
+        <label>Business Name</label>
+        <input type="text" name="business_name" required placeholder="e.g. Acme Corporation" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Default Project Name</label>
+        <input type="text" name="project_name" required placeholder="e.g. Customer Welcome Campaign" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Primary Mail Connection</label>
+        <select name="email_connection_id" id="conn-select">
+          <option value="">Loading accounts...</option>
+        </select>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+        <button type="button" id="modal-cancel" style="padding: 8px 14px; border: 1px solid lightgray; background: white; border-radius: 6px; font-weight: 500; cursor: pointer;">Save</button>
+        <button type="submit" style="padding: 8px 16px; background: green; color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer;">Save Business</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-  <script src="https://js.paystack.co/v2/inline.js"></script>
-  <script type="module" src="dashboard.js"></script>
+<script type="module" src="scripts/ui/toast.js"></script>
+<script type="module" src="dashboard.js"></script>
 </body>
 </html>
