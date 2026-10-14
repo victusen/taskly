@@ -6,10 +6,11 @@
   <title>bzade - Your projects here</title>
   <link rel="icon" type="image/png" href="logo-2.png" />
   <link rel="stylesheet" href="scripts/ui/toast.css">
+    <link rel="stylesheet" href="scripts/ui/states.css">
   <style>
     body {
    margin: 0;
-   font-family: sans-serif;
+  /*  font-family: sans-serif; */
    line-height: 1.6;
    background-color: #f4f4f4;
  }
@@ -17,7 +18,7 @@
  main {
    width: 90%;
    max-width: 1000px; /* Centering and standard laptop width */
-   margin: 2rem auto;
+   margin: 3rem auto;
    padding: 2rem;
    background: white;
    border-radius: 8px;
@@ -62,7 +63,7 @@
       background-color: green;
     }
     main {
-      margin-top: 50px;
+      margin-top: 60px;
       display: flex; flex-direction: column; gap: 15px;
     }
     .proj-display {
@@ -98,10 +99,11 @@
       font-size: 14px;
     }
     .task-list {
-      display: flex; flex-direction: column; gap: 30px;
+      display: flex; flex-direction: column; gap: 15px;
       width: 100%; 
       overflow: hidden;
       margin-top: 10px;
+      margin-bottom: 20px;
     }
     .task {
       display: flex; flex-direction: column; gap:8px;
@@ -150,10 +152,103 @@
     .job-board input, .job-board select, .job-board textarea {
       width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box;
     }
+    .toggle { border: 0; font-family: inherit; cursor: pointer; transition: background-color 0.18s ease, color 0.18s ease; }
+    .toggle:hover { background-color: #bdbdbd; }
+    .toggle.active:hover { background-color: green; }
+    .no-job { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px 20px; color: #777; }
+    .no-job[hidden] { display: none; }
+    .no-job svg { width: 64px; height: 64px; margin-bottom: 12px; transform: rotate(-8deg); }
+    .no-job h3 { font-size: 18px; color: #333; margin-bottom: 4px; }
+    .no-job p { font-size: 14px; max-width: 320px; }
+    .job-board { padding: 16px; }
       
     .add-hidden {display: none}
     .show {display: block}
     .active {background-color: green; color: white;}
+
+    /* Mobile Sidebar Styles */
+    .mobile-sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      align-items: stretch;
+      justify-content: flex-start;
+    }
+    .mobile-sidebar-overlay.open {
+      display: flex;
+      opacity: 1;
+    }
+    .mobile-sidebar {
+      position: relative;
+      top: 0; left: 0; bottom: 0;
+      width: 280px;
+      max-width: 85vw;
+      height: 100%;
+      background-color: white;
+      box-shadow: 4px 0 15px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-sidebar-overlay.open .mobile-sidebar {
+      transform: translateX(0);
+    }
+    .sidebar-header {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #eee;
+    }
+    .sidebar-content {
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      flex: 1;
+    }
+    .sidebar-section h4 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      margin-bottom: 10px;
+    }
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: #333;
+      text-decoration: none;
+      font-size: 14px;
+      transition: background 0.15s;
+    }
+    .sidebar-nav-item:hover {
+      background-color: #f0fdf4;
+      color: green;
+    }
+    .sidebar-nav-item.active-project {
+      background-color: #e6f4ea;
+      color: green;
+      font-weight: 500;
+    }
+    .sub-nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-left: 12px;
+      border-left: 2px solid #e0e0e0;
+      margin-top: 6px;
+      margin-left: 12px;
+    }
 
        /* Media query for smaller screens if needed */
  @media (max-width: 600px) {
@@ -167,7 +262,7 @@
 <body>
   <header>
     <div class="banner-left">
-      <img src="menu.png" style="height: 30px;" />
+      <img src="menu.png" id="hamburger-btn" style="height: 30px; cursor: pointer;" alt="Menu" />
       <a href="index.html"><p style="font-size: 20px;">Bzade.app</p></a>
        <div style="position: relative; display: flex;">
         <img onclick="document.querySelector(`.drop`).classList.toggle(`show`);" src="drop-arrow.png" style="height: 20px;"/>
@@ -211,9 +306,13 @@
     
     <div class="manage-project-tasks" style="display: flex; flex-direction: column; gap: 10px; padding: 10px 15px;">
       <div class="task-toggle">
-        <h2 
-          style="font-size: 22px;">Tasks
-        </h2>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+          <h2 style="font-size: 22px;">Tasks</h2>
+          <button id="connect-gmail-btn" class="btn" type="button" style="padding: 4px 10px; background-color: inherit; border: 1px solid lightgray; border-radius: 4px; cursor: pointer; font-weight: normal; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; color: #111;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-10 7L2 7"/></svg>
+            <span>Connect Gmail</span>
+          </button>
+        </div>
         <div class="toggles">
           <div class="toggle active">All (14)</div>
           <div class="toggle ">Running (3)</div>
@@ -223,13 +322,26 @@
         </div> 
 
         <!-- Tasks appear here -->
-        <div class="task-list" id="task-list" style="margin-bottom: 75px;">
+        <div class="task-list" id="task-list">
           <!-- Every users schedule falls in here -->
+          <div class="no-job" id="no-job-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <h3>No results found</h3>
+            <p>There are no jobs or tasks available matching your filter at the moment.</p>
+          </div>
+          <button id="add-task-cta" class="btn btn-dark" type="button" style="margin: 4px auto 0; background-color: #111; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Add a new task</span>
+          </button>
         </div>
 
-        <div id="schedule-empty" hidden style=" text-align:center; padding:40px 20px; color:#777;
+        <div id="schedule-empty" hidden style=" text-align:center; padding:20px 20px; color:#777;
         ">
-          <div style=" font-size:42px; margin-bottom:10px;"> ✉ </div>
+          <div style=" font-size:36px; margin-bottom:6px;"> ✉ </div>
           <h3>No schedules yet</h3>
           <p>Create your first email schedule to get started.
           </p>
@@ -293,6 +405,72 @@
     <button type="submit" id="schedule-submit" style="font-weight:500; border:none; border-radius:6px; background-color:green; color:white; width:100%; margin-top:14px; padding:12px;">Write this Schedule</button>
   </form>
 </div>
+
+  <!-- Mobile Sidebar Component -->
+  <div class="mobile-sidebar-overlay" id="mobile-sidebar-overlay">
+    <div class="mobile-sidebar" id="mobile-sidebar">
+      <div class="sidebar-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="logo-2.png" style="height: 24px;" alt="Logo">
+          <span style="font-weight: 600; font-size: 18px;">Bzade.app</span>
+        </div>
+        <div class="close-btn" id="sidebar-close-btn" role="button" aria-label="Close Sidebar" style="width: 30px; height: 30px; cursor: pointer;">
+          <img src="Close.png" style="pointer-events:none; height: 14px;" alt="">
+        </div>
+      </div>
+      <div class="sidebar-content">
+        <!-- Project Toggles / Nested Navigation with Accessibility Icons -->
+        <div class="sidebar-section">
+          <h4>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+            Projects
+          </h4>
+          <div style="font-size: 13px; color: #666; margin-bottom: 8px; padding-left: 12px;">
+            Current: <strong id="sidebar-current-project-name" style="color: #111;">Loading...</strong>
+          </div>
+          <div class="sub-nav-list" id="sidebar-sibling-projects">
+            <!-- Dynamic projects injected here -->
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h4>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Project Tools
+          </h4>
+          <a href="#" id="sidebar-design-draft" class="sidebar-nav-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <span>Design Draft Template</span>
+          </a>
+        </div>
+
+        <!-- Upgrade to Paid Promo Card -->
+        <div style="background: linear-gradient(135deg, #10b981 0%, #047857 100%); border-radius: 12px; padding: 16px; color: white; display: flex; flex-direction: column; gap: 10px; margin-top: auto;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span style="font-weight: 600; font-size: 15px;">Upgrade to Pro</span>
+          </div>
+          <p style="font-size: 13px; opacity: 0.9; line-height: 1.4;">Unlock unlimited automated schedules, priority SMTP dispatch & advanced analytics.</p>
+          <button type="button" id="sidebar-upgrade-btn" style="background: white; color: #047857; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 600; font-size: 13px; cursor: pointer; text-align: center;">Upgrade Plan</button>
+        </div>
+      </div>
+
+      <!-- User Profile & Sign Out Footer -->
+      <div style="border-top: 1px solid #eee; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; background: #fafafa;">
+        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+          <div id="sidebar-user-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: #111; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; flex: none;">U</div>
+          <div style="min-width: 0; display: flex; flex-direction: column;">
+            <span id="sidebar-user-name" style="font-size: 14px; font-weight: 600; color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">User Account</span>
+            <span id="sidebar-user-email" style="font-size: 12px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">user@example.com</span>
+          </div>
+        </div>
+        <button type="button" id="sidebar-logout-btn" style="display: flex; align-items: center; gap: 10px; background: transparent; border: 1px solid #ddd; border-radius: 6px; padding: 8px 12px; font-size: 13px; font-weight: 500; color: #d93838; cursor: pointer; transition: background 0.15s;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 .2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+          <span>Sign out</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script
   type="module"
