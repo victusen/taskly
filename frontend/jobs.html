@@ -58,25 +58,62 @@
     /* Asymmetric Desktop Layout Wrapper */
     .asymmetric-wrapper {
       display: flex;
-      max-width: 1380px;
-      width: 96%;
-      margin: 68px auto 3rem auto;
+      justify-content: flex-start;
+      max-width: 1680px;
+      width: calc(100% - 32px);
+      margin: 68px 16px 3rem 16px;
       gap: 24px;
       align-items: flex-start;
     }
 
-    /* Left Side Navigation (Desktop Persistent Sidebar) */
+    /* Left Side Navigation (Desktop Persistent Sidebar Column) */
     .left-sidebar {
       width: 270px;
       flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 68px;
+      transition: width 0.25s ease;
+    }
+
+    /* Main Shadowed Sidebar Container */
+    .left-sidebar-card {
       background: white;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
-      position: sticky;
+      height: calc(100vh - 130px);
+      overflow: hidden;
+    }
+
+    /* Sidebar Collapse Button Bar (Directly underneath main shadowed sidebar container, outside shadow) */
+    .left-sidebar-collapse-bar {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+    }
+
+    /* Left Sidebar Collapsed State */
+    .left-sidebar.collapsed {
+      width: 0;
+      min-width: 0;
+      padding: 0;
+      margin: 0;
+      overflow: visible;
+    }
+    .left-sidebar.collapsed .left-sidebar-card {
+      display: none !important;
+    }
+    .left-sidebar.collapsed .left-sidebar-collapse-bar {
+      position: fixed;
       top: 68px;
-      height: calc(100vh - 88px);
+      left: 16px;
+      z-index: 40;
+      width: auto;
+      margin-top: 0;
     }
     .left-sidebar-content {
       padding: 16px;
@@ -118,6 +155,13 @@
       color: green;
       font-weight: 500;
     }
+    .nav-item-collapsible {
+      cursor: pointer;
+      user-select: none;
+    }
+    .nav-item-collapsible.collapsed .projects-toggle-icon {
+      transform: rotate(-90deg);
+    }
     .sub-nav {
       display: flex;
       flex-direction: column;
@@ -126,6 +170,10 @@
       border-left: 2px solid #e0e0e0;
       margin-top: 4px;
       margin-left: 10px;
+      transition: all 0.2s ease;
+    }
+    .sub-nav.collapsed {
+      display: none !important;
     }
     .left-sidebar-footer {
       border-top: 1px solid #eee;
@@ -138,7 +186,7 @@
       border-bottom-right-radius: 8px;
     }
     .collapse-btn {
-      background: transparent;
+      background: white;
       border: 1px solid #ddd;
       border-radius: 6px;
       width: 32px;
@@ -146,56 +194,51 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      align-self: self-start;
       cursor: pointer;
       color: #555;
-      transition: background 0.15s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
     .collapse-btn:hover {
-      background: #eee;
-      color: #111;
+      background: #f0fdf4;
+      color: green;
+      border-color: #86efac;
     }
 
-    /* Main Section restyled as 3-column grid for desktop */
+    /* Main Middle Section - Extended width & stacked like mobile */
     main {
       flex: 1;
-      width: auto;
+      width: 100%;
+      max-width: 860px;
       margin: 0;
       padding: 2rem;
       background: white;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 20px;
-      align-items: start;
     }
 
-    /* Column positioning inside main grid */
+    /* Column positioning inside main */
     .col-project-info {
-      grid-column: 1;
       display: flex;
       flex-direction: column;
       gap: 20px;
     }
     .col-tasks-area {
-      grid-column: 2;
       display: flex;
       flex-direction: column;
       gap: 15px;
     }
+
+    /* Column 3: Third Side - Invisible for asymmetrical balance */
     .col-empty-third {
-      grid-column: 3;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 30px 20px;
-      background: #fafafa;
-      border: 1px dashed #d0d0d0;
-      border-radius: 8px;
-      min-height: 380px;
-      color: #777;
+      width: 270px;
+      flex-shrink: 0;
+      visibility: hidden;
+      pointer-events: none;
     }
 
     .proj-display {
@@ -361,10 +404,8 @@
         flex-direction: column;
         gap: 15px;
         width: 100%;
+        max-width: 100%;
         padding: 1rem;
-      }
-      .col-project-info, .col-tasks-area, .col-empty-third {
-        grid-column: auto;
       }
       .col-empty-third {
         display: none;
@@ -401,48 +442,55 @@
   <div class="asymmetric-wrapper">
     <!-- Left Side Navigation (Desktop Asymmetric Sidebar) -->
     <aside class="left-sidebar">
-      <div class="left-sidebar-content">
-        <div class="nav-section">
-          <h4>Navigation</h4>
-          <div class="nav-links-list">
-            <a href="dashboard.html" class="nav-item">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
-              <span>Projects</span>
-            </a>
-            <div class="sub-nav" id="desktop-sibling-projects">
-              <!-- Dynamically populated or static sub-projects -->
-              <a href="jobs.html?project=mock-1" class="nav-item" style="padding: 6px 10px; font-size: 13px;">Saja Restaurant</a>
-              <a href="jobs.html?project=mock-2" class="nav-item active" style="padding: 6px 10px; font-size: 13px;">MatchSub</a>
+      <div class="left-sidebar-card">
+        <div class="left-sidebar-content">
+          <div class="nav-section">
+            <h4>Navigation</h4>
+            <div class="nav-links-list">
+              <div class="nav-item nav-item-collapsible" id="desktop-projects-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleProjectsNav(this, document.getElementById('desktop-sibling-projects'))" style="justify-content: space-between; cursor: pointer; user-select: none;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                  <span>Projects</span>
+                </div>
+                <svg class="projects-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="sub-nav" id="desktop-sibling-projects">
+                <!-- Dynamically populated or static sub-projects -->
+                <a href="jobs.html?project=mock-1" class="nav-item" style="padding: 6px 10px; font-size: 13px;">Saja Restaurant</a>
+                <a href="jobs.html?project=mock-2" class="nav-item active" style="padding: 6px 10px; font-size: 13px;">MatchSub</a>
+              </div>
+              <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Audiences view opened');">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Audiences</span>
+              </a>
+              <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Team members view opened');">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                <span>Team members</span>
+              </a>
+              <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Project settings opened');">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Project settings</span>
+              </a>
+              <a href="smtp.html" class="nav-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                <span>API keys</span>
+              </a>
+              <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Billing view opened');">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                <span>Billing</span>
+              </a>
             </div>
-            <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Audiences view opened');">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              <span>Audiences</span>
-            </a>
-            <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Team members view opened');">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-              <span>Team members</span>
-            </a>
-            <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Project settings opened');">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-              <span>Project settings</span>
-            </a>
-            <a href="smtp.html" class="nav-item">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-              <span>API keys</span>
-            </a>
-            <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Billing view opened');">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-              <span>Billing</span>
-            </a>
           </div>
         </div>
+        <div class="left-sidebar-footer">
+          <a href="index.html" class="nav-item" style="color: #d93838; padding: 6px 0; font-weight: 500;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+            <span>Sign out</span>
+          </a>
+        </div>
       </div>
-      <div class="left-sidebar-footer">
-        <a href="index.html" class="nav-item" style="color: #d93838; padding: 6px 0; font-weight: 500;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
-          <span>Sign out</span>
-        </a>
-        <button type="button" class="collapse-btn" id="desktop-collapse-btn" title="Collapse sidebar" onclick="document.querySelector('.left-sidebar').style.display = document.querySelector('.left-sidebar').style.display === 'none' ? 'flex' : 'none';">
+      <div class="left-sidebar-collapse-bar">
+        <button type="button" class="collapse-btn" id="desktop-collapse-btn" title="Collapse sidebar" aria-label="Collapse sidebar" onclick="toggleDesktopSidebar()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
       </div>
@@ -502,14 +550,12 @@
           </div>
         </div>
       </div>
-
-      <!-- Column 3: Empty column for now -->
-      <div class="col-empty-third">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 4" style="margin-bottom: 12px;"><rect width="18" height="18" x="3" y="3" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        <h4 style="font-size: 16px; color: #444; margin-bottom: 4px;">Third Column</h4>
-        <p style="font-size: 13px;">This column remains empty for now as requested.</p>
-      </div>
     </main>
+
+    <!-- Column 3: Third Side (Invisible for asymmetrical layout balance) -->
+    <div class="">
+      <h1>Hi, User</h1>
+    </div>
   </div>
 
   <!-- Add new task overlay -->
@@ -584,11 +630,14 @@
         <div class="nav-section">
           <h4>Navigation</h4>
           <div class="nav-links-list">
-            <a href="dashboard.html" class="nav-item">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
-              <span>Projects</span>
-            </a>
-            <div class="sub-nav">
+            <div class="nav-item nav-item-collapsible" id="mobile-projects-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleProjectsNav(this, document.getElementById('mobile-sibling-projects'))" style="justify-content: space-between; cursor: pointer; user-select: none;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                <span>Projects</span>
+              </div>
+              <svg class="projects-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="sub-nav" id="mobile-sibling-projects">
               <a href="jobs.html?project=mock-1" class="nav-item" style="padding: 6px 10px; font-size: 13px;">Saja Restaurant</a>
               <a href="jobs.html?project=mock-2" class="nav-item active" style="padding: 6px 10px; font-size: 13px;">MatchSub</a>
             </div>
@@ -624,6 +673,32 @@
     </div>
   </div>
 
+  <script>
+    function toggleDesktopSidebar() {
+      const sidebar = document.querySelector('.left-sidebar');
+      const btn = document.getElementById('desktop-collapse-btn');
+      if (!sidebar || !btn) return;
+      const isCollapsed = sidebar.classList.toggle('collapsed');
+      if (isCollapsed) {
+        btn.title = "Expand sidebar";
+        btn.setAttribute("aria-label", "Expand sidebar");
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>';
+      } else {
+        btn.title = "Collapse sidebar";
+        btn.setAttribute("aria-label", "Collapse sidebar");
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>';
+      }
+    }
+    window.toggleDesktopSidebar = toggleDesktopSidebar;
+
+    function toggleProjectsNav(toggleEl, subNavEl) {
+      if (!toggleEl || !subNavEl) return;
+      const isCollapsed = subNavEl.classList.toggle('collapsed');
+      toggleEl.classList.toggle('collapsed', isCollapsed);
+      toggleEl.setAttribute('aria-expanded', !isCollapsed);
+    }
+    window.toggleProjectsNav = toggleProjectsNav;
+  </script>
   <script type="module" src="scripts/ui/toast.js"></script>
   <script type="module" src="jobs.js"></script>
 </body>
