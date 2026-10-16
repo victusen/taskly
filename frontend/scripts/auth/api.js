@@ -17,13 +17,11 @@ async function ensureValidSession() {
   const session =
     await getCurrentSession();
 
-  if (!session) {
-
-    throw new Error(
-      'No active session'
-    );
-
-  }
+    if (!session) {
+      const error = new Error('Please sign in again.');
+      error.status = 401;
+      throw error;
+    }
 
   return session;
 }
@@ -50,18 +48,18 @@ export async function authenticatedFetch(
   const headers =
     await getAuthHeaders();
 
-  const response =
-    await fetch(
-      `${BACKEND_URL}${url}`,
-      {
-        ...options,
+    let response;
 
-        headers: {
-          ...headers,
-          ...options.headers
-        }
-      }
-    );
+    try {
+      response = await fetch(`${BACKEND_URL}${url}`, {
+        ...options,
+        headers: { ...headers, ...options.headers },
+      });
+    } catch {
+      const error = new Error('Cannot reach Bzade. Check your connection and try again.');
+      error.status = 0;
+      throw error;
+    }
 
   let body = {};
 

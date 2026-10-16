@@ -8,3 +8,5 @@ google-test.html
 smtp-test.html
 PROJECT_MEMORY.md
 generate_codebase_txt.sh
+generate_kodebase.sh
+*.sh 

@@ -1,13 +1,15 @@
-## Taskly 
+## Taskly / Bzade
 
-Taskly is a scheduling web application that allows small business owners to schedule messages, mails and Whatsapps at certain points in time to their clients so they don't have to worry about missing out on business success. 
-On Taskly, developers also have a cron feature to use our services to send payloads at specified times in future using whether (GET, POST, PATCH, DELETE);
+Taskly (Bzade) is a scheduling web application that allows small business owners and developers to schedule emails, messages, and payloads at precise times in the future.
 
-## Why the need to schedule 
+## Key Features
 
-Imagine forgeting your reminder to your reminder to send a bulk 'new month' message to clients who patronised you in the previous month, or not knowing the right date an event fell on - Taskly is a web app that allow you write THIS pre-schedules. 
+- **Project & Business Management**: Organize schedules across multiple business profiles and projects.
+- **Asymmetric Responsive Layout**: Professional dashboard layout featuring project-level navigation (Projects, Audiences, Team members, Settings, API keys, Billing, Sign out), a 3-column desktop grid for project info, tasks, and tools, and a mobile slide-in sidebar.
+- **Email & SMTP Dispatch**: Securely connect Google OAuth Gmail accounts or custom SMTP servers to automate scheduled emails.
+- **Flexible Scheduling**: Support for one-time and recurring (daily, weekly, monthly, etc.) email schedules with live status tracking (Active, Paused, New).
 
-## How we will achieve this 
+## Architecture
 
-Taskly will be design to have a clean stunning UI on the home route, and an immediate route to users dashboard immediately they have been signed in/up to view all businesses they own on their account. By clicking on any of their businesses, the real dashboard where they can manage each of the schedules they have running, paused, waiting, just run, etc and can edit. Each of the screen of the web app is expected to be so professionally designed and developed so users feel warm and welcomed
-
+- **Frontend**: Vanilla JavaScript modules, responsive CSS design, UI toast notifications, and Supabase client authentication.
+- **Backend**: Node.js & Express API with security middleware (Helmet, CORS, Rate Limiting), Supabase Auth middleware, and cron/scheduler integration.
