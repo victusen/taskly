@@ -3,7 +3,7 @@ import { requireAuth } from "./scripts/auth/session.js";
 import { initShell, showGoogleResult } from "./scripts/ui/shell.js";
 import { showToast, error as toastError } from "./scripts/ui/toast.js";
 import { startGoogleConnection } from "./scripts/api/emailConnections.js";
-import { loadProject, loadConnections, loadSchedules, changeStatus } from "./scripts/data/source.js";
+import { loadProject, loadConnections, loadSchedules, changeStatus, updateSchedule, addSchedule } from "./scripts/data/source.js";
 
 const projectId = new URLSearchParams(window.location.search).get("project");
 
@@ -387,3 +387,48 @@ async function init() {
 }
 
 await init();
+
+/* Saves from the composer. Create sends a new schedule, edit updates the one in the row. */
+async function senderFor(draft) {
+  const connections = (await loadConnections()).filter((item) => item.status === "active");
+  const sender = connections.find((item) => item.email_address === draft.sender);
+
+  if (!sender) {
+    throw new Error(`Connect ${draft.sender} first, then try again.`);
+  }
+
+  return sender;
+}
+
+function payloadFor(draft, sender) {
+  const payload = {
+    project_id: projectId,
+    email_connection_id: sender.id,
+    name: draft.name,
+    schedule_type: draft.schedule_type,
+    timezone: TIMEZONE,
+    config: {
+      recipients: draft.recipients,
+      subject: draft.subject,
+      body: draft.body,
+      body_type: "html",
+    },
+  };
+
+  if (draft.scheduled_for) payload.scheduled_for = draft.scheduled_for;
+  if (draft.schedule_rule) payload.schedule_rule = draft.schedule_rule;
+
+  return payload;
+}
+
+window.bzComposer.onSubmit = async (draft) => {
+  const sender = await senderFor(draft);
+  await addSchedule(payloadFor(draft, sender));
+  await loadRows();
+};
+
+window.bzComposer.onUpdate = async (id, draft) => {
+  const sender = await senderFor(draft);
+  await updateSchedule(id, payloadFor(draft, sender));
+  await loadRows();
+};

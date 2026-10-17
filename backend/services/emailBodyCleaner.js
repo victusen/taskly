@@ -24,6 +24,12 @@ const SAFE_STYLES = {
   height: [SAFE_STYLE_VALUE],
   border: [SAFE_STYLE_VALUE],
   "border-radius": [SAFE_STYLE_VALUE],
+  display: [SAFE_STYLE_VALUE],
+  "flex-direction": [SAFE_STYLE_VALUE],
+  "justify-content": [SAFE_STYLE_VALUE],
+  "align-items": [SAFE_STYLE_VALUE],
+  gap: [SAFE_STYLE_VALUE],
+  "max-width": [SAFE_STYLE_VALUE],
 };
 
 const OPTIONS = {
