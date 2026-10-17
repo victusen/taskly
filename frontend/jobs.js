@@ -217,8 +217,10 @@ document.getElementById("create-email").addEventListener("click", () => {
 
 // Mobile Sidebar toggle wiring
 const hamburgerBtn = document.getElementById("hamburger-btn");
+const avatarBtn = document.getElementById("avatar-btn");
 const sidebarOverlay = document.getElementById("mobile-sidebar-overlay");
 const sidebarCloseBtn = document.getElementById("sidebar-close-btn");
+const sidebarCard = document.querySelector(".left-sidebar-card");
 const sidebarDesignDraft = document.getElementById("sidebar-design-draft");
 const scheduleOverlay = document.getElementById("schedule-overlay");
 const addScheduleBtn = document.getElementById("add-schedule");
@@ -236,7 +238,20 @@ function toggleMobileSidebar(open) {
   }
 }
 
-hamburgerBtn?.addEventListener("click", () => toggleMobileSidebar(true));
+hamburgerBtn?.addEventListener("click", () => {
+  console.log("Hamburger menu button clicked");
+  if (window.innerWidth <= 1024) {
+    toggleMobileSidebar(true);
+  } else {
+    toggleDesktopSidebar();
+  }
+});
+
+avatarBtn?.addEventListener("click", () => {
+  console.log("Avatar icon clicked");
+  showToast("info", "Avatar menu clicked");
+});
+
 sidebarCloseBtn?.addEventListener("click", () => toggleMobileSidebar(false));
 sidebarOverlay?.addEventListener("click", (e) => {
   if (e.target === sidebarOverlay) toggleMobileSidebar(false);
@@ -249,6 +264,7 @@ sidebarDesignDraft?.addEventListener("click", (e) => {
 
 // Task creation modal triggers
 function openScheduleModal() {
+  console.log("Add a new task button clicked");
   scheduleOverlay?.classList.add("open");
   document.body.style.overflow = "hidden";
 }
