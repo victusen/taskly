@@ -1,3 +1,5 @@
+import { authenticatedFetch } from "../auth/api.js";
+import { BACKEND_URL } from "../config.js";
 import { getProjects, createProject } from "../api/projects.js";
 import { listEmailConnections } from "../api/emailConnections.js";
 import { getSchedules, pauseSchedule, resumeSchedule, cancelSchedule } from "../api/schedules.js";
@@ -22,6 +24,7 @@ const BASE_PROJECTS = [
 const MOCK_CONNECTIONS = [
   { id: "mock-c1", provider: "google", connection_type: "oauth2", email_address: "zade@example.com", status: "active" },
   { id: "mock-c2", provider: "custom", connection_type: "smtp", email_address: "hello@saja.example", status: "active" },
+  { id: "mock-c3", provider: "google", connection_type: "oauth2", email_address: "usenvictor40@gmail.com", status: "active" },
 ];
 
 const RECIPIENTS = ["ada@example.com", "tunde@example.com", "ngozi@example.com", "emeka@example.com", "bola@example.com"];
@@ -112,6 +115,44 @@ export async function addProject({ project_name, business_name, email_connection
   return project;
 }
 
+export async function addSchedule(payload) {
+  if (USE_MOCK) {
+    return { id: `mock-${Date.now()}`, ...payload, status: "active" };
+  }
+
+  const res = await authenticatedFetch(`${BACKEND_URL}/api/schedules`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const json = await res.json();
+  if (!res.ok || json.success === false) {
+    throw new Error(json.message || "Could not create the task.");
+  }
+
+  return json.data;
+}
+
+export async function updateSchedule(id, payload) {
+  if (USE_MOCK) {
+    return { id, ...payload };
+  }
+
+  const res = await authenticatedFetch(`${BACKEND_URL}/api/schedules/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const json = await res.json();
+  if (!res.ok || json.success === false) {
+    throw new Error(json.message || "Could not update the task.");
+  }
+
+  return json.data;
+}
+
 export async function loadConnections() {
   if (!USE_MOCK) return listEmailConnections();
   await delay(500);
@@ -120,8 +161,9 @@ export async function loadConnections() {
 
 export async function loadSchedules(projectId) {
   if (!USE_MOCK) return (await getSchedules(projectId)).data;
-  await delay(900);
-  return JSON.parse(JSON.stringify(schedulesStore()[projectId] || []));
+  await delay(2000); // 2 seconds delay for testing unreal data / empty state loader
+  // Return empty array [] by default to test the empty state + loader container properly
+  return [];
 }
 
 /* action: "pause", "resume" or "remove". Returns how many of the ids failed. */
