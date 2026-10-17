@@ -73,6 +73,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      gap: 20px;
       position: sticky;
       top: 68px;
       height: calc(100vh - 100px);
@@ -86,7 +87,7 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
-      /*flex: 1; */
+      /* flex: 1; */
       overflow: hidden;
       transition: opacity 0.2s ease, visibility 0.2s ease;
     }
@@ -120,7 +121,7 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
-      /*flex: 1;*/
+      flex: 1;
     }
     .nav-section h4 {
       font-size: 11px;
@@ -521,6 +522,16 @@
     }
     .cmp[hidden] { display: none; }
 
+    .task-sticky-header {
+      position: sticky;
+      top: 50px;
+      z-index: 10;
+      background: white;
+      padding: 10px 0 12px 0;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 8px;
+    }
+
     .cmp-head {
       display: flex;
       align-items: center;
@@ -543,12 +554,15 @@
       color: var(--bz-soft);
       font: inherit;
       cursor: pointer;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
     }
     .cmp-icon:hover {
       background: #fee2e2;
       border-color: var(--bz-red);
       color: var(--bz-red);
+      transform: scale(1.08);
+      box-shadow: 0 2px 5px rgba(220, 38, 38, 0.15);
     }
     .cmp-icon svg { pointer-events: none; }
 
@@ -704,6 +718,144 @@
       transition: border-color 0.15s, color 0.15s;
     }
     .cmp-cancel:hover { border-color: #9ca3af; color: var(--bz-soft); }
+    .cmp-preview-btn {
+      padding: 10px 18px;
+      font-family: var(--bz-font);
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+      background: #f3f4f6;
+      border: 1px solid var(--bz-line);
+      border-radius: var(--bz-radius);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .cmp-preview-btn:hover {
+      background: #e5e7eb;
+      border-color: #9ca3af;
+      color: #111827;
+    }
+    .cmp-connect-db-badge:hover {
+      background: #e5e7eb !important;
+      border-color: #9ca3af !important;
+      color: #111827 !important;
+    }
+
+    /* Success Modal with Glassmorphism & Smooth Animation */
+    .bz-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(17, 24, 39, 0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+      padding: 16px;
+    }
+    .bz-modal-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .bz-modal-card {
+      position: relative;
+      background: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 18px;
+      box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04);
+      width: 100%;
+      max-width: 440px;
+      padding: 32px 28px 28px;
+      text-align: center;
+      transform: scale(1) translateY(0);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .bz-modal-overlay.hidden .bz-modal-card {
+      transform: scale(0.95) translateY(12px);
+    }
+    .bz-modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: #f3f4f6;
+      color: #6b7280;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .bz-modal-close:hover {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+    .bz-modal-icon-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+    .bz-modal-icon-circle {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #ecfdf5;
+      border: 2px solid #bbf7d0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+    }
+    .bz-modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
+    }
+    .bz-modal-desc {
+      font-size: 14.5px;
+      color: #4b5563;
+      line-height: 1.55;
+      margin-bottom: 24px;
+    }
+    .bz-modal-actions {
+      display: flex;
+      justify-content: center;
+    }
+    .bz-modal-btn-primary {
+      padding: 11px 32px;
+      background: #111827;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.15s;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    }
+    .bz-modal-btn-primary:hover {
+      background: #d93838;
+      transform: translateY(-1px);
+    }
 
     /* Job rows */
     #job-rows { display: flex; flex-direction: column; }
@@ -897,7 +1049,7 @@
             <div class="nav-links-list">
               <div class="nav-item nav-item-collapsible" id="desktop-projects-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleProjectsNav(this, document.getElementById('desktop-sibling-projects'))" style="justify-content: space-between; cursor: pointer; user-select: none;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="5" rx="1.5"/><rect x="2" y="10" width="20" height="5" rx="1.5"/><rect x="2" y="17" width="20" height="5" rx="1.5"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                   <span>Projects</span>
                 </div>
                 <svg class="projects-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
@@ -966,12 +1118,14 @@
       <!-- Column 2: Tasks List & Toggles (Matches existing design & functionality) -->
       <div class="col-tasks-area">
         <div class="task-toggle">
-          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
-            <h2 style="font-size: 22px;">Tasks</h2>
-            <button id="connect-gmail-btn" class="btn" type="button" style="padding: 4px 10px; background-color: inherit; border: 1px solid lightgray; border-radius: 4px; cursor: pointer; font-weight: normal; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; color: #111;">
-              <img src="gmail-btn.png" style="height: 14px;" alt="Gmail" />
-              <span>Connect Gmail</span>
-            </button>
+          <div class="task-sticky-header">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+              <h2 style="font-size: 22px;">Tasks</h2>
+              <button id="connect-gmail-btn" class="btn" type="button" style="padding: 4px 10px; background-color: inherit; border: 1px solid lightgray; border-radius: 4px; cursor: pointer; font-weight: normal; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; color: #111;">
+                <img src="gmail-btn.png" style="height: 14px;" alt="Gmail" />
+                <span>Connect Gmail</span>
+              </button>
+            </div>
           </div>
           <div class="toggles">
             <button class="toggle active" data-filter="all" type="button">All (0)</button>
@@ -1005,7 +1159,7 @@
                 </label>
                 <label class="cmp-field cmp-shrink">
                   <span class="cmp-label">Frequency</span>
-                  <select id="cmp-how" class="cmp-input" style="min-width: 110px;">
+                  <select id="cmp-how" class="cmp-input" style="min-width: 170px;">
                     <option value="now">Send now</option>
                     <option value="once" selected>Once</option>
                     <option value="daily">Daily</option>
@@ -1018,7 +1172,7 @@
                 </label>
                 <label class="cmp-field cmp-shrink">
                   <span class="cmp-label">Send type</span>
-                  <select class="cmp-input" name="channel" style="min-width: 100px;">
+                  <select class="cmp-input" name="channel" style="min-width: 110px;">
                     <option value="emails" selected>Emails</option>
                     <option value="payload" disabled>Payload</option>
                   </select>
@@ -1033,7 +1187,13 @@
                 </label>
                 <label class="cmp-field cmp-grow">
                   <span class="cmp-label">To (commas)</span>
-                  <input class="cmp-input" name="recipients" autocomplete="off" placeholder="ada@example.com, tunde@example.com">
+                  <div style="position: relative; display: flex; align-items: center; width: 100%;">
+                    <input class="cmp-input" name="recipients" autocomplete="off" placeholder="ada@example.com, tunde@example.com" style="padding-right: 154px; width: 100%;">
+                    <span class="cmp-connect-db-badge" title="Connect database or spreadsheet" style="position: absolute; right: 6px; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; color: #374151; background: #f3f4f6; border: 1px solid #d1d5db; padding: 4px 8px; border-radius: 6px; cursor: pointer; user-select: none; transition: background 0.15s, border-color 0.15s;" onclick="if(typeof showToast === 'function') showToast('info', 'Spreadsheet / Database connection coming soon');">
+                      <img src="spreadsheet-icon.png" alt="Spreadsheet" style="width: 13px; height: 13px; object-fit: contain;">
+                      <span>Connect database</span>
+                    </span>
+                  </div>
                 </label>
                 <label class="cmp-field cmp-shrink" style="flex-basis: 190px;">
                   <span class="cmp-label">Sending from</span>
@@ -1066,6 +1226,10 @@
                 <p id="cmp-error" class="cmp-error" role="alert" hidden></p>
                 <div class="cmp-actions">
                   <button type="button" id="cmp-cancel" class="cmp-cancel">Cancel</button>
+                  <button type="button" id="cmp-preview-btn" class="cmp-preview-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <span>Preview</span>
+                  </button>
                   <button type="submit" id="cmp-create" class="cmp-create">Create task</button>
                 </div>
               </div>
@@ -1314,7 +1478,7 @@
           <div class="nav-links-list">
             <div class="nav-item nav-item-collapsible" id="mobile-projects-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleProjectsNav(this, document.getElementById('mobile-sibling-projects'))" style="justify-content: space-between; cursor: pointer; user-select: none;">
               <div style="display: flex; align-items: center; gap: 10px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 <span>Projects</span>
               </div>
               <svg class="projects-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
@@ -1381,6 +1545,96 @@
     }
     window.toggleProjectsNav = toggleProjectsNav;
   </script>
+
+  <!-- Right Panel Tab Logic + Live Preview -->
+  <script>
+  (() => {
+    /* Tab switching */
+    const tabs = document.querySelectorAll('.rp-tab[data-rp-tab]');
+    const panels = document.querySelectorAll('.rp-panel[id^="rp-panel-"]');
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const target = tab.dataset.rpTab;
+        tabs.forEach((t) => {
+          t.classList.toggle('active', t.dataset.rpTab === target);
+          t.setAttribute('aria-selected', String(t.dataset.rpTab === target));
+        });
+        panels.forEach((p) => {
+          p.classList.toggle('active', p.id === `rp-panel-${target}`);
+        });
+      });
+    });
+
+    /* Live preview: update the iframe whenever the editor body changes */
+    const bodyInput = document.getElementById('cmp-body');
+    const subjectInput = document.querySelector('[name="subject"]');
+    const recipientsInput = document.querySelector('[name="recipients"]');
+    const iframe = document.getElementById('rp-iframe');
+    const previewFrame = document.getElementById('rp-preview-frame');
+    const previewEmpty = document.getElementById('rp-preview-empty');
+    const previewMeta = document.getElementById('rp-preview-meta');
+    const metaSubject = document.getElementById('rp-meta-subject');
+    const metaRecipients = document.getElementById('rp-meta-recipients');
+    const composer = document.getElementById('job-composer');
+
+    function updatePreview() {
+      const html = bodyInput?.value?.trim() || '';
+      if (html) {
+        previewEmpty.style.display = 'none';
+        previewFrame.style.display = '';
+        previewMeta.style.display = 'flex';
+        if (iframe.contentDocument) {
+          iframe.contentDocument.open();
+          iframe.contentDocument.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;padding:12px;font-family:system-ui,sans-serif;font-size:14px;}</style></head><body>${html}</body></html>`);
+          iframe.contentDocument.close();
+          // Auto-set iframe height
+          requestAnimationFrame(() => {
+            try {
+              const h = iframe.contentDocument.body.scrollHeight;
+              previewFrame.style.minHeight = Math.min(Math.max(h + 24, 200), 520) + 'px';
+              iframe.style.height = Math.min(Math.max(h + 24, 200), 520) + 'px';
+            } catch(e) {}
+          });
+        }
+        if (metaSubject) metaSubject.textContent = subjectInput?.value || '—';
+        if (metaRecipients) metaRecipients.textContent = recipientsInput?.value || '—';
+      } else {
+        previewEmpty.style.display = '';
+        previewFrame.style.display = 'none';
+        previewMeta.style.display = 'none';
+      }
+    }
+
+    bodyInput?.addEventListener('input', updatePreview);
+    subjectInput?.addEventListener('input', () => { if (metaSubject) metaSubject.textContent = subjectInput.value || '—'; });
+    recipientsInput?.addEventListener('input', () => { if (metaRecipients) metaRecipients.textContent = recipientsInput.value || '—'; });
+
+    /* Expose so jobs.js can call after rendering */
+    window.bzRightPanel = {
+      updateProjectInfo(project) {
+        const nameEl = document.getElementById('rp-proj-name');
+        const idEl = document.getElementById('rp-proj-id');
+        if (nameEl && project?.project_name) nameEl.textContent = project.project_name;
+        if (idEl && project?.id) idEl.textContent = project.id;
+      },
+      updateTaskCount(count) {
+        const el = document.getElementById('rp-total-tasks');
+        if (el) el.textContent = String(count);
+      },
+      previewSchedule(schedule) {
+        const html = schedule?.config?.body || '';
+        if (bodyInput) { bodyInput.value = html; }
+        updatePreview();
+        if (metaSubject) metaSubject.textContent = schedule?.config?.subject || '—';
+        const recipients = (schedule?.config?.recipients || []).join(', ');
+        if (metaRecipients) metaRecipients.textContent = recipients || '—';
+        // Switch to preview tab
+        document.querySelector('[data-rp-tab="preview"]')?.click();
+      }
+    };
+  })();
+  </script>
   <script type="module" src="scripts/ui/toast.js"></script>
   <script>
 /* Job composer. Create mode sits where the empty state is. Edit mode moves the same composer under the job being edited. */
@@ -1394,6 +1648,7 @@
   const openButton = document.getElementById("add-task-cta");
   const closeButton = document.getElementById("cmp-close");
   const cancelButton = document.getElementById("cmp-cancel");
+  const previewButton = document.getElementById("cmp-preview-btn");
   const nameInput = document.getElementById("cmp-name");
   const recipientsInput = form.elements.namedItem("recipients");
   const subjectInput = form.elements.namedItem("subject");
@@ -1671,6 +1926,15 @@
   closeButton.addEventListener("click", goHome);
   cancelButton.addEventListener("click", goHome);
 
+  previewButton?.addEventListener("click", () => {
+    // Switch to preview tab in the right panel and bring it into view
+    document.querySelector('[data-rp-tab="preview"]')?.click();
+    const rightPanel = document.getElementById("right-panel");
+    if (rightPanel) {
+      rightPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  });
+
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !composer.hidden) goHome();
   });
@@ -1694,7 +1958,8 @@
 
     const data = new FormData(form);
     const name = String(data.get("name") || "").trim();
-    const recipients = String(data.get("recipients") || "")
+    const rawRecipients = String(data.get("recipients") || "").trim();
+    const recipients = rawRecipients
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean);
@@ -1703,7 +1968,15 @@
     const how = howSelect.value;
 
     if (!name) return showError("Give this task a job name.");
-    if (recipients.length === 0) return showError("Add at least one recipient.");
+    if (recipients.length === 0) return showError("Add at least one recipient email address.");
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    for (const email of recipients) {
+      if (!emailRegex.test(email)) {
+        return showError(`Invalid recipient email: "${email}". Please provide valid comma-separated email(s).`);
+      }
+    }
+
     if (!subject) return showError("Add a subject.");
     if (!html) return showError("Write the message in the editor.");
 
@@ -1752,6 +2025,46 @@
   resetForm();
 })();
 </script>
+
+  <!-- Success Confirmation Modal -->
+  <div id="success-modal" class="bz-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
+    <div class="bz-modal-card">
+      <button type="button" class="bz-modal-close" id="success-modal-close" aria-label="Close modal">&times;</button>
+      <div class="bz-modal-icon-wrap">
+        <div class="bz-modal-icon-circle">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+      </div>
+      <h3 id="success-modal-title" class="bz-modal-title">Template Ready to Run!</h3>
+      <p class="bz-modal-desc">Nice job, thanks for choosing Bzade. Your template is ready to run.</p>
+      <div class="bz-modal-actions">
+        <button type="button" id="success-modal-done" class="bz-modal-btn-primary">View Tasks</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.bzShowSuccess = () => {
+      const modal = document.getElementById("success-modal");
+      if (modal) modal.classList.remove("hidden");
+    };
+    window.bzHideSuccess = () => {
+      const modal = document.getElementById("success-modal");
+      if (modal) modal.classList.add("hidden");
+    };
+
+    document.getElementById("success-modal-close")?.addEventListener("click", window.bzHideSuccess);
+    document.getElementById("success-modal-done")?.addEventListener("click", window.bzHideSuccess);
+    document.getElementById("success-modal")?.addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) window.bzHideSuccess();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") window.bzHideSuccess();
+    });
+  </script>
+
   <script type="module" src="jobs.js"></script>
 </body>
 </html>

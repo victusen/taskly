@@ -151,6 +151,10 @@ function renderRows(filter = currentFilter) {
       })
       .join("");
   }
+  // Update right panel task count
+  if (typeof window.bzRightPanel?.updateTaskCount === 'function') {
+    window.bzRightPanel.updateTaskCount(schedules.length);
+  }
 }
 
 /**
@@ -182,6 +186,10 @@ async function updateProjectUI(project) {
   }
   if (project) {
     document.title = `bzade - ${project.project_name}`;
+  }
+  // Sync right panel settings tab
+  if (typeof window.bzRightPanel?.updateProjectInfo === 'function') {
+    window.bzRightPanel.updateProjectInfo(project);
   }
 
   try {
@@ -259,8 +267,31 @@ function toggleMobileSidebar(open) {
 hamburgerBtn?.addEventListener("click", () => {
   if (window.innerWidth <= 1024) {
     toggleMobileSidebar(true);
-  } else if (typeof window.toggleDesktopSidebar === "function") {
-    window.toggleDesktopSidebar();
+  } else {
+    // On desktop: always expand (open) the sidebar if it's collapsed
+    const sidebar = document.querySelector(".left-sidebar");
+    const sidebarCard = document.querySelector(".left-sidebar-card");
+    if (sidebar) {
+      if (sidebar.classList.contains("collapsed")) {
+        // Expand with playful flex-1 animation
+        sidebar.classList.remove("collapsed");
+        if (sidebarCard) {
+          sidebarCard.style.flex = "1";
+          sidebarCard.style.transition = "flex 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease";
+        }
+        const btn = document.getElementById("desktop-collapse-btn");
+        if (btn) {
+          btn.title = "Collapse sidebar";
+          btn.setAttribute("aria-label", "Collapse sidebar");
+          btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><polyline points="15 8 11 12 15 16"/></svg>';
+        }
+      } else {
+        // Already open — toggle collapse via existing function
+        if (typeof window.toggleDesktopSidebar === "function") {
+          window.toggleDesktopSidebar();
+        }
+      }
+    }
   }
 });
 
@@ -378,29 +409,41 @@ window.bzComposer = window.bzComposer || {};
 
 window.bzComposer.onSubmit = async (draft) => {
   setLoading(true);
+  let saved = false;
   try {
     const sender = await senderFor(draft);
     await addSchedule(payloadFor(draft, sender));
-    showToast("success", "Task created successfully.");
+    saved = true;
   } catch (err) {
+    // DB rejected: re-throw so composer shows error inline
     toastError(err.message || "Could not save task.");
     throw err;
   } finally {
+    // Always re-fetch from server with loader — so the UI reflects real DB state
     await loadRows();
+    if (saved && typeof window.bzShowSuccess === "function") {
+      window.bzShowSuccess();
+    }
   }
 };
 
 window.bzComposer.onUpdate = async (id, draft) => {
   setLoading(true);
+  let saved = false;
   try {
     const sender = await senderFor(draft);
     await updateSchedule(id, payloadFor(draft, sender));
-    showToast("success", "Task updated successfully.");
+    saved = true;
   } catch (err) {
     toastError(err.message || "Could not update task.");
     throw err;
   } finally {
     await loadRows();
+    if (saved && typeof window.bzShowSuccess === "function") {
+      window.bzShowSuccess();
+    } else if (saved) {
+      showToast("success", "Task updated.");
+    }
   }
 };
 
