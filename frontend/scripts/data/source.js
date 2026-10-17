@@ -80,7 +80,7 @@ function buildSchedules(projectId, count) {
 
 function schedulesStore() {
   if (!mockSchedules) {
-    mockSchedules = { "mock-1": buildSchedules("mock-1", 6), "mock-2": buildSchedules("mock-2", 4) };
+    mockSchedules = { "mock-1": [], "mock-2": [] };
   }
   return mockSchedules;
 }
@@ -117,7 +117,19 @@ export async function addProject({ project_name, business_name, email_connection
 
 export async function addSchedule(payload) {
   if (USE_MOCK) {
-    return { id: `mock-${Date.now()}`, ...payload, status: "active" };
+    await delay(600);
+    const store = schedulesStore();
+    const pid = payload.project_id || "mock-1";
+    const newSchedule = {
+      id: `mock-${Date.now()}`,
+      ...payload,
+      status: "active",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    if (!store[pid]) store[pid] = [];
+    store[pid].unshift(newSchedule);
+    return newSchedule;
   }
 
   const res = await authenticatedFetch(`${BACKEND_URL}/api/schedules`, {
@@ -136,6 +148,15 @@ export async function addSchedule(payload) {
 
 export async function updateSchedule(id, payload) {
   if (USE_MOCK) {
+    await delay(600);
+    const store = schedulesStore();
+    for (const key of Object.keys(store)) {
+      const idx = store[key].findIndex((item) => item.id === id);
+      if (idx !== -1) {
+        store[key][idx] = { ...store[key][idx], ...payload, updated_at: new Date().toISOString() };
+        return store[key][idx];
+      }
+    }
     return { id, ...payload };
   }
 
@@ -161,9 +182,9 @@ export async function loadConnections() {
 
 export async function loadSchedules(projectId) {
   if (!USE_MOCK) return (await getSchedules(projectId)).data;
-  await delay(2000); // 2 seconds delay for testing unreal data / empty state loader
-  // Return empty array [] by default to test the empty state + loader container properly
-  return [];
+  await delay(2200); // 2.2 seconds delay for loading empty state / jobs
+  const store = schedulesStore();
+  return JSON.parse(JSON.stringify(store[projectId] || []));
 }
 
 /* action: "pause", "resume" or "remove". Returns how many of the ids failed. */

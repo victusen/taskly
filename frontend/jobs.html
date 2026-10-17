@@ -286,15 +286,97 @@
     .task-list {
       display: flex; flex-direction: column; gap: 15px;
       width: 100%; 
-      /* overflow: hidden; */
       margin-top: 10px;
       margin-bottom: 20px;
     }
     .no-job { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px 20px; color: #777; }
-    .no-job[hidden] { display: none; }
+    .no-job[hidden] { display: none !important; }
     .no-job svg { width: 76px; height: 76px; margin-top: 8px; margin-bottom: 24px; transform: rotate(-8deg); }
     .no-job h3 { font-size: 18px; color: #333; margin-bottom: 4px; }
     .no-job p { font-size: 14px; max-width: 320px; }
+
+    [hidden] { display: none !important; }
+    #add-schedule[hidden] { display: none !important; }
+    #add-task-cta[hidden] { display: none !important; }
+
+    /* Task Loader & Animated Bright Red Donut Spinner */
+    .task-loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 56px 20px;
+      min-height: 260px;
+      width: 100%;
+      box-sizing: border-box;
+      animation: bz-loader-fade 0.25s ease-out;
+    }
+    .task-loader[hidden] { display: none !important; }
+
+    .bz-donut-spinner {
+      width: 40px;
+      height: 40px;
+      animation: bz-donut-spin 0.85s linear infinite;
+      box-sizing: border-box;
+      display: inline-block;
+    }
+    div.bz-donut-spinner {
+      border: 3.2px solid rgba(255, 0, 0, 0.12);
+      border-top: 3.2px solid #ff0000;
+      border-radius: 50%;
+    }
+    svg.bz-donut-spinner {
+      transform-origin: center center;
+    }
+    .bz-spinner-track {
+      stroke: rgba(255, 0, 0, 0.12);
+    }
+    .bz-spinner-arc {
+      stroke: #ff0000;
+      stroke-linecap: round;
+      transform-origin: center center;
+    }
+
+    @keyframes bz-donut-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes bz-loader-fade {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bz-donut-spinner { animation-duration: 1.6s; }
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+    .badge-green { background: #e3f5ee; color: #087a58; }
+    .badge-warn { background: #fef3c7; color: #92400e; }
+    .badge-red { background: #fee2e2; color: #b91c1c; }
+    .badge-blue { background: #e0f2fe; color: #0369a1; }
+
+    .task-row-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+      color: #667085;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .task-row-meta span strong {
+      color: #111111;
+      font-weight: 500;
+    }
 
     .close-btn {
       background-color: lightgray; 
@@ -411,77 +493,369 @@
         display: none;
       }
     }
-        /* Palette: ink #111111, soft #333333, muted #6b6b6b, line #d9d9d9, strong line #3a3a3a, wash #f5f5f5 */
+        /* Design tokens (shared with page) */
+    :root {
+      --bz-radius: 8px;
+      --bz-font: "DM Sans", "Inter", system-ui, sans-serif;
+      --bz-ink: #111111;
+      --bz-soft: #333333;
+      --bz-muted: #6b7280;
+      --bz-line: #e5e7eb;
+      --bz-wash: #f9fafb;
+      --bz-red: #d93838;
+    }
 
-    /* Composer panel. Replaces the empty state while open. */
-    .cmp { margin-top: 8px; border: 1px solid #d9d9d9; background: #ffffff; padding: 20px; display: flex; flex-direction: column; gap: 20px; font-family: "DM Sans", system-ui, sans-serif; color: #111111; }
+    /* ── Composer panel ── */
+    .cmp {
+      margin-top: 8px;
+      border: 1px solid var(--bz-line);
+      border-radius: var(--bz-radius);
+      background: #ffffff;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      font-family: var(--bz-font);
+      color: var(--bz-ink);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
     .cmp[hidden] { display: none; }
-    .cmp-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #d9d9d9; }
-    .cmp-title { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
-    .cmp-icon { width: 32px; height: 32px; display: grid; place-items: center; background: transparent; border: 1px solid #3a3a3a; border-radius: 0; color: #111111; font: inherit; font-size: 20px; line-height: 1; cursor: pointer; }
-    .cmp-form { display: flex; flex-direction: column; gap: 18px; }
-    .cmp-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
-    .cmp-field { display: flex; flex-direction: column; gap: 6px; min-width: 160px; }
-    .cmp-grow { flex: 1 1 260px; }
-    .cmp-label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6b6b6b; }
-    .cmp-input { width: 100%; min-width: 0; box-sizing: border-box; padding: 10px 12px; font: inherit; font-size: 14px; color: #111111; background: #ffffff; border: 1px solid #3a3a3a; border-radius: 0; }
-    .cmp-input:focus { outline: 2px solid #111111; outline-offset: 0; }
-    .cmp-input:disabled { background: #f5f5f5; color: #6b6b6b; cursor: not-allowed; }
-    .cmp-ellipsis { width: 240px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    /* Editor: full width, toolbar on the right of its header bar. */
-    .cmp-editor { display: flex; flex-direction: column; border: 1px solid #3a3a3a; }
-    .cmp-editor-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; background: #f5f5f5; border-bottom: 1px solid #d9d9d9; }
-    .cmp-tools { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
-    .cmp-tool { padding: 6px 10px; font: inherit; font-size: 13px; color: #111111; background: #ffffff; border: 1px solid #3a3a3a; border-radius: 0; cursor: pointer; }
-    .cmp-tool:hover { background: #111111; color: #ffffff; }
-    .cmp-tool:focus-visible { outline: 2px solid #111111; outline-offset: 2px; }
-    .cmp-code { display: block; width: 100%; min-height: 360px; box-sizing: border-box; padding: 16px; border: 0; border-radius: 0; resize: vertical; background: #ffffff; color: #111111; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; line-height: 1.6; white-space: pre; tab-size: 2; }
+    .cmp-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--bz-line);
+    }
+    .cmp-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; color: var(--bz-ink); }
+
+    /* Close icon — styled X button */
+    .cmp-icon {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      background: var(--bz-wash);
+      border: 1px solid var(--bz-line);
+      border-radius: 50%;
+      color: var(--bz-soft);
+      font: inherit;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .cmp-icon:hover {
+      background: #fee2e2;
+      border-color: var(--bz-red);
+      color: var(--bz-red);
+    }
+    .cmp-icon svg { pointer-events: none; }
+
+    .cmp-form { display: flex; flex-direction: column; gap: 12px; }
+    .cmp-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+    .cmp-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+    .cmp-grow { flex: 1 1 200px; }
+    .cmp-shrink { flex: 0 1 auto; }
+
+    .cmp-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--bz-muted);
+      white-space: nowrap;
+    }
+
+    /* Inputs — rounded, consistent with page tokens */
+    .cmp-input {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      padding: 8px 11px;
+      font-family: var(--bz-font);
+      font-size: 13.5px;
+      color: var(--bz-ink);
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: var(--bz-radius);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      line-height: 1.4;
+    }
+    .cmp-input:focus {
+      outline: none;
+      border-color: #374151;
+      box-shadow: 0 0 0 3px rgba(55,65,81,0.08);
+    }
+    .cmp-input:disabled { background: var(--bz-wash); color: var(--bz-muted); cursor: not-allowed; }
+    .cmp-input::placeholder { color: #9ca3af; }
+    .cmp-ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Editor block */
+    .cmp-editor {
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #d1d5db;
+      border-radius: var(--bz-radius);
+      overflow: hidden;
+    }
+    .cmp-editor-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 12px;
+      background: var(--bz-wash);
+      border-bottom: 1px solid var(--bz-line);
+    }
+    .cmp-tools { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
+    .cmp-tool {
+      padding: 5px 9px;
+      font-family: var(--bz-font);
+      font-size: 12px;
+      color: var(--bz-soft);
+      background: #ffffff;
+      border: 1px solid var(--bz-line);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .cmp-tool:hover { background: var(--bz-ink); color: #ffffff; border-color: var(--bz-ink); }
+    .cmp-tool:focus-visible { outline: 2px solid var(--bz-ink); outline-offset: 2px; }
+    .cmp-code {
+      display: block;
+      width: 100%;
+      min-height: 320px;
+      box-sizing: border-box;
+      padding: 14px 16px;
+      border: 0;
+      resize: vertical;
+      background: #ffffff;
+      color: var(--bz-ink);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13.5px;
+      line-height: 1.65;
+      white-space: pre;
+      tab-size: 2;
+    }
     .cmp-code:focus { outline: none; }
-    .cmp-assets { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; padding: 12px; border-top: 1px solid #d9d9d9; }
+    .cmp-assets { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; padding: 12px; border-top: 1px solid var(--bz-line); }
     .cmp-assets[hidden] { display: none; }
-    .cmp-asset { display: flex; flex-direction: column; gap: 6px; padding: 6px; font: inherit; font-size: 12px; color: #111111; text-align: left; background: #ffffff; border: 1px solid #d9d9d9; border-radius: 0; cursor: pointer; }
-    .cmp-asset:hover { border-color: #111111; }
-    .cmp-asset img { width: 100%; height: 90px; object-fit: contain; background: #f5f5f5; }
+    .cmp-asset { display: flex; flex-direction: column; gap: 6px; padding: 6px; font: inherit; font-size: 12px; color: var(--bz-ink); text-align: left; background: #ffffff; border: 1px solid var(--bz-line); border-radius: 6px; cursor: pointer; transition: border-color 0.15s; }
+    .cmp-asset:hover { border-color: var(--bz-ink); }
+    .cmp-asset img { width: 100%; height: 80px; object-fit: contain; background: var(--bz-wash); border-radius: 4px; }
     .cmp-asset span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .cmp-muted { font-size: 13px; color: #6b6b6b; }
+    .cmp-muted { font-size: 13px; color: var(--bz-muted); }
 
-    /* Footer: create button sits at the right end. */
-    .cmp-foot { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
-    .cmp-error { align-self: stretch; font-size: 13px; color: #7a1f1f; }
+    /* Footer */
+    .cmp-foot { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; padding-top: 4px; }
+    .cmp-error { align-self: stretch; font-size: 13px; color: #b91c1c; background: #fef2f2; padding: 8px 10px; border-radius: 6px; border-left: 3px solid #dc2626; }
     .cmp-error[hidden] { display: none; }
-    .cmp-create { padding: 12px 22px; font: inherit; font-size: 14px; font-weight: 600; color: #111111; background: inherit; border: 1px solid #3a3a3a; border-radius: 0; cursor: pointer; }
-    .cmp-create:hover:not(:disabled) { background: #111111; color: #ffffff; }
+    .cmp-create {
+      padding: 10px 22px;
+      font-family: var(--bz-font);
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      background: var(--bz-ink);
+      border: none;
+      border-radius: var(--bz-radius);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .cmp-create:hover:not(:disabled) { background: var(--bz-red); }
     .cmp-create:disabled { opacity: 0.5; cursor: wait; }
 
-        /* Create mode hides the empty state and the list. Edit mode hides only the empty state. */
+    /* Composer state visibility */
     body.composer-open #schedule-empty,
     body.editing #schedule-empty { display: none !important; }
     body.composer-open #task-list { display: none !important; }
 
-    /* The job being edited: red rounded outline. */
-    #job-rows .task.is-editing { border: 1px solid #b42318; border-radius: 12px; padding: 16px; }
+    /* Editing row highlight */
+    #job-rows .task.is-editing { border: 1.5px solid var(--bz-red); border-radius: 10px; padding: 14px; }
+    .edit-slot { margin: 10px 0 22px; }
 
-    /* The empty div that holds the editor under the job. The gap is its margin. */
-    .edit-slot { margin: 12px 0 24px; }
+    /* Edit button on each job row */
+    .task-edit {
+      padding: 5px 12px;
+      font-family: var(--bz-font);
+      font-size: 13px;
+      color: var(--bz-soft);
+      background: var(--bz-wash);
+      border: 1px solid var(--bz-line);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .task-edit:hover { background: var(--bz-ink); color: #ffffff; border-color: var(--bz-ink); }
 
-    /* Edit button on each job row. */
-    .task-edit { padding: 6px 12px; font: inherit; font-size: 13px; color: #111111; background: #ffffff; border: 1px solid #3a3a3a; border-radius: 0; cursor: pointer; }
-    .task-edit:hover { background: #111111; color: #ffffff; }
+    /* Composer footer actions */
+    .cmp-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+    .cmp-cancel {
+      padding: 10px 18px;
+      font-family: var(--bz-font);
+      font-size: 14px;
+      color: var(--bz-muted);
+      background: transparent;
+      border: 1px solid var(--bz-line);
+      border-radius: var(--bz-radius);
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .cmp-cancel:hover { border-color: #9ca3af; color: var(--bz-soft); }
 
-    /* Cancel button in the composer footer. */
-    .cmp-actions { display: flex; gap: 10px; justify-content: flex-end; }
-    .cmp-cancel { padding: 12px 22px; font: inherit; font-size: 14px; color: #6b6b6b; background: transparent; border: 1px solid #d9d9d9; border-radius: 0; cursor: pointer; }
-
-    /* Rows that jobs.js renders into #job-rows. */
+    /* Job rows */
     #job-rows { display: flex; flex-direction: column; }
-    #job-rows .task { display: flex; flex-direction: column; gap: 6px; padding: 16px 0; border-bottom: 1px solid #d9d9d9; }
+    #job-rows .task { display: flex; flex-direction: column; gap: 6px; padding: 16px 0; border-bottom: 1px solid var(--bz-line); }
+
+    /* ── Right info panel (3rd column) ── */
+    .right-panel {
+      width: 270px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 68px;
+      height: calc(100vh - 100px);
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .right-panel-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex: 1;
+    }
+    .rp-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--bz-line);
+      background: var(--bz-wash);
+      overflow-x: auto;
+    }
+    .rp-tab {
+      flex: 1;
+      padding: 10px 6px;
+      font-family: var(--bz-font);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--bz-muted);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .rp-tab:hover { color: var(--bz-soft); }
+    .rp-tab.active { color: var(--bz-red); border-bottom-color: var(--bz-red); background: transparent; }
+    .rp-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .rp-panel { display: none; flex-direction: column; gap: 14px; }
+    .rp-panel.active { display: flex; }
+    .rp-heading {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--bz-muted);
+      margin-bottom: 2px;
+    }
+    .rp-preview-frame {
+      width: 100%;
+      border: 1px solid var(--bz-line);
+      border-radius: 6px;
+      min-height: 300px;
+      background: var(--bz-wash);
+      overflow: hidden;
+    }
+    .rp-preview-frame iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 300px;
+      border: 0;
+      border-radius: 6px;
+    }
+    .rp-preview-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 32px 16px;
+      text-align: center;
+      color: var(--bz-muted);
+      font-size: 13px;
+      min-height: 200px;
+    }
+    .rp-member {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--bz-line);
+    }
+    .rp-member:last-child { border-bottom: none; }
+    .rp-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #d93838, #ff6b6b);
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .rp-member-info { display: flex; flex-direction: column; min-width: 0; }
+    .rp-member-name { font-size: 13px; font-weight: 600; color: var(--bz-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rp-member-email { font-size: 11.5px; color: var(--bz-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rp-badge-role { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 10px; background: #e6f4ea; color: #166534; margin-left: auto; flex-shrink: 0; }
+    .rp-setting-row { display: flex; flex-direction: column; gap: 4px; }
+    .rp-setting-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--bz-muted); }
+    .rp-setting-value {
+      font-size: 13px;
+      color: var(--bz-ink);
+      background: var(--bz-wash);
+      border: 1px solid var(--bz-line);
+      border-radius: 6px;
+      padding: 7px 10px;
+    }
+    .rp-audience-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--bz-line);
+      font-size: 13px;
+    }
+    .rp-audience-row:last-child { border-bottom: none; }
+    .rp-audience-name { font-weight: 500; color: var(--bz-ink); }
+    .rp-audience-count { font-size: 12px; color: var(--bz-muted); }
+    .rp-divider { border: none; border-top: 1px solid var(--bz-line); margin: 4px 0; }
+
+    @media (max-width: 1024px) {
+      .right-panel { display: none; }
+    }
 
     @media (max-width: 600px) {
-      .cmp { padding: 16px; }
+      .cmp { padding: 14px; }
       .cmp-field { min-width: 100%; }
       .cmp-ellipsis { width: 100%; }
-      .cmp-code { min-height: 260px; }
+      .cmp-code { min-height: 240px; }
       .cmp-foot { align-items: stretch; }
       .cmp-create { width: 100%; }
     }
@@ -523,7 +897,7 @@
             <div class="nav-links-list">
               <div class="nav-item nav-item-collapsible" id="desktop-projects-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleProjectsNav(this, document.getElementById('desktop-sibling-projects'))" style="justify-content: space-between; cursor: pointer; user-select: none;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="5" rx="1.5"/><rect x="2" y="10" width="20" height="5" rx="1.5"/><rect x="2" y="17" width="20" height="5" rx="1.5"/></svg>
                   <span>Projects</span>
                 </div>
                 <svg class="projects-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
@@ -581,8 +955,8 @@
         
         <div class="proj-display" style="border-top: none;">
           <p style="font-size: 14px; color: grey; text-transform: uppercase; letter-spacing: 0.5px;">MY PROJECTS</p>
-          <h2 style="font-size: 28px; font-weight: 700;">MatchSub</h2>
-          <button id="add-schedule">
+          <h2 style="font-size: 28px; font-weight: 700;" id="project-title">MatchSub</h2>
+          <button id="add-schedule" hidden>
             <span style="font-size: 20px; color: black; margin-right: 10px; line-height: 1;">+</span>
             <p style="font-size: 15px;">Add a new task</p>
           </button>
@@ -609,52 +983,30 @@
           <section id="job-composer" class="cmp" hidden aria-labelledby="cmp-title">
             <header class="cmp-head">
               <h3 id="cmp-title" class="cmp-title">New task</h3>
-              <button type="button" id="cmp-close" class="cmp-icon" aria-label="Close new task">&times;</button>
+              <button type="button" id="cmp-close" class="cmp-icon" aria-label="Close new task">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </header>
   
             <form id="cmp-form" class="cmp-form" novalidate>
-              <div class="cmp-row">
+              <!-- Row 1: Job Name · Date · Time · Sending Mail -->
+              <div class="cmp-row" style="align-items: flex-end;">
                 <label class="cmp-field cmp-grow">
                   <span class="cmp-label">Job name</span>
                   <input id="cmp-name" class="cmp-input" name="name" maxlength="120" autocomplete="off" placeholder="Welcome series">
                 </label>
-                <label class="cmp-field">
-                  <span class="cmp-label">Send type</span>
-                  <select class="cmp-input" name="channel">
-                    <option value="emails" selected>Emails</option>
-                    <option value="payload" disabled>Payload (coming soon)</option>
-                  </select>
-                </label>
-              </div>
-  
-              <div class="cmp-row">
-                <label class="cmp-field cmp-grow">
-                  <span class="cmp-label">To (separate with commas)</span>
-                  <input class="cmp-input" name="recipients" autocomplete="off" placeholder="ada@example.com, tunde@example.com">
-                </label>
-                <label class="cmp-field cmp-grow">
-                  <span class="cmp-label">Subject</span>
-                  <input class="cmp-input" name="subject" maxlength="300" autocomplete="off">
-                </label>
-              </div>
-  
-              <div class="cmp-row">
-                <label class="cmp-field">
-                  <span class="cmp-label">Sender</span>
-                  <input id="cmp-sender" class="cmp-input cmp-ellipsis" value="usenvictor40@gmail.com" title="usenvictor40@gmail.com" disabled>
-                </label>
-                <label class="cmp-field">
+                <label class="cmp-field cmp-shrink">
                   <span class="cmp-label">Date</span>
-                  <input id="cmp-date" class="cmp-input" type="date">
+                  <input id="cmp-date" class="cmp-input" type="date" style="min-width: 130px;">
                 </label>
-                <label class="cmp-field">
+                <label class="cmp-field cmp-shrink">
                   <span class="cmp-label">Time</span>
-                  <input id="cmp-time" class="cmp-input" type="time" value="09:00">
+                  <input id="cmp-time" class="cmp-input" type="time" value="09:00" style="min-width: 100px;">
                 </label>
-                <label class="cmp-field">
-                  <span class="cmp-label">How often</span>
-                  <select id="cmp-how" class="cmp-input">
-                    <option value="now">Now</option>
+                <label class="cmp-field cmp-shrink">
+                  <span class="cmp-label">Frequency</span>
+                  <select id="cmp-how" class="cmp-input" style="min-width: 110px;">
+                    <option value="now">Send now</option>
                     <option value="once" selected>Once</option>
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
@@ -664,8 +1016,32 @@
                     <option value="new_year">New year</option>
                   </select>
                 </label>
+                <label class="cmp-field cmp-shrink">
+                  <span class="cmp-label">Send type</span>
+                  <select class="cmp-input" name="channel" style="min-width: 100px;">
+                    <option value="emails" selected>Emails</option>
+                    <option value="payload" disabled>Payload</option>
+                  </select>
+                </label>
               </div>
   
+              <!-- Row 2: Subject · To (close to the editor below) -->
+              <div class="cmp-row" style="align-items: flex-end;">
+                <label class="cmp-field cmp-grow">
+                  <span class="cmp-label">Subject</span>
+                  <input class="cmp-input" name="subject" maxlength="300" autocomplete="off" placeholder="Your subject line…">
+                </label>
+                <label class="cmp-field cmp-grow">
+                  <span class="cmp-label">To (commas)</span>
+                  <input class="cmp-input" name="recipients" autocomplete="off" placeholder="ada@example.com, tunde@example.com">
+                </label>
+                <label class="cmp-field cmp-shrink" style="flex-basis: 190px;">
+                  <span class="cmp-label">Sending from</span>
+                  <input id="cmp-sender" class="cmp-input cmp-ellipsis" value="usenvictor40@gmail.com" title="usenvictor40@gmail.com" disabled>
+                </label>
+              </div>
+  
+              <!-- HTML editor -->
               <div class="cmp-editor">
                 <div class="cmp-editor-bar">
                   <span class="cmp-label">Message (HTML)</span>
@@ -682,7 +1058,7 @@
                     <input id="cmp-file" type="file" accept="image/*" hidden>
                   </div>
                 </div>
-                <textarea id="cmp-body" class="cmp-code" spellcheck="false" placeholder="<p>Write your message here.</p>"></textarea>
+                <textarea id="cmp-body" class="cmp-code" spellcheck="false" placeholder="&lt;p&gt;Write your message here.&lt;/p&gt;"></textarea>
                 <div id="cmp-assets" class="cmp-assets" hidden></div>
               </div>
   
@@ -697,7 +1073,19 @@
 
           <!-- Tasks appear here -->
           <div class="task-list" id="task-list">
-            <div class="no-job" id="no-job-state">
+            <!-- Smooth Animated Bright Red Donut Loader with Round Inner Core & Caps -->
+            <div class="task-loader" id="task-loader" role="status" aria-live="polite">
+              <svg class="bz-donut-spinner" viewBox="0 0 44 44" width="40" height="40" aria-hidden="true">
+                <circle class="bz-spinner-track" cx="22" cy="22" r="17" fill="none" stroke-width="3.2"></circle>
+                <circle class="bz-spinner-arc" cx="22" cy="22" r="17" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="106.8" stroke-dashoffset="78"></circle>
+              </svg>
+            </div>
+
+            <!-- Tasks rows rendered by jobs.js -->
+            <div id="job-rows" hidden></div>
+
+            <!-- Empty state (shown only after loader completes if no tasks exist) -->
+            <div class="no-job" id="no-job-state" hidden>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
@@ -706,7 +1094,7 @@
               <h3>No results found</h3>
               <p>There are no jobs or tasks available matching your filter at the moment.</p>
             </div>
-            <button id="add-task-cta" class="btn btn-dark" type="button" style="margin: 4px auto 0; background-color: #111; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+            <button id="add-task-cta" class="btn btn-dark" type="button" hidden style="margin: 4px auto 0; background-color: #111; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
               <span>Add a new task</span>
             </button>
@@ -715,9 +1103,140 @@
       </div>
     </main>
 
-    <!-- Column 3: Third Side (Invisible for asymmetrical layout balance) -->
-    <div class="col-empty-third">
-      <p>Hi, User. We are still working on this page. Can you tell us what youll want to see <a href="./feedback.html">here</a></p>
+    <!-- Column 3: Right Info & Preview Panel -->
+    <div class="right-panel" id="right-panel">
+      <div class="right-panel-card">
+        <!-- Tab bar -->
+        <div class="rp-tabs" role="tablist" aria-label="Right panel">
+          <button class="rp-tab active" role="tab" aria-selected="true" data-rp-tab="preview" id="rp-tab-preview">Preview</button>
+          <button class="rp-tab" role="tab" aria-selected="false" data-rp-tab="team" id="rp-tab-team">Team</button>
+          <button class="rp-tab" role="tab" aria-selected="false" data-rp-tab="settings" id="rp-tab-settings">Settings</button>
+          <button class="rp-tab" role="tab" aria-selected="false" data-rp-tab="audience" id="rp-tab-audience">Audiences</button>
+        </div>
+        <!-- Panel bodies -->
+        <div class="rp-body">
+
+          <!-- Preview panel -->
+          <div class="rp-panel active" id="rp-panel-preview" role="tabpanel" aria-labelledby="rp-tab-preview">
+            <p class="rp-heading">Email preview</p>
+            <div id="rp-preview-wrap">
+              <div class="rp-preview-empty" id="rp-preview-empty">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                <span style="font-size:13px; color:#9ca3af;">Open a task to preview<br>the email template here.</span>
+              </div>
+              <div class="rp-preview-frame" id="rp-preview-frame" style="display:none;">
+                <iframe id="rp-iframe" title="Email template preview" sandbox="allow-same-origin"></iframe>
+              </div>
+            </div>
+            <div id="rp-preview-meta" style="display:none; flex-direction:column; gap:6px;">
+              <div class="rp-setting-row">
+                <span class="rp-setting-label">Subject</span>
+                <div class="rp-setting-value" id="rp-meta-subject" style="font-size:12px;">—</div>
+              </div>
+              <div class="rp-setting-row">
+                <span class="rp-setting-label">Recipients</span>
+                <div class="rp-setting-value" id="rp-meta-recipients" style="font-size:12px;">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Team panel -->
+          <div class="rp-panel" id="rp-panel-team" role="tabpanel" aria-labelledby="rp-tab-team">
+            <p class="rp-heading">Team members</p>
+            <div id="rp-team-list">
+              <div class="rp-member">
+                <div class="rp-avatar" style="background: linear-gradient(135deg, #1d4ed8, #60a5fa);">V</div>
+                <div class="rp-member-info">
+                  <span class="rp-member-name">Victor Usen</span>
+                  <span class="rp-member-email">usenvictor40@gmail.com</span>
+                </div>
+                <span class="rp-badge-role">Owner</span>
+              </div>
+              <div class="rp-member">
+                <div class="rp-avatar" style="background: linear-gradient(135deg, #059669, #34d399);">A</div>
+                <div class="rp-member-info">
+                  <span class="rp-member-name">Ada Okafor</span>
+                  <span class="rp-member-email">ada@example.com</span>
+                </div>
+                <span class="rp-badge-role">Editor</span>
+              </div>
+              <div class="rp-member">
+                <div class="rp-avatar" style="background: linear-gradient(135deg, #9333ea, #c084fc);">T</div>
+                <div class="rp-member-info">
+                  <span class="rp-member-name">Tunde Balogun</span>
+                  <span class="rp-member-email">tunde@example.com</span>
+                </div>
+                <span class="rp-badge-role">Viewer</span>
+              </div>
+            </div>
+            <button onclick="showToast('info', 'Invite team member — coming soon!')" style="margin-top: 6px; width: 100%; padding: 8px 12px; border: 1px dashed #d1d5db; border-radius: 7px; background: transparent; font-size: 13px; color: #6b7280; cursor: pointer; font-family: var(--bz-font); transition: border-color 0.15s, color 0.15s;" onmouseover="this.style.borderColor='#374151'; this.style.color='#111';" onmouseout="this.style.borderColor='#d1d5db'; this.style.color='#6b7280';">+ Invite member</button>
+          </div>
+
+          <!-- Settings panel -->
+          <div class="rp-panel" id="rp-panel-settings" role="tabpanel" aria-labelledby="rp-tab-settings">
+            <p class="rp-heading">Project settings</p>
+            <div class="rp-setting-row">
+              <span class="rp-setting-label">Project name</span>
+              <div class="rp-setting-value" id="rp-proj-name">MatchSub</div>
+            </div>
+            <div class="rp-setting-row">
+              <span class="rp-setting-label">Project ID</span>
+              <div class="rp-setting-value" id="rp-proj-id" style="font-family: monospace; font-size: 11.5px; word-break: break-all;">mock-2</div>
+            </div>
+            <div class="rp-setting-row">
+              <span class="rp-setting-label">Timezone</span>
+              <div class="rp-setting-value">Africa/Lagos (WAT, UTC+1)</div>
+            </div>
+            <div class="rp-setting-row">
+              <span class="rp-setting-label">Default sender</span>
+              <div class="rp-setting-value" style="font-size: 12px;">usenvictor40@gmail.com</div>
+            </div>
+            <hr class="rp-divider">
+            <div class="rp-setting-row">
+              <span class="rp-setting-label">Total tasks</span>
+              <div class="rp-setting-value" id="rp-total-tasks">—</div>
+            </div>
+            <button onclick="showToast('info', 'Edit project settings — coming soon!')" style="margin-top: 6px; width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 7px; background: transparent; font-size: 13px; color: #6b7280; cursor: pointer; font-family: var(--bz-font); transition: background 0.15s, color 0.15s;" onmouseover="this.style.background='#111'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#6b7280';">Edit settings</button>
+          </div>
+
+          <!-- Audiences panel -->
+          <div class="rp-panel" id="rp-panel-audience" role="tabpanel" aria-labelledby="rp-tab-audience">
+            <p class="rp-heading">Audiences &amp; Contacts</p>
+            <div id="rp-audience-list">
+              <div class="rp-audience-row">
+                <span class="rp-audience-name">All subscribers</span>
+                <span class="rp-audience-count">1,204 contacts</span>
+              </div>
+              <div class="rp-audience-row">
+                <span class="rp-audience-name">Active users</span>
+                <span class="rp-audience-count">583 contacts</span>
+              </div>
+              <div class="rp-audience-row">
+                <span class="rp-audience-name">Trial users</span>
+                <span class="rp-audience-count">97 contacts</span>
+              </div>
+              <div class="rp-audience-row">
+                <span class="rp-audience-name">Churned</span>
+                <span class="rp-audience-count">312 contacts</span>
+              </div>
+            </div>
+            <hr class="rp-divider">
+            <p class="rp-heading" style="margin-top:4px;">Recent sends</p>
+            <div id="rp-recent-sends">
+              <div class="rp-audience-row">
+                <span class="rp-audience-name" style="font-size:12px;">Welcome email · 3 days ago</span>
+                <span class="rp-audience-count">204 sent</span>
+              </div>
+              <div class="rp-audience-row">
+                <span class="rp-audience-name" style="font-size:12px;">Oct Newsletter · 10 days ago</span>
+                <span class="rp-audience-count">1,102 sent</span>
+              </div>
+            </div>
+            <button onclick="showToast('info', 'Manage audiences — coming soon!')" style="margin-top: 6px; width: 100%; padding: 8px 12px; border: 1px dashed #d1d5db; border-radius: 7px; background: transparent; font-size: 13px; color: #6b7280; cursor: pointer; font-family: var(--bz-font); transition: border-color 0.15s, color 0.15s;" onmouseover="this.style.borderColor='#374151'; this.style.color='#111';" onmouseout="this.style.borderColor='#d1d5db'; this.style.color='#6b7280';">+ Add audience</button>
+          </div>
+
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1233,6 +1752,6 @@
   resetForm();
 })();
 </script>
-  <script type="module" src="jobs.js"></scrip>
+  <script type="module" src="jobs.js"></script>
 </body>
 </html>

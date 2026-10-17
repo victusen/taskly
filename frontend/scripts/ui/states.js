@@ -1,6 +1,11 @@
-const DONUT_LOADER = `<div class="bz-donut-spinner" aria-hidden="true"></div>`;
+const DONUT_LOADER = `
+<svg class="bz-donut-spinner" viewBox="0 0 44 44" width="40" height="40" aria-hidden="true">
+  <circle class="bz-spinner-track" cx="22" cy="22" r="17" fill="none" stroke-width="3"></circle>
+  <circle class="bz-spinner-arc" cx="22" cy="22" r="17" fill="none" stroke-width="3" stroke-linecap="round" stroke-dasharray="106.8" stroke-dashoffset="78"></circle>
+</svg>`;
 
-export function showLoading(container, text = "Loading...") {
+export function showLoading(container, text = "") {
+  if (!container) return;
   container.innerHTML = "";
 
   const box = document.createElement("div");
@@ -8,10 +13,13 @@ export function showLoading(container, text = "Loading...") {
   box.setAttribute("role", "status");
   box.innerHTML = DONUT_LOADER;
 
-  const label = document.createElement("p");
-  label.textContent = text;
+  if (text) {
+    const label = document.createElement("p");
+    label.className = "bz-loader-text";
+    label.textContent = text;
+    box.appendChild(label);
+  }
 
-  box.appendChild(label);
   container.appendChild(box);
 }
 
