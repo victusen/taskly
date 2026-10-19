@@ -57,20 +57,23 @@
   </header>
 
   <!-- Mobile Navigation Overlay Drawer -->
-  <div id="mobile-nav-drawer" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); z-index: 200; align-items: flex-start; justify-content: flex-end;">
-    <div style="width: 280px; height: 100%; background: #ffffff; padding: 24px; display: flex; flex-direction: column; gap: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid lightgray; padding-bottom: 12px;">
-        <span style="font-weight: 700; font-size: 18px;">Menu</span>
-        <button type="button" id="close-mobile-drawer" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+  <div id="mobile-nav-drawer" class="mobile-drawer-overlay">
+    <div class="mobile-drawer-content">
+      <div class="mobile-drawer-head">
+        <img src="My Designs (55).png" alt="Bzade" style="height: 40px; width: auto; display: block;" />
+        <button type="button" id="close-mobile-drawer" class="mobile-drawer-close" aria-label="Close menu">&times;</button>
       </div>
-      <a href="#product" style="font-size: 16px; font-weight: 500;">Product</a>
-      <a href="#solutions" style="font-size: 16px; font-weight: 500;">Solutions</a>
-      <a href="#pricing" style="font-size: 16px; font-weight: 500;">Pricing</a>
-      <a href="#resources" style="font-size: 16px; font-weight: 500;">Resources</a>
-      <a href="#docs" style="font-size: 16px; font-weight: 500;">Doc</a>
-      <hr style="border: none; border-top: 1px solid #eee;">
-      <a href="login.html" style="font-size: 15px; font-weight: 500;">Log in</a>
-      <a href="signup.html" class="signup-btn" style="justify-content: center;">Sign up free</a>
+      <nav class="mobile-nav-links">
+        <a href="#product" class="mobile-nav-item">Product</a>
+        <a href="#solutions" class="mobile-nav-item">Solutions</a>
+        <a href="#pricing" class="mobile-nav-item">Pricing</a>
+        <a href="#resources" class="mobile-nav-item">Resources</a>
+        <a href="#docs" class="mobile-nav-item">Doc</a>
+      </nav>
+      <div class="mobile-drawer-auth">
+        <a href="login.html" class="mobile-auth-login">Log in</a>
+        <a href="signup.html" class="mobile-auth-signup">Sign up free</a>
+      </div>
     </div>
   </div>
 
