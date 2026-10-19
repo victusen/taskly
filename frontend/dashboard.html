@@ -3,221 +3,180 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>bzade - Your dashboard</title>
+  <title>bzade - Your projects here</title>
   <link rel="icon" type="image/png" href="logo-2.png" />
   <link rel="stylesheet" href="scripts/ui/toast.css">
   <link rel="stylesheet" href="scripts/ui/states.css">
   <style>
-    body {
-      margin: 0;
-      line-height: 1.6;
-      background-color: #f4f4f4;
-    }
-
-    main {
-      width: 90%;
-      max-width: 1000px;
-      margin: 3rem auto;
-      padding: 2rem;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
     * { margin: 0; box-sizing: border-box; }
+    body { margin: 0; line-height: 1.6; background-color: #f4f4f4; font-family: sans-serif; }
+    a { text-decoration: none; color: inherit; }
+    button { font: inherit; }
 
-    /* Header replicated exactly from jobs page */
+    /* Header (yours) */
     header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      padding: 12px 15px;
-      height: 50px;
-      display: flex;
-      background-color: white;
-      border: 1px solid lightgray;
-      justify-content: space-between;
+      position: fixed; top: 0; left: 0; right: 0;
+      padding: 12px 15px; height: 50px;
+      display: flex; justify-content: space-between;
+      background-color: white; border: 1px solid lightgray;
       z-index: 5;
     }
-    .banner-left {
-      display: flex; align-items: center; gap: 8px;
-    }
-    .banner-right {
-      display: flex;
-    }
+    .banner-left { display: flex; align-items: center; gap: 8px; }
+    .banner-right { display: flex; align-items: center; }
     .banner-right div {
       height: 30px; width: 30px; border-radius: 20px;
-      background-color: red;
-      display: flex; align-items: center; justify-content: center; align-self: center;
+      background-color: red; color: white; font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
     }
-    .drop-down {
-      pointer-events: none;
-      position: absolute;
-      bottom: -95px; left: 0; right: 0; z-index: 12;
+    .brand { font-size: 20px; font-weight: 600; color: #111; }
+    .drop-wrap { position: relative; display: flex; }
+    .drop-arrow { height: 20px; cursor: pointer; }
+    .drop {
+      display: none; position: absolute; top: 34px; left: 0; width: 200px; z-index: 12;
+      border-radius: 12px; overflow: hidden; background-color: white;
+      border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    .taskly-projs {
-      padding: 10px 12px;
-      width: 100%;
+    .drop.show { display: block; }
+    .taskly-projs { padding: 10px 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .taskly-projs p { font-size: 13px; }
+    .taskly-projs:hover { background-color: #e6f4ea; color: green; }
+
+    /* Shared navigation (used by the laptop sidebar and the phone drawer) */
+    .nav-section h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #888; margin-bottom: 8px; }
+    .nav-links-list { display: flex; flex-direction: column; gap: 4px; }
+    .nav-item {
       display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 6px;
+      color: #333; font-size: 14px;
+      transition: background 0.15s, color 0.15s;
     }
-    .taskly-projs:hover {
-      background-color: green;
+    button.nav-item { width: 100%; background: none; border: 0; text-align: left; cursor: pointer; }
+    .nav-item:hover { background-color: #f0fdf4; color: green; }
+    .nav-item.active { background-color: #e6f4ea; color: green; font-weight: 500; }
+    .nav-item[data-soon] { color: #aaa; }
+    .nav-item[data-soon]:hover { background: transparent; color: #aaa; }
+    .nav-item-collapsible { cursor: pointer; user-select: none; justify-content: space-between; }
+    .projects-toggle-icon { transition: transform 0.2s ease; }
+    .nav-item-collapsible.collapsed .projects-toggle-icon { transform: rotate(-90deg); }
+    .sub-nav {
+      display: flex; flex-direction: column; gap: 2px;
+      padding-left: 14px; margin: 4px 0 0 10px;
+      border-left: 2px solid #e0e0e0;
+    }
+    .sub-nav.collapsed { display: none; }
+    .sub-item { padding: 6px 10px; font-size: 13px; }
+    .soon { margin-left: auto; font-size: 11px; color: #888; border: 1px solid #ddd; padding: 1px 6px; border-radius: 4px; }
+
+    /* Phone drawer */
+    .mobile-sidebar-overlay { display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); z-index: 3000; }
+    .mobile-sidebar-overlay.open { display: block; }
+    .mobile-sidebar {
+      position: absolute; top: 0; left: 0; bottom: 0;
+      width: 280px; max-width: 85vw;
+      background: white; box-shadow: 4px 0 15px rgba(0,0,0,0.15);
+      display: flex; flex-direction: column;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-sidebar-overlay.open .mobile-sidebar { transform: translateX(0); }
+    .mobile-sidebar-header {
+      padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid #eee;
+    }
+    .mobile-sidebar-body { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 20px; }
+
+    /* Laptop sidebar card */
+    .left-sidebar { display: none; }
+    .left-sidebar-card { background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; }
+    .left-sidebar-content { padding: 16px; display: flex; flex-direction: column; gap: 20px; }
+    .left-sidebar-collapse-bar { margin-top: 10px; }
+    .collapse-btn {
+      background: #e5e7eb; border: none; border-radius: 6px;
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: #444;
+    }
+    .collapse-btn svg { transition: transform 0.2s ease; }
+    .left-sidebar.collapsed .collapse-btn svg { transform: rotate(180deg); }
+    .left-sidebar.collapsed .left-sidebar-card { display: none; }
+
+    /* Layout wrapper: stacked on phones, three columns on laptops */
+    .asymmetric-wrapper { display: block; width: 95%; margin: 60px auto 2rem auto; }
+    .col-empty-third { display: none; }
+
+    /* Main column */
+    main { display: flex; flex-direction: column; gap: 15px; width: 100%; padding: 12px 15px; }
+    .dash-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+    .business-overviews { display: flex; flex-direction: column; gap: 20px; width: 100%; margin-top: 20px; margin-bottom: 30px; }
+    .project-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .project-list > a { display: block; width: 100%; min-width: 0; }
+    .projs {
+      width: 100%; height: 100%; padding: 15px; border: 1px solid grey;
+      display: flex; flex-direction: column; gap: 25px; justify-content: space-between;
+    }
+    .projs:active { background-color: lightgray; }
+    .title { font-weight: 700; }
+    .project-tag { font-size: 15px; padding: 6px 8px; background-color: green; color: white; }
+    .add-card {
+      height: 60px; padding: 10px; width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: transparent; border: 1px dashed red; color: #111;
+      font-size: 16px; cursor: pointer;
+    }
+    .btn-outline { padding: 8px 12px; background: white; border: 1px solid #333; font-size: 14px; cursor: pointer; }
+
+    /* Close button (shared by the drawer and the modal) */
+    .close-btn {
+      background-color: lightgray; width: 35px; height: 35px; padding: 4px;
+      border-radius: 50px; border: 0;
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
     }
 
-    main {
-      margin-top: 60px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .dash-top {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      border-bottom: 2px solid lightgray;
-      padding-bottom: 20px;
-    }
-    .dash-top h2 {
-      font-size: 30px;
-      font-weight: 700;
-    }
-
-    /* CTA Card with minimal spacing and no custom button styling overrides */
-    .project-cards-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      margin-top: 10px;
-    }
-    .project-cards-grid.empty-grid {
-      min-height: 55vh;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .project-card {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      border: 1px solid lightgray;
-      border-radius: 8px;
-      padding: 24px;
-      background: white;
-      text-decoration: none;
-      color: inherit;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      transition: all 0.2s ease;
-      width: 100%;
-    }
-    .project-card:hover {
-      border-color: #888;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    }
-    .project-card h3 {
-      font-size: 24px;
-      font-weight: 600;
-      color: #111;
-    }
-    .project-card p.biz {
-      font-size: 16px;
-      color: #666;
-    }
-    .project-card-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 14px;
-      color: #666;
-      border-top: 1px solid #eee;
-      padding-top: 12px;
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 13px;
-      font-weight: 500;
-      background: #eee;
-      color: #333;
-    }
-    .badge-green {
-      background: #e6f4ea;
-      color: green;
-    }
-
-    /* CTA Card with red colored dashed border 1px, rectangular in shape centered in the middle of the page */
-    .project-card-dashed {
-      border: 1px dashed red;
-      background: #fafafa;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      cursor: pointer;
-      width: 320px;
-      max-width: 100%;
-      min-height: 110px;
-      border-radius: 8px;
-      margin: 0 auto;
-    }
-    .project-card-dashed:hover {
-      background: #fff5f5;
-      border-color: red;
-    }
-
-    /* Business Creation Modal */
+    /* Create business modal (unchanged from your version) */
     .modal-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
+      display: none; position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.6); z-index: 1000;
+      align-items: center; justify-content: center; padding: 16px;
     }
-    .modal-backdrop.open {
-      display: flex;
-    }
+    .modal-backdrop.open { display: flex; }
     .modal-box {
-      background: white;
-      border-radius: 8px;
-      width: 100%;
-      max-width: 480px;
-      padding: 24px;
+      background: white; border-radius: 8px; width: 100%; max-width: 480px; padding: 24px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+      display: flex; flex-direction: column; gap: 16px;
     }
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    .modal-header { display: flex; align-items: center; justify-content: space-between; }
+
+    .add-hidden { display: none; }
+
+    /* Laptop: the sidebar is fixed in the layout, the drawer and burger are not needed */
+    @media (min-width: 1025px) {
+      #hamburger-btn { display: none; }
+      .asymmetric-wrapper {
+        display: flex; justify-content: flex-start; align-items: flex-start; gap: 24px;
+        width: calc(100% - 32px); max-width: 1680px;
+        margin: 68px 16px 3rem 16px;
+      }
+      .left-sidebar {
+        display: flex; flex-direction: column;
+        width: 270px; min-width: 270px; flex-shrink: 0;
+        position: sticky; top: 68px;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .left-sidebar.collapsed { width: 60px; min-width: 60px; }
+      main {
+        flex: 1; min-width: 0; max-width: 860px;
+        padding: 2rem;
+        background: white; border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      }
+      .col-empty-third { display: block; width: 270px; flex-shrink: 0; pointer-events: none; }
     }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .form-group label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #444;
-    }
-    .form-group input, .form-group select {
-      padding: 8px;
-      border: 1px solid lightgray;
-      border-radius: 4px;
-      outline: none;
-      font-family: inherit;
-    }
-    .form-group input:focus { border-color: #111; }
 
     @media (max-width: 600px) {
-      main {
-        width: 95%;
-        padding: 1rem;
-      }
+      .brand { font-size: 18px; }
+      .dash-top h2 { font-size: 26px; }
+      .projs { padding: 14px; }
+      .project-list { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -225,20 +184,18 @@
 
   <header>
     <div class="banner-left">
-      <img src="menu.png" id="hamburger-btn" style="height: 30px; cursor: pointer;" alt="Menu" />
-      <a href="index.html"><p style="font-size: 20px;">Bzade.app</p></a>
-      <div style="position: relative; display: flex;">
-        <img onclick="document.querySelector(`.drop`).classList.toggle(`show`);" src="drop-arrow.png" style="height: 20px; cursor: pointer;"/>
-        <div class="drop-down">
-          <div class="drop add-hidden" style="width:200px; margin: 0 auto; border-radius: 12px; overflow: hidden; background-color: white;">
-            <div class="taskly-projs" onclick="window.location.href='dashboard.html'">
-              <img src="Check.png" style="height: 12px;">
-              <p style="font-size: 13px;">Overview</p>
-            </div>
-            <div class="taskly-projs" onclick="window.location.href='smtp.html'">
-              <img src="Check.png" style="height: 12px;">
-              <p style="font-size: 13px;">Mail Connections</p>
-            </div>
+      <img src="menu.png" id="hamburger-btn" style="height: 30px; cursor: pointer;" alt="Menu" aria-expanded="false" />
+      <a href="index.html"><p class="brand">Bzade.app</p></a>
+      <div class="drop-wrap">
+        <img id="drop-toggle" class="drop-arrow" src="drop-arrow.png" alt="Switch view" />
+        <div class="drop" id="drop">
+          <div class="taskly-projs" onclick="window.location.href='dashboard.html'">
+            <img src="Check.png" style="height: 12px;" alt="">
+            <p>Overview</p>
+          </div>
+          <div class="taskly-projs" onclick="window.location.href='smtp.html'">
+            <img src="Check.png" style="height: 12px;" alt="">
+            <p>Mail Connections</p>
           </div>
         </div>
       </div>
@@ -247,51 +204,131 @@
       <div id="header-avatar">S</div>
     </div>
   </header>
-  
-  <main>
-    <div class="dash-top">
-      <h2>Overview</h2>
-      <p style="color: grey; font-size: 16px;">Manage your project and business profiles, view status, and launch email automations.</p>
+
+  <!-- Navigation template: cloned into the laptop sidebar and the phone drawer -->
+  <template id="nav-template">
+    <div class="nav-section">
+      <h4>Navigation</h4>
+      <div class="nav-links-list">
+        <div class="nav-item nav-item-collapsible active" role="button" tabindex="0" aria-expanded="true" data-toggle-projects>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+            <span>Projects</span>
+          </div>
+          <svg class="projects-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="sub-nav" data-sub-nav>
+          <a href="jobs.html?project=mock-1" class="nav-item sub-item">Saja Restaurant</a>
+          <a href="jobs.html?project=mock-2" class="nav-item sub-item active">Matchsub</a>
+          <a href="jobs.html?project=mock-3" class="nav-item sub-item">Glassdoor</a>
+        </div>
+        <a href="#" class="nav-item" data-soon aria-disabled="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Audiences <span class="soon">Soon</span>
+        </a>
+        <a href="#" class="nav-item" data-soon aria-disabled="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+          Team members <span class="soon">Soon</span>
+        </a>
+        <a href="#" class="nav-item" data-soon aria-disabled="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+          Settings <span class="soon">Soon</span>
+        </a>
+        <a href="#" class="nav-item" data-soon aria-disabled="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><line x1="11" y1="12" x2="21" y2="2"/><line x1="18" y1="5" x2="21" y2="8"/></svg>
+          API keys <span class="soon">Soon</span>
+        </a>
+      </div>
     </div>
 
-    <div class="project-cards-grid" id="project-list">
-      <a class="project-card" href="jobs.html?project=mock-1">
-        <div>
-          <h3>Saja Restaurant</h3>
-          <p class="biz">Saja Foods Ltd</p>
-        </div>
-        <div class="project-card-meta">
-          <span>Created Sep 14, 2026</span>
-          <span class="badge badge-green">6 emails</span>
-        </div>
-      </a>
-
-      <a class="project-card" href="jobs.html?project=mock-2">
-        <div>
-          <h3>Matchsub</h3>
-          <p class="biz">Matchsub Sports</p>
-        </div>
-        <div class="project-card-meta">
-          <span>Created Oct 2, 2026</span>
-          <span class="badge badge-green">4 emails</span>
-        </div>
-      </a>
-
-      <button type="button" class="project-card project-card-dashed" id="add-business-card">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; color: red;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          <span style="font-weight: 500;">Create a new business</span>
-        </div>
-      </button>
+    <div class="nav-section">
+      <h4>Account</h4>
+      <div class="nav-links-list">
+        <button type="button" class="nav-item" data-upgrade>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          Billing
+        </button>
+        <button type="button" class="nav-item" data-logout>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Sign out
+        </button>
+      </div>
     </div>
-  </main>
+  </template>
+  <!-- Phone drawer -->
+  <div class="mobile-sidebar-overlay" id="mobile-sidebar-overlay">
+    <aside class="mobile-sidebar" aria-label="Main navigation">
+      <div class="mobile-sidebar-header">
+        <p class="brand">Bzade.app</p>
+        <button type="button" class="close-btn" id="sidebar-close-btn" aria-label="Close menu">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="mobile-sidebar-body" id="mobile-nav"></div>
+    </aside>
+  </div>
 
-  <!-- Business Creation Modal -->
+  <div class="asymmetric-wrapper">
+
+    <!-- Laptop sidebar (left column) -->
+    <aside class="left-sidebar" id="left-sidebar" aria-label="Main navigation">
+      <div class="left-sidebar-card">
+        <div class="left-sidebar-content" id="desktop-nav"></div>
+      </div>
+      <div class="left-sidebar-collapse-bar">
+        <button type="button" class="collapse-btn" id="sidebar-collapse" aria-expanded="true" aria-label="Collapse sidebar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main column (middle) -->
+    <main>
+      <div class="dash-top">
+        <h2>Overview</h2>
+        <button id="connect-google" type="button" class="btn-outline">Connect Gmail</button>
+      </div>
+      <p>The overview of business schedules running on your Bzade profile.</p>
+
+      <div class="business-overviews">
+        <h3>Businesses</h3>
+        <div class="project-list" id="project-list">
+          <a href="jobs.html?project=mock-1">
+            <div class="projs">
+              <h4 class="title">Saja Restaurant</h4>
+              <p class="project-tag">36 jobs are live and running</p>
+            </div>
+          </a>
+          <a href="jobs.html?project=mock-3">
+            <div class="projs">
+              <h4 class="title">Glassdoor Schedules</h4>
+              <p class="project-tag">114 jobs ready to run today</p>
+            </div>
+          </a>
+          <a href="jobs.html?project=mock-2">
+            <div class="projs">
+              <h4 class="title">Matchsub</h4>
+              <p class="project-tag">You scheduled 6 jobs today</p>
+            </div>
+          </a>
+        </div>
+        <button type="button" class="add-card" id="add-business-card">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="red" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add a new Bzade project.
+        </button>
+      </div>
+    </main>
+
+    <!-- Third column: kept empty for the asymmetric balance. Fill it later. -->
+    <aside class="col-empty-third" aria-hidden="true"></aside>
+  </div>
+
+  <!-- Business Creation Modal (unchanged markup, so dashboard.js still works) -->
   <div class="modal-backdrop" id="business-modal">
     <div class="modal-box">
       <div class="modal-header">
         <h3 style="font-size: 20px;">Create a new <br><span style="color:green;">Business</span></h3>
-        <div class="close-btn" id="modal-close" role="button" aria-label="Close" style="background-color: lightgray; width: 35px; height: 35px; padding: 4px; border-radius: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        <div class="close-btn" id="modal-close" role="button" aria-label="Close">
           <img src="Close.png" style="pointer-events:none; height: 14px;" alt="">
         </div>
       </div>
@@ -312,6 +349,66 @@
     </div>
   </div>
 
+  <script>
+  /* Layout behaviour: one navigation template, the phone drawer, the header dropdown, the projects sub-list and the laptop collapse. */
+  (() => {
+    /* Copies the navigation into the laptop sidebar and the phone drawer. */
+    const navTemplate = document.getElementById("nav-template");
+    document.getElementById("desktop-nav").append(navTemplate.content.cloneNode(true));
+    document.getElementById("mobile-nav").append(navTemplate.content.cloneNode(true));
+
+    /* Phone drawer */
+    const overlay = document.getElementById("mobile-sidebar-overlay");
+    const menuBtn = document.getElementById("hamburger-btn");
+    const closeBtn = document.getElementById("sidebar-close-btn");
+
+    function setDrawer(open) {
+      overlay.classList.toggle("open", open);
+      menuBtn.setAttribute("aria-expanded", String(open));
+      document.body.style.overflow = open ? "hidden" : "";
+    }
+
+    menuBtn.addEventListener("click", () => setDrawer(true));
+    closeBtn.addEventListener("click", () => setDrawer(false));
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) setDrawer(false);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") setDrawer(false);
+    });
+    window.addEventListener("resize", () => {
+      if (window.innerWidth >= 1025) setDrawer(false);
+    });
+
+    /* Header dropdown */
+    document.getElementById("drop-toggle").addEventListener("click", () => {
+      document.getElementById("drop").classList.toggle("show");
+    });
+
+    /* Projects sub-list (in both navs) and the "Soon" links */
+    document.addEventListener("click", (event) => {
+      const toggle = event.target.closest("[data-toggle-projects]");
+      if (toggle) {
+        const sub = toggle.closest(".nav-section").querySelector("[data-sub-nav]");
+        const collapsed = sub.classList.toggle("collapsed");
+        toggle.classList.toggle("collapsed", collapsed);
+        toggle.setAttribute("aria-expanded", String(!collapsed));
+        return;
+      }
+      if (event.target.closest("[data-soon]")) event.preventDefault();
+    });
+
+    /* Laptop sidebar collapse */
+    const side = document.getElementById("left-sidebar");
+    const collapseBtn = document.getElementById("sidebar-collapse");
+    collapseBtn.addEventListener("click", () => {
+      const collapsed = side.classList.toggle("collapsed");
+      collapseBtn.setAttribute("aria-expanded", String(!collapsed));
+    });
+  })();
+  </script>
+
+  <script src="https://js.paystack.co/v2/inline.js"></script>
   <script type="module" src="scripts/ui/toast.js"></script>
   <script type="module" src="dashboard.js"></script>
 </body>

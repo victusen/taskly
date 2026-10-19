@@ -1,4 +1,6 @@
 import { requireAuth } from "./scripts/auth/session.js";
+import { signOut } from "./scripts/auth/auth.js";
+import { startPayment } from "./scripts/payments/payment.js";
 import { showToast, error as toastError } from "./scripts/ui/toast.js";
 import { loadConnections, addProject } from "./scripts/data/source.js";
 
@@ -21,13 +23,21 @@ const name = meta.first_name || full.split(" ")[0] || email.split("@")[0] || "Us
 const avatarEl = document.getElementById("header-avatar");
 if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
 
-document.getElementById("sidebar-logout")?.addEventListener("click", async () => {
-  try {
-    await session.signOut?.();
-  } catch (e) {
-    console.error(e);
-  }
-  window.location.href = "index.html";
+/* Every Sign out button (laptop sidebar and phone drawer) signs out. */
+document.querySelectorAll("[data-logout]").forEach((button) => {
+  button.addEventListener("click", async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      console.error(err);
+    }
+    window.location.href = "index.html";
+  });
+});
+
+/* Every Billing and Upgrade button starts payment. */
+document.querySelectorAll("[data-upgrade]").forEach((button) => {
+  button.addEventListener("click", () => startPayment());
 });
 
 async function openModal() {
