@@ -89,16 +89,89 @@
     .left-sidebar { display: none; }
     .left-sidebar-card { background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; }
     .left-sidebar-content { padding: 16px; display: flex; flex-direction: column; gap: 20px; }
-    .left-sidebar-collapse-bar { margin-top: 10px; }
-    .collapse-btn {
-      background: #e5e7eb; border: none; border-radius: 6px;
-      width: 36px; height: 36px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: #444;
+    /* Dashboard Activity / Metrics Panel */
+    .dashboard-panel {
+      background-color: #ffffff;
+      border: 1px solid lightgray;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      margin-top: 10px;
     }
-    .collapse-btn svg { transition: transform 0.2s ease; }
-    .left-sidebar.collapsed .collapse-btn svg { transform: rotate(180deg); }
-    .left-sidebar.collapsed .left-sidebar-card { display: none; }
+    .dashboard-panel-header {
+      padding: 8px 16px;
+      height: 44px;
+      border-bottom: 1px solid lightgray;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      background-color: #fafafa;
+    }
+    .days-toggle-group {
+      display: inline-flex;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #f3f4f6;
+    }
+    .days-toggle-btn {
+      padding: 4px 12px;
+      font-size: 13px;
+      border: none;
+      background: transparent;
+      color: #4b5563;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .days-toggle-btn:not(:last-child) {
+      border-right: 1px solid #e5e7eb;
+    }
+    .days-toggle-btn:hover {
+      background-color: #e5e7eb;
+      color: #111827;
+    }
+    .days-toggle-btn.active {
+      background-color: #ffffff;
+      color: #111827;
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+    .dashboard-panel-body {
+      padding: 36px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 160px;
+      background-color: #ffffff;
+    }
+    .dashboard-no-result {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      color: #777;
+    }
+    .dashboard-no-result svg {
+      width: 44px;
+      height: 44px;
+      margin-bottom: 10px;
+      stroke: #9ca3af;
+    }
+    .dashboard-no-result h4 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+    }
+    .dashboard-no-result p {
+      font-size: 13px;
+      color: #777;
+      max-width: 340px;
+      margin: 0;
+    }
 
     /* Layout wrapper: stacked on phones, three columns on laptops */
     .asymmetric-wrapper { display: block; width: 95%; margin: 60px auto 2rem auto; }
@@ -148,8 +221,18 @@
 
     .add-hidden { display: none; }
 
-    /* Laptop: the sidebar is fixed in the layout, the drawer and burger are not needed */
-    @media (min-width: 1025px) {
+    .upgrade-link {
+      font-size: 14px;
+      color: #111;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .upgrade-link:hover {
+      color: green;
+    }
+
+    /* Tablet & Desktop: persistent sidebar, drawer & burger hidden */
+    @media (min-width: 768px) {
       #hamburger-btn { display: none; }
       .asymmetric-wrapper {
         display: flex; justify-content: flex-start; align-items: flex-start; gap: 24px;
@@ -158,16 +241,26 @@
       }
       .left-sidebar {
         display: flex; flex-direction: column;
-        width: 270px; min-width: 270px; flex-shrink: 0;
+        width: 250px; min-width: 250px; flex-shrink: 0;
         position: sticky; top: 68px;
         transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
-      .left-sidebar.collapsed { width: 60px; min-width: 60px; }
       main {
-        flex: 1; min-width: 0; max-width: 860px;
+        flex: 1; min-width: 0; width: 100%;
         padding: 2rem;
         background: white; border-radius: 8px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      }
+      .col-empty-third { display: none; }
+    }
+
+    /* Desktop (>= 1200px): 3 columns where middle section is balanced by third column */
+    @media (min-width: 1200px) {
+      .left-sidebar {
+        width: 270px; min-width: 270px;
+      }
+      main {
+        max-width: 860px;
       }
       .col-empty-third { display: block; width: 270px; flex-shrink: 0; pointer-events: none; }
     }
@@ -275,20 +368,15 @@
       <div class="left-sidebar-card">
         <div class="left-sidebar-content" id="desktop-nav"></div>
       </div>
-      <div class="left-sidebar-collapse-bar">
-        <button type="button" class="collapse-btn" id="sidebar-collapse" aria-expanded="true" aria-label="Collapse sidebar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-      </div>
     </aside>
 
     <!-- Main column (middle) -->
     <main>
       <div class="dash-top">
         <h2>Overview</h2>
-        <button id="connect-google" type="button" class="btn-outline">Connect Gmail</button>
+        <a href="#" id="connect-google" data-upgrade class="upgrade-link">Upgrade to Pro</a>
       </div>
-      <p>The overview of business schedules running on your Bzade profile.</p>
+      <p>The overview of business schedules running on this Bzade profile.</p>
 
       <div class="business-overviews">
         <h3>Businesses</h3>
@@ -317,6 +405,28 @@
           Add a new Bzade project.
         </button>
       </div>
+
+      <!-- Dashboard Section: Rectangular rounded container with toggles and empty state -->
+      <section class="dashboard-panel">
+        <div class="dashboard-panel-header">
+          <div class="days-toggle-group" role="group" aria-label="Timeframe">
+            <button type="button" class="days-toggle-btn active" data-days="7">1 week</button>
+            <button type="button" class="days-toggle-btn" data-days="14">2 weeks</button>
+            <button type="button" class="days-toggle-btn" data-days="30">1 month</button>
+          </div>
+        </div>
+        <div class="dashboard-panel-body">
+          <div class="dashboard-no-result">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+            </svg>
+            <h4>No results found</h4>
+            <p>There are no activities or statistics recorded for this period yet.</p>
+          </div>
+        </div>
+      </section>
     </main>
 
     <!-- Third column: kept empty for the asymmetric balance. Fill it later. -->
@@ -377,7 +487,7 @@
       if (event.key === "Escape") setDrawer(false);
     });
     window.addEventListener("resize", () => {
-      if (window.innerWidth >= 1025) setDrawer(false);
+      if (window.innerWidth >= 768) setDrawer(false);
     });
 
     /* Header dropdown */
@@ -398,12 +508,12 @@
       if (event.target.closest("[data-soon]")) event.preventDefault();
     });
 
-    /* Laptop sidebar collapse */
-    const side = document.getElementById("left-sidebar");
-    const collapseBtn = document.getElementById("sidebar-collapse");
-    collapseBtn.addEventListener("click", () => {
-      const collapsed = side.classList.toggle("collapsed");
-      collapseBtn.setAttribute("aria-expanded", String(!collapsed));
+    /* Days toggle buttons interactive handling */
+    document.querySelectorAll(".days-toggle-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".days-toggle-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+      });
     });
   })();
   </script>

@@ -9,124 +9,239 @@
   <title>SMTP Connection Test</title>
   <link rel="stylesheet" href="./scripts/ui/toast.css">
   <style>
-  .smtp-notice { max-width: 420px; margin-top: 18px; padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; line-height: 1.5; }
-  .smtp-notice p { margin: 0 0 8px; }
-  .smtp-disclaimer { color: #555; font-size: 13px; margin-bottom: 0; }
+    * { margin: 0; box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background-color: #f4f4f4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
+      color: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 16px;
+    }
+    .smtp-wrapper {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .smtp-card {
+      background: #ffffff;
+      border: 1px solid lightgray;
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .smtp-head {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .smtp-head h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111;
+      margin: 0;
+    }
+    .smtp-status {
+      font-size: 14px;
+      color: #666;
+      margin: 0;
+    }
+    #smtp-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .form-field label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+    }
+    .form-field input,
+    .form-field select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      background-color: #ffffff;
+      color: #111;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    .form-field input:focus,
+    .form-field select:focus {
+      border-color: green;
+    }
+    .form-row {
+      display: flex;
+      gap: 12px;
+    }
+    .form-row .form-field {
+      flex: 1;
+      min-width: 0;
+    }
+    #save-smtp {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      background-color: green;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background-color 0.15s ease;
+    }
+    #save-smtp:hover {
+      background-color: #047857;
+    }
+    .smtp-notice {
+      background: #ffffff;
+      border: 1px solid lightgray;
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #555;
+    }
+    .smtp-notice p { margin: 0 0 8px; }
+    .smtp-notice strong { color: #111; }
+    .smtp-disclaimer { font-size: 12px; color: #777; margin-bottom: 0; }
+    .smtp-disclaimer a { color: green; text-decoration: underline; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #555;
+      text-decoration: none;
+      font-size: 13px;
+      align-self: flex-start;
+      margin-bottom: 4px;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: #111; }
+
+    @media (max-width: 480px) {
+      body { padding: 20px 12px; }
+      .smtp-card { padding: 18px; }
+      .form-row { flex-direction: column; gap: 14px; }
+    }
   </style>
 </head>
 
 <body>
 
-  <h1>SMTP Connection Test</h1>
+  <div class="smtp-wrapper">
+    <a href="dashboard.html" class="back-link">&larr; Back to Dashboard</a>
 
-  <p id="status">
-    Enter your SMTP details.
-  </p>
+    <div class="smtp-card">
+      <div class="smtp-head">
+        <h1>SMTP Connection Test</h1>
+        <p id="status" class="smtp-status">Enter your SMTP details.</p>
+      </div>
 
-  <form id="smtp-form">
+      <form id="smtp-form">
+        <div class="form-field">
+          <label for="emailAddress">Sender Email</label>
+          <input
+            id="emailAddress"
+            name="emailAddress"
+            type="email"
+            placeholder="you@example.com"
+            required
+          >
+        </div>
 
-    <div>
-      <label for="emailAddress">
-        Sender Email
-      </label>
+        <div class="form-field">
+          <label for="host">SMTP Host</label>
+          <input
+            id="host"
+            name="host"
+            type="text"
+            placeholder="smtp.example.com"
+            required
+          >
+        </div>
 
-      <input
-        id="emailAddress"
-        name="emailAddress"
-        type="email"
-        placeholder="you@example.com"
-        required
-      >
+        <div class="form-row">
+          <div class="form-field">
+            <label for="port">SMTP Port</label>
+            <input
+              id="port"
+              name="port"
+              type="number"
+              placeholder="587"
+              required
+            >
+          </div>
+
+          <div class="form-field">
+            <label for="secure">Secure</label>
+            <select
+              id="secure"
+              name="secure"
+              required
+            >
+              <option value="true">true</option>
+              <option value="false" selected>false</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="username">SMTP Username</label>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            placeholder="you@example.com"
+            required
+          >
+        </div>
+
+        <div class="form-field">
+          <label for="password">SMTP Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+          >
+        </div>
+
+        <button
+          type="submit"
+          id="save-smtp"
+        >
+          Add SMTP Connection
+        </button>
+      </form>
     </div>
 
-    <div>
-      <label for="host">
-        SMTP Host
-      </label>
-
-      <input
-        id="host"
-        name="host"
-        type="text"
-        placeholder="smtp.example.com"
-        required
-      >
-    </div>
-
-    <div>
-      <label for="port">
-        SMTP Port
-      </label>
-
-      <input
-        id="port"
-        name="port"
-        type="number"
-        placeholder="587"
-        required
-      >
-    </div>
-
-    <div>
-      <label for="secure">
-        Secure
-      </label>
-
-      <select
-        id="secure"
-        name="secure"
-        required
-      >
-        <option value="true">
-          true
-        </option>
-
-        <option value="false">
-          false
-        </option>
-      </select>
-    </div>
-
-    <div>
-      <label for="username">
-        SMTP Username
-      </label>
-
-      <input
-        id="username"
-        name="username"
-        type="text"
-        placeholder="you@example.com"
-        required
-      >
-    </div>
-
-    <div>
-      <label for="password">
-        SMTP Password
-      </label>
-
-      <input
-        id="password"
-        name="password"
-        type="password"
-        required
-      >
-    </div>
-
-    <button
-      type="submit"
-      id="save-smtp"
-    >
-      Add SMTP Connection
-    </button>
-
-  </form>
-
-  <aside class="smtp-notice" aria-label="Before you connect">
-  <p><strong>Use a real mailbox.</strong> Be sure the email you connect has a built-in inbox with SMTP access, so Bzade can send your templates for you on the schedule you set. Forwarding-only addresses cannot send mail.</p>
-  <p class="smtp-disclaimer">Our <a href="/privacy-policy.html">privacy policy</a> and <a href="/terms.html">terms of use</a> are very clear. We won't sell or read your emails.</p>
-  </aside>
+    <aside class="smtp-notice" aria-label="Before you connect">
+      <p><strong>Use a real mailbox.</strong> Be sure the email you connect has a built-in inbox with SMTP access, so Bzade can send your templates for you on the schedule you set. Forwarding-only addresses cannot send mail.</p>
+      <p class="smtp-disclaimer">Our <a href="/privacy-policy.html">privacy policy</a> and <a href="/terms.html">terms of use</a> are very clear. We won't sell or read your emails.</p>
+    </aside>
+  </div>
 
   <script type="module">
     import { BACKEND_URL } from "./scripts/config.js";
