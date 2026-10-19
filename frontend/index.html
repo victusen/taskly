@@ -3,40 +3,624 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>bzade | A mailing platform</title>
+  <title>Bzade - Automated Customer Email Schedules</title>
   <link rel="icon" type="image/png" href="logo-2.png" />
   <link rel="stylesheet" href="index.css">
   <link rel="stylesheet" href="./scripts/ui/toast.css">
 </head>
-<body style="text-align: center; display: flex; flex-direction: column; justify-content: space-between; height: 90vh; ">
-  <main>
-    <h1>Welcome to Bzade</h1>
-    <p>This product is built by Victor Usen.</p>
-    <p>We are currently working on it.</p>
+<body>
 
-    <!-- payment UI -->
-    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
-      <button style="margin-top: 30px; " id="upgrade-btn">
-        Test Payment
-      </button>
+  <!-- 1. Topmost Sticky Container -->
+  <aside class="smartindex-bar" aria-label="Smartindex announcement">
+    <a href="https://leakedprice.online" target="_blank" rel="noopener noreferrer" class="smartindex-link">
+      <img src="Smartindex-logo.png" alt="Smartindex logo" style="height: 16px; width: auto; display: block;" />
+      <span>Smartindex</span>
+      <span class="smartindex-arrow">&rarr;</span>
+    </a>
+  </aside>
 
-      <a style="margin-top: 20px; font-size: 14px; align-self: center;" href="./login.html">Login</a>
+  <!-- 2. Main Header -->
+  <header class="main-header">
+    <div class="header-left">
+      <!-- <a href="index.html" class="brand-wrap">
+        <img src="logo-2.png" alt="Bzade logo" class="brand-logo" />
+        <span class="brand-title">Bzade.app</span>
+      </a> -->
+      <img src="My Designs (55).png" alt="My Designs (55)" style="height: 50px; width: auto; display: block;" />
     </div>
 
-  </main>
-  <div style="display: flex; justify-content: center; gap: 30px; font-size: 14px;">
-      <p>
-          <a href="terms.html">Terms of service</a>
-      </p>
-      <p>
-        <a href="privacy-policy.html">Privacy policy</a>
-      </p>
-    <p>
-      <a href="data-protection.html">Data Protection</a>
-    </p>
+    <nav class="header-center" aria-label="Primary navigation">
+      <a href="#product" class="nav-link">Product</a>
+      <a href="#solutions" class="nav-link">Solutions</a>
+      <a href="#pricing" class="nav-link">Pricing</a>
+      <a href="#resources" class="nav-link">Resources</a>
+      <a href="#docs" class="nav-link">Doc</a>
+    </nav>
+
+    <div class="header-right">
+      <a href="login.html" class="login-link">Log in</a>
+      <a href="signup.html" class="signup-btn">
+        <span>Sign up free</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </a>
+      <button type="button" class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Open menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Navigation Overlay Drawer -->
+  <div id="mobile-nav-drawer" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); z-index: 200; align-items: flex-start; justify-content: flex-end;">
+    <div style="width: 280px; height: 100%; background: #ffffff; padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid lightgray; padding-bottom: 12px;">
+        <span style="font-weight: 700; font-size: 18px;">Menu</span>
+        <button type="button" id="close-mobile-drawer" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+      </div>
+      <a href="#product" style="font-size: 16px; font-weight: 500;">Product</a>
+      <a href="#solutions" style="font-size: 16px; font-weight: 500;">Solutions</a>
+      <a href="#pricing" style="font-size: 16px; font-weight: 500;">Pricing</a>
+      <a href="#resources" style="font-size: 16px; font-weight: 500;">Resources</a>
+      <a href="#docs" style="font-size: 16px; font-weight: 500;">Doc</a>
+      <hr style="border: none; border-top: 1px solid #eee;">
+      <a href="login.html" style="font-size: 15px; font-weight: 500;">Log in</a>
+      <a href="signup.html" class="signup-btn" style="justify-content: center;">Sign up free</a>
+    </div>
   </div>
 
-    <script src="https://js.paystack.co/v2/inline.js"></script>
+  <main>
+    <!-- 3. Hero Section -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="hero-pill">
+          <span class="hero-pill-badge">New</span>
+          <span>Flexible scheduling engine for customer communication</span>
+        </div>
+
+        <h1 class="hero-heading">
+          Keep your <mark class="hero-mark">customers</mark>
+          <span class="flip-word-box"><span id="hero-flip-word">close</span></span>
+        </h1>
+
+        <p class="hero-subtitle">
+          Design scheduled email campaigns, recurring reminders, and time-based broadcasts. Delivered with precision through Gmail connections or custom SMTP servers.
+        </p>
+
+        <div class="hero-actions">
+          <a href="signup.html" class="btn-primary">
+            <span>Get started for free</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+
+          <a href="#pricing" class="btn-secondary">
+            <span>View transparent pricing</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </a>
+        </div>
+
+        <p class="hero-footnote">Free tier available. No credit card required to start.</p>
+      </div>
+    </section>
+
+    <!-- 4. Stats Strip -->
+    <section class="stats-strip" aria-label="Platform metrics">
+      <div class="stats-container">
+        <div class="stat-item">
+          <span class="stat-number">99.9%</span>
+          <span class="stat-label">Delivery reliability across connected inboxes</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">0%</span>
+          <span class="stat-label">Vendor lock-in with direct SMTP & Gmail pairing</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">&lt; 3 mins</span>
+          <span class="stat-label">Average setup time from signup to first campaign</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Product Features (Persona & Brevo inspired) -->
+    <section class="section-features" id="product">
+      <div class="section-intro">
+        <span class="section-badge">Platform capabilities</span>
+        <h2 class="section-title">Everything needed to schedule customer messaging</h2>
+        <p class="section-desc">
+          Clean workflows built for businesses that value punctual delivery, clear limits, and simple setup without bloated marketing bloat.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <h3 class="feature-title">Granular Schedule Rules</h3>
+          <p class="feature-text">
+            Send immediately, once on a future calendar date, or recurring across daily, weekly, monthly, and yearly intervals.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+          </div>
+          <h3 class="feature-title">Native Inbox Connectors</h3>
+          <p class="feature-text">
+            Connect personal and workspace Gmail accounts or route traffic through your existing custom SMTP infrastructure with zero overhead.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+          </div>
+          <h3 class="feature-title">HTML & Snippet Editor</h3>
+          <p class="feature-text">
+            Compose rich HTML layouts with quick-insert formatting snippets for headers, links, call-out buttons, and uploaded brand assets.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+          </div>
+          <h3 class="feature-title">Project & Business Spaces</h3>
+          <p class="feature-text">
+            Separate individual client workspaces and brands into distinct projects with isolated recipient lists and sender credentials.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+          </div>
+          <h3 class="feature-title">Compliant Delivery</h3>
+          <p class="feature-text">
+            Automated unsubscribe handling and data privacy compliance under NDPR standards to protect your sending reputation.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <h3 class="feature-title">Clear API & Webhooks</h3>
+          <p class="feature-text">
+            Programmatic triggers for modern developer stacks with exact send counters and explicit status codes on all transactions.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Pricing Section (Based on screenshot specifications) -->
+    <section class="section-pricing" id="pricing">
+      <div class="section-intro">
+        <span class="section-badge">Section content, plan by plan</span>
+        <h2 class="section-title">Transparent pricing for growing teams</h2>
+        <p class="section-desc">
+          Select the capacity your business requires. Switch between monthly and yearly billing anytime.
+        </p>
+      </div>
+
+      <!-- Billing Toggle -->
+      <div class="billing-toggle-wrap" role="group" aria-label="Billing frequency">
+        <button type="button" class="billing-btn active" id="billing-monthly">Monthly</button>
+        <button type="button" class="billing-btn" id="billing-yearly">
+          <span>Yearly</span>
+          <span class="savings-tag">Two months free</span>
+        </button>
+      </div>
+
+      <!-- 4 Plans Grid -->
+      <div class="pricing-grid">
+        <!-- Plan 1: Free -->
+        <div class="pricing-card">
+          <div class="card-top">
+            <h3 class="plan-name">Free</h3>
+            <p class="plan-desc">For testing workflows and light individual personal schedules.</p>
+            <div class="plan-price-box">
+              <span class="plan-currency">$</span>
+              <span class="plan-amount">0</span>
+              <span class="plan-interval">/ forever</span>
+            </div>
+            <ul class="plan-features-list">
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>5</strong> active schedules</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>1</strong> project workspace</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>1,000</strong> recipients per schedule</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>1</strong> team member per project</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>200</strong> API requests per month</span>
+              </li>
+              <li class="plan-feature-item disabled">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                <span>Payload access: No</span>
+              </li>
+              <li class="plan-feature-item disabled">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                <span>Sending via SMTP: No</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Support: Community</span>
+              </li>
+            </ul>
+          </div>
+          <a href="signup.html" class="plan-cta-btn">
+            <span>Get started free</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </a>
+        </div>
+
+        <!-- Plan 2: Paid $2.99 -->
+        <div class="pricing-card featured">
+          <span class="popular-badge">Most Popular</span>
+          <div class="card-top">
+            <h3 class="plan-name">Paid</h3>
+            <p class="plan-desc">For creators and small businesses operating ongoing email campaigns.</p>
+            <div class="plan-price-box">
+              <span class="plan-currency">$</span>
+              <span class="plan-amount" id="price-paid">2.99</span>
+              <span class="plan-interval" id="interval-paid">/ month</span>
+            </div>
+            <ul class="plan-features-list">
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>50</strong> active schedules</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>3</strong> project workspaces</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>50,000</strong> recipients per schedule</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>1</strong> team member per project</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>More</strong> API requests included</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Payload access: Yes <span class="tag-coming-soon">next push</span></span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Sending via SMTP: Yes</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Support: Email</span>
+              </li>
+            </ul>
+          </div>
+          <button type="button" class="plan-cta-btn" id="upgrade-btn" data-paystack-btn>
+            <span>Upgrade to Paid</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+
+        <!-- Plan 3: Business $4.99 -->
+        <div class="pricing-card">
+          <div class="card-top">
+            <h3 class="plan-name">Business</h3>
+            <p class="plan-desc">For agencies and operations managing multi-project schedules.</p>
+            <div class="plan-price-box">
+              <span class="plan-currency">$</span>
+              <span class="plan-amount" id="price-business">4.99</span>
+              <span class="plan-interval" id="interval-business">/ month</span>
+            </div>
+            <ul class="plan-features-list">
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>Set a number</strong> of schedules</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>Set a number</strong> of projects</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>High volume</strong> (provider-limited)</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>Several</strong> team members with roles</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>Higher</strong> API throughput limits</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Payload access: Yes</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Sending via SMTP: Yes</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Support: Priority</span>
+              </li>
+            </ul>
+          </div>
+          <button type="button" class="plan-cta-btn" data-paystack-btn>
+            <span>Upgrade to Business</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+
+        <!-- Plan 4: Custom -->
+        <div class="pricing-card">
+          <div class="card-top">
+            <h3 class="plan-name">Custom</h3>
+            <p class="plan-desc">For dedicated enterprise workloads requiring bespoke infrastructure.</p>
+            <div class="plan-price-box">
+              <span class="plan-amount" style="font-size: 28px;">Agreed</span>
+              <span class="plan-interval">in contract</span>
+            </div>
+            <ul class="plan-features-list">
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Schedules: <strong>Agreed in contract</strong></span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Projects: <strong>Agreed in contract</strong></span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Recipients: <strong>Agreed in contract</strong></span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Team members: <strong>Unlimited</strong></span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>API requests: <strong>Agreed in contract</strong></span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Payload access: Yes</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Sending via SMTP: Yes</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Support: Dedicated</span>
+              </li>
+            </ul>
+          </div>
+          <a href="mailto:support@bzade.app?subject=Bzade%20Custom%20Plan%20Inquiry" class="plan-cta-btn">
+            <span>Contact sales</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- 7. Pricing Transparency Notes (Directly from guide screenshot) -->
+      <div class="pricing-notes-container">
+        <div class="pricing-note-card">
+          <h4>What counts as a send & request</h4>
+          <p>One recipient is one send. One API call is one request. We count exact units with zero hidden overhead.</p>
+        </div>
+
+        <div class="pricing-note-card">
+          <h4>What happens at the limit</h4>
+          <p>Sending is paused until the next month or your upgrade. The API returns a clear 429 status, not silent failures.</p>
+        </div>
+
+        <div class="pricing-note-card">
+          <h4>What happens when a plan expires</h4>
+          <p>Existing schedules keep running for a grace period. New creation is blocked, matching the database trigger.</p>
+        </div>
+
+        <div class="pricing-note-card">
+          <h4>Cancel anytime</h4>
+          <p>No card lock-in and no hidden cancellation fees. Payload, SMS and WhatsApp channels are labeled but not priced.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. FAQ Section -->
+    <section class="section-faq" id="resources">
+      <div class="section-intro">
+        <span class="section-badge">Frequently asked questions</span>
+        <h2 class="section-title">Answers to common billing questions</h2>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <button type="button" class="faq-question">
+            <span>What currency is billing handled in?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            Billing is processed in USD or local currency conversion depending on your payment location through our secure payment gateway. All amounts are transparently displayed before confirmation.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button type="button" class="faq-question">
+            <span>What is your refund policy?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            If you cancel within the first 7 days of subscribing and have not exceeded fair usage quotas, reach out to our team for a prompt refund. You can cancel future renewals anytime with a single click.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button type="button" class="faq-question">
+            <span>What exactly counts as a send and an API request?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            One recipient equals one send. If a single schedule delivers an email to 10 recipients, it counts as 10 sends. Each REST API call made to create, update, or trigger a schedule counts as one API request.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button type="button" class="faq-question">
+            <span>How do team roles and project invitations work?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            Business and Custom plans allow project owners to invite collaborators with granular roles (viewer, editor, admin) to manage campaign templates without sharing mailbox passwords.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button type="button" class="faq-question">
+            <span>What are the sending limits for Gmail and SMTP?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            When connecting Gmail accounts, Google imposes daily limits (typically 500 emails/day for free Gmail, 2,000 emails/day for Google Workspace). Custom SMTP connections use the limits defined by your SMTP host.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button type="button" class="faq-question">
+            <span>What happens to my data and schedules if I cancel?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            If a subscription expires or is canceled, your existing schedules enter a grace period so ongoing operations are not immediately disrupted. New schedule creation is paused until reactivated.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. Bottom CTA Section -->
+    <section class="bottom-cta-section" id="solutions">
+      <div class="bottom-cta-box">
+        <h2 style="font-size: 32px; font-weight: 700; color: #111111;">Ready to automate your customer schedules?</h2>
+        <p style="font-size: 16px; color: #555555;">
+          Join businesses using Bzade to send punctual updates, recurring notifications, and customer newsletters.
+        </p>
+        <div class="hero-actions" style="margin-top: 8px;">
+          <a href="signup.html" class="btn-primary">
+            <span>Create your account</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+          <a href="login.html" class="btn-secondary">
+            <span>Go to dashboard</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 10. Footer -->
+  <footer class="main-footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="index.html" class="brand-wrap">
+          <img src="logo-2.png" alt="Bzade logo" style="height: 24px; width: auto;" />
+          <span class="brand-title" style="font-size: 18px;">Bzade.app</span>
+        </a>
+        <p>A mailing platform built to keep your customer communication punctual, reliable, and straightforward.</p>
+        <p style="font-size: 13px; color: #777777;">Built by Victor Usen.</p>
+      </div>
+
+      <div class="footer-col" id="docs">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#product">Overview</a></li>
+          <li><a href="#pricing">Pricing Plans</a></li>
+          <li><a href="smtp.html">SMTP Configuration</a></li>
+          <li><a href="dashboard.html">Web App Dashboard</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="feedback.html">Product Feedback</a></li>
+          <li><a href="https://leakedprice.online" target="_blank" rel="noopener noreferrer">Smartindex Integration</a></li>
+          <li><a href="#resources">Billing FAQ</a></li>
+          <li><a href="mailto:support@bzade.app">Contact Support</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="terms.html">Terms of Service</a></li>
+          <li><a href="privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="data-protection.html">Data Protection</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-compliance-strip">
+      <p class="compliance-text">
+        Compliance line: Unsubscribe handling, data protection under NDPR, and links to terms and privacy.
+      </p>
+      <div class="social-links">
+        <span>Follow us:</span>
+        <a href="https://x.com/bzadeapp" target="_blank" rel="noopener noreferrer" class="social-link">@bzadeapp</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://js.paystack.co/v2/inline.js"></script>
   <script type="module" src="index.js"></script>
 </body>
 </html>
