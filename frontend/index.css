@@ -976,6 +976,28 @@ a {
   line-height: 1.4;
 }
 
+/* Zade last card — vertically and horizontally centered */
+.zade-card--center {
+  align-items: center;
+  justify-content: center;
+}
+
+.zade-card-inner--center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  max-width: 620px;
+  margin: 0 auto;
+  height: 100%;
+}
+
+.zade-card-inner--center .zade-card-heading,
+.zade-card-inner--center .zade-card-body {
+  max-width: 100%;
+}
+
 .bottom-cta-box {
   max-width: 640px;
   display: flex;
@@ -989,7 +1011,7 @@ a {
   width: 100%;
   border-top: 1px solid var(--border-light);
   background-color: #ffffff;
-  padding: 56px 56px 32px;
+  padding: 72px 56px 40px;
 }
 
 .footer-top {
@@ -1073,6 +1095,50 @@ a {
 
 .social-link:hover {
   color: var(--brand-green);
+}
+
+.social-link--icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  color: #111111;
+  transition: color 0.15s ease;
+}
+
+.social-link--icon:hover {
+  color: var(--brand-green);
+  text-decoration: underline;
+}
+
+/* Footer link with external icon on hover */
+.footer-link {
+  font-size: 14px;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  transition: color 0.15s ease, gap 0.2s ease;
+}
+
+.footer-link:hover {
+  color: #111111;
+}
+
+.footer-ext-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  opacity: 0;
+  transform: translate(-2px, 2px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  margin-left: 4px;
+}
+
+.footer-link--ext:hover .footer-ext-icon {
+  opacity: 1;
+  transform: translate(0, 0);
 }
 
 /* 11. Responsive Media Queries */
