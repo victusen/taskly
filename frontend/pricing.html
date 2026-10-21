@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing Plans &amp; Capabilities - Bzade</title>
+  <link rel="icon" type="image/png" href="logo-2.png" />
+  <link rel="stylesheet" href="index.css?v=2.1">
+  <link rel="stylesheet" href="./scripts/ui/toast.css">
+  <style>
+    /* Dedicated Pricing Page Additions */
+    .pricing-page-hero {
+      width: 100%;
+      padding: 72px 24px 48px;
+      text-align: center;
+      background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .pricing-hero-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .pricing-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 14px;
+      background-color: var(--brand-green-soft);
+      border: 1px solid #bbf7d0;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--brand-green-hover);
+    }
+
+    .pricing-hero-title {
+      font-size: 44px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      color: #111111;
+    }
+
+    .pricing-hero-desc {
+      font-size: 18px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      max-width: 680px;
+    }
+
+    /* Informational Plan Status / Tier Labels */
+    .plan-info-badge {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-top: auto;
+      border: 1px solid var(--border-light);
+      background-color: #fafafa;
+      color: #374151;
+    }
+
+    .pricing-card.featured .plan-info-badge {
+      background-color: #111111;
+      color: #ffffff;
+      border-color: #111111;
+    }
+
+    /* Comparison Table Section */
+    .pricing-matrix-section {
+      width: 100%;
+      padding: 96px 24px;
+      background-color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .matrix-wrapper {
+      max-width: 1140px;
+      width: 100%;
+    }
+
+    .matrix-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .matrix-title {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #111111;
+      margin-bottom: 12px;
+    }
+
+    .matrix-desc {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      background-color: #ffffff;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      min-width: 800px;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+    }
+
+    .comparison-table th {
+      background-color: #f9fafb;
+      font-weight: 700;
+      color: #111111;
+      border-bottom: 2px solid var(--border-light);
+    }
+
+    .comparison-table th:first-child {
+      width: 36%;
+    }
+
+    .comparison-table th:not(:first-child),
+    .comparison-table td:not(:first-child) {
+      width: 16%;
+      text-align: center;
+    }
+
+    .comparison-table tr.category-row td {
+      background-color: #f3f4f6;
+      font-weight: 700;
+      color: #111111;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      padding: 12px 20px;
+    }
+
+    .comparison-table tr:hover:not(.category-row) td {
+      background-color: #fafafa;
+    }
+
+    .check-icon {
+      color: #16a34a;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .dash-icon {
+      color: #9ca3af;
+      font-weight: 400;
+    }
+
+    /* Explanation Breakdown Cards */
+    .pricing-explainer-section {
+      width: 100%;
+      padding: 80px 24px 96px;
+      background-color: var(--bg-subtle);
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      justify-content: center;
+    }
+
+    .explainer-wrapper {
+      max-width: 1140px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    .explainer-header {
+      text-align: center;
+    }
+
+    .explainer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .explainer-card {
+      background-color: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .explainer-card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      background-color: var(--brand-green-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--brand-green-hover);
+      margin-bottom: 4px;
+    }
+
+    .explainer-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111111;
+    }
+
+    .explainer-card p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 768px) {
+      .pricing-hero-title {
+        font-size: 32px;
+      }
+      .explainer-grid {
+        grid-template-columns: 1fr;
+      }
+      .matrix-title {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 2. Main Header -->
+  <header class="main-header">
+    <div class="header-left">
+      <a href="index.html" class="brand-wrap">
+        <img src="logo-bz.png" alt="Bzade logo" style="height: 30px; width: auto; display: block;" />
+      </a>
+      <nav class="header-center" aria-label="Primary navigation">
+        <a href="index.html#product" class="nav-link">Product</a>
+        <a href="index.html#solutions" class="nav-link">Solutions</a>
+        <a href="pricing.html" class="nav-link" style="color: #111111; font-weight: 700;">Pricing</a>
+        <a href="index.html#resources" class="nav-link">Resources</a>
+        <a href="index.html#docs" class="nav-link">Doc</a>
+        <a href="index.html#careers" class="nav-link">Careers</a>
+      </nav>
+    </div>
+
+    <div class="header-right">
+      <a href="login.html" class="login-link">Log in</a>
+      <a href="signup.html" class="signup-btn">
+        <span>Sign up free</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </a>
+      <button type="button" class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Open menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Navigation Overlay Drawer -->
+  <div id="mobile-nav-drawer" class="mobile-drawer-overlay">
+    <div class="mobile-drawer-content">
+      <div class="mobile-drawer-head">
+        <img src="logo-bz.png" alt="Bzade" style="height: 32px; width: auto; display: block;" />
+        <button type="button" id="close-mobile-drawer" class="mobile-drawer-close" aria-label="Close menu">&times;</button>
+      </div>
+      <nav class="mobile-nav-links">
+        <a href="index.html#product" class="mobile-nav-item">Product</a>
+        <a href="index.html#solutions" class="mobile-nav-item">Solutions</a>
+        <a href="pricing.html" class="mobile-nav-item" style="font-weight: 700;">Pricing</a>
+        <a href="index.html#resources" class="mobile-nav-item">Resources</a>
+        <a href="index.html#docs" class="mobile-nav-item">Doc</a>
+        <a href="index.html#careers" class="mobile-nav-item">Careers</a>
+      </nav>
+      <div class="mobile-drawer-auth">
+        <a href="login.html" class="mobile-auth-login">Log in</a>
+        <a href="signup.html" class="mobile-auth-signup">Sign up free</a>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <!-- Dedicated Pricing Hero -->
+
+
+    <!-- 4 Sophisticated Pricing Cards (Matching Index Route specifications) -->
+    <section class="section-pricing" style="padding-top: 56px;">
+      <div class="pricing-grid">
+        <!-- Plan 1: Free -->
+        <div class="pricing-card">
+          <div class="card-top">
+            <h3 class="plan-name">Free</h3>
+            <p class="plan-desc">For testing workflows and light individual personal schedules.</p>
+            <div class="plan-price-box">
+              <span class="plan-currency">$</span>
+              <span class="plan-amount">0</span>
+              <span class="plan-interval">/ forever</span>
+            </div>
+            <ul class="plan-features-list">
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>5</strong> active schedules</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>1</strong> project workspace</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>1,000</strong> recipients per schedule</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>1</strong> team member per project</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>200</strong> API requests per month</span>
+              </li>
+              <li class="plan-feature-item disabled">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                <span>Payload access: No</span>
+              </li>
+              <li class="plan-feature-item disabled">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                <span>Sending via SMTP: No</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Support: Community</span>
+              </li>
+            </ul>
+          </div>
+          <div class="plan-info-badge">
+            <span>Free Tier Included</span>
+          </div>
+        </div>
+
+        <!-- Plan 2: Paid $2.99 -->
+        <div class="pricing-card featured">
+          <span class="popular-badge">Most Popular</span>
+          <div class="card-top">
+            <h3 class="plan-name">Paid</h3>
+            <p class="plan-desc">For creators and small businesses operating ongoing email campaigns.</p>
+            <div class="plan-price-box">
+              <span class="plan-currency">$</span>
+              <span class="plan-amount" id="price-paid">2.99</span>
+              <span class="plan-interval" id="interval-paid">/ month</span>
+            </div>
+            <ul class="plan-features-list">
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>50</strong> active schedules</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>3</strong> project workspaces</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>50,000</strong> recipients per schedule</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>1</strong> team member per project</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>5,000</strong> API requests per month</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Payload access: Yes <span class="tag-coming-soon">active</span></span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Sending via SMTP: Yes</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Support: Email priority</span>
+              </li>
+            </ul>
+          </div>
+          <div class="plan-info-badge">
+            <span>Recommended for Small Businesses</span>
+          </div>
+        </div>
+
+        <!-- Plan 3: Business $4.99 -->
+        <div class="pricing-card">
+          <div class="card-top">
+            <h3 class="plan-name">Business</h3>
+            <p class="plan-desc">For agencies and operations managing multi-project schedules.</p>
+            <div class="plan-price-box">
+              <span class="plan-currency">$</span>
+              <span class="plan-amount" id="price-business">4.99</span>
+              <span class="plan-interval" id="interval-business">/ month</span>
+            </div>
+            <ul class="plan-features-list">
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>Unlimited</strong> active schedules</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>Unlimited</strong> project workspaces</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>High volume</strong> (provider-limited)</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>Multi-member</strong> team collaboration</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>50,000</strong> API throughput requests</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Payload access: Yes</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Sending via SMTP: Yes</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Support: 24/7 Priority</span>
+              </li>
+            </ul>
+          </div>
+          <div class="plan-info-badge">
+            <span>High-Volume Teams</span>
+          </div>
+        </div>
+
+        <!-- Plan 4: Custom -->
+        <div class="pricing-card">
+          <div class="card-top">
+            <h3 class="plan-name">Custom</h3>
+            <p class="plan-desc">For dedicated enterprise workloads requiring bespoke infrastructure.</p>
+            <div class="plan-price-box">
+              <span class="plan-amount" style="font-size: 28px;">Agreed</span>
+              <span class="plan-interval">in contract</span>
+            </div>
+            <ul class="plan-features-list">
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Schedules: <strong>Agreed in contract</strong></span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Projects: <strong>Agreed in contract</strong></span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Recipients: <strong>Agreed in contract</strong></span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Team members: <strong>Unlimited</strong></span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>API requests: <strong>Agreed in contract</strong></span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Payload access: Yes</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Sending via SMTP: Yes</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Support: Dedicated TAM</span>
+              </li>
+            </ul>
+          </div>
+          <div class="plan-info-badge">
+            <span>Bespoke Enterprise Terms</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comprehensive Feature Comparison Table -->
+    <section class="pricing-matrix-section">
+      <div class="matrix-wrapper">
+        <div class="matrix-header">
+          <span class="section-badge">Side by side breakdown</span>
+          <h2 class="matrix-title">Detailed Plan Comparison</h2>
+          <p class="matrix-desc">
+            Review every capability, transmission limit, connector rule, and compliance SLA across our plan tiers.
+          </p>
+        </div>
+
+        <div class="table-container">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Capability / Feature</th>
+                <th>Free</th>
+                <th>Paid</th>
+                <th>Business</th>
+                <th>Custom</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Group 1: Scheduling Core -->
+              <tr class="category-row">
+                <td colspan="5">Scheduling &amp; Automation Engine</td>
+              </tr>
+              <tr>
+                <td>Active recurring schedules</td>
+                <td>5</td>
+                <td>50</td>
+                <td>Unlimited</td>
+                <td>Contractual</td>
+              </tr>
+              <tr>
+                <td>Max recipients per schedule send</td>
+                <td>1,000</td>
+                <td>50,000</td>
+                <td>High Volume</td>
+                <td>Contractual</td>
+              </tr>
+              <tr>
+                <td>Daily, weekly, monthly recurrence</td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+              </tr>
+              <tr>
+                <td>Instant one-time broadcasts</td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+              </tr>
+              <tr>
+                <td>Dynamic payload parameterization</td>
+                <td><span class="dash-icon">&mdash;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+              </tr>
+
+              <!-- Group 2: Mailbox Connectors -->
+              <tr class="category-row">
+                <td colspan="5">Mailbox &amp; Server Infrastructure</td>
+              </tr>
+              <tr>
+                <td>Direct Gmail OAuth connection</td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+              </tr>
+              <tr>
+                <td>Custom SMTP relay connection</td>
+                <td><span class="dash-icon">&mdash;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+              </tr>
+              <tr>
+                <td>Dedicated IP pools</td>
+                <td><span class="dash-icon">&mdash;</span></td>
+                <td><span class="dash-icon">&mdash;</span></td>
+                <td>Add-on</td>
+                <td><span class="check-icon">&#10003;</span></td>
+              </tr>
+              <tr>
+                <td>Zero vendor lock-in guarantee</td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+              </tr>
+
+              <!-- Group 3: Workspaces & Collaboration -->
+              <tr class="category-row">
+                <td colspan="5">Workspaces &amp; Team Roles</td>
+              </tr>
+              <tr>
+                <td>Independent project workspaces</td>
+                <td>1</td>
+                <td>3</td>
+                <td>Unlimited</td>
+                <td>Contractual</td>
+              </tr>
+              <tr>
+                <td>Collaborator seats</td>
+                <td>1 member</td>
+                <td>1 member</td>
+                <td>Multi-member</td>
+                <td>Unlimited</td>
+              </tr>
+              <tr>
+                <td>Role-based permissions (Admin/Editor)</td>
+                <td><span class="dash-icon">&mdash;</span></td>
+                <td><span class="dash-icon">&mdash;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+              </tr>
+
+              <!-- Group 4: Developer Platform -->
+              <tr class="category-row">
+                <td colspan="5">Developer API &amp; Webhooks</td>
+              </tr>
+              <tr>
+                <td>Monthly REST API call limit</td>
+                <td>200</td>
+                <td>5,000</td>
+                <td>50,000</td>
+                <td>Contractual</td>
+              </tr>
+              <tr>
+                <td>Status webhooks on schedule run</td>
+                <td><span class="dash-icon">&mdash;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+              </tr>
+              <tr>
+                <td>Audit logs and run history</td>
+                <td>7 days</td>
+                <td>30 days</td>
+                <td>90 days</td>
+                <td>365 days</td>
+              </tr>
+
+              <!-- Group 5: Compliance & Support -->
+              <tr class="category-row">
+                <td colspan="5">Compliance &amp; Support</td>
+              </tr>
+              <tr>
+                <td>NDPR &amp; GDPR privacy safeguards</td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+              </tr>
+              <tr>
+                <td>Automated unsubscribe management</td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+              </tr>
+              <tr>
+                <td>Customer support level</td>
+                <td>Community</td>
+                <td>Priority Email</td>
+                <td>24/7 Priority</td>
+                <td>Dedicated TAM</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Deep-dive Explanation Section ("Tell users more on the pricing") -->
+    <section class="pricing-explainer-section">
+      <div class="explainer-wrapper">
+        <div class="explainer-header">
+          <span class="section-badge">How our pricing works</span>
+          <h2 style="font-size: 32px; font-weight: 700; color: #111111; margin-top: 6px;">
+            Clear rules with zero surprises
+          </h2>
+          <p style="font-size: 16px; color: #555555; max-width: 640px; margin: 8px auto 0;">
+            We believe businesses should never be punished for growing their subscriber lists. Here is exactly how our billing and resource quotas work.
+          </p>
+        </div>
+
+        <div class="explainer-grid">
+          <!-- Card 1 -->
+          <div class="explainer-card">
+            <div class="explainer-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h3>Exact send counting</h3>
+            <p>
+              One recipient equals one send unit. If a schedule delivers to 10 customers, it counts as 10 sends. There is zero hidden multiplier overhead or per-contact database storage penalty.
+            </p>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="explainer-card">
+            <div class="explainer-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <h3>Direct inbox quota limits</h3>
+            <p>
+              When connecting Gmail, Google Workspace guidelines apply (typically 500/day for free Gmail and 2,000/day for Workspace). For custom SMTP, your mail server provider's quota dictates sending ceilings.
+            </p>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="explainer-card">
+            <div class="explainer-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <h3>Predictable 429 overage safety</h3>
+            <p>
+              If your plan limit is reached, transmission is paused with explicit notifications. Our API returns an actionable 429 status code rather than quietly failing or billing surprise surge charges.
+            </p>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="explainer-card">
+            <div class="explainer-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <h3>7-day money-back refund</h3>
+            <p>
+              If you cancel within 7 days of subscribing and have not exceeded fair use thresholds, our team issues a prompt, hassle-free refund with zero questions asked.
+            </p>
+          </div>
+
+          <!-- Card 5 -->
+          <div class="explainer-card">
+            <div class="explainer-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </div>
+            <h3>Cancel anytime in 1 click</h3>
+            <p>
+              No long-term contracts or lock-in hoops. You can pause or cancel your subscription anytime directly from your dashboard billing settings without contacting sales.
+            </p>
+          </div>
+
+          <!-- Card 6 -->
+          <div class="explainer-card">
+            <div class="explainer-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path></svg>
+            </div>
+            <h3>Grace period data protection</h3>
+            <p>
+              If a plan expires, ongoing schedules enter an operational grace window so critical customer appointments and notifications are not instantly cut off.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 10. Footer -->
+  <footer class="main-footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="index.html" class="brand-wrap">
+          <img src="logo-bz.png" alt="Bzade logo" style="height: 30px; width: auto;" />
+          <span class="brand-title" style="font-size: 18px;">Bzade.app</span>
+        </a>
+        <p>A mailing platform built to keep your customer communication punctual, reliable, and straightforward.</p>
+      </div>
+
+      <div class="footer-col" id="docs">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="index.html#product" class="footer-link">Overview</a></li>
+          <li><a href="pricing.html" class="footer-link" style="font-weight: 700;">Pricing Plans</a></li>
+          <li><a href="smtp.html" class="footer-link footer-link--ext">SMTP Configuration<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
+          <li><a href="dashboard.html" class="footer-link footer-link--ext">Web App Dashboard<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="feedback.html" class="footer-link">Product Feedback</a></li>
+          <li><a href="https://leakedprice.online" target="_blank" rel="noopener noreferrer" class="footer-link footer-link--ext">Smartindex Integration<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
+          <li><a href="index.html#resources" class="footer-link">Billing FAQ</a></li>
+          <li><a href="mailto:Victor@bzade.app" class="footer-link footer-link--ext">Contact Support<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="terms.html" class="footer-link">Terms of Service</a></li>
+          <li><a href="privacy-policy.html" class="footer-link">Privacy Policy</a></li>
+          <li><a href="data-protection.html" class="footer-link">Data Protection</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-compliance-strip">
+      <p class="compliance-text">
+        Unsubscribe handling, data protection under NDPR standards.
+      </p>
+      <div class="social-links">
+        <span>Follow us:</span>
+        <a href="https://x.com/bzadeapp" target="_blank" rel="noopener noreferrer" class="social-link social-link--icon" aria-label="Bzade on X (Twitter)">
+          <img src="instagram-icon.png" alt="" style="width: 18px; height: 18px;">
+          <img src="facebook.png" alt="" style="width: 18px; height: 18px;">
+          <img src="x-social-icon.png" alt="" style="width: 15px; height: 15px;">
+          <span>@bzadeapp</span>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Billing Toggle for pricing.html
+    const monthlyBtn = document.getElementById('billing-monthly');
+    const yearlyBtn = document.getElementById('billing-yearly');
+    const pricePaid = document.getElementById('price-paid');
+    const priceBusiness = document.getElementById('price-business');
+    const intervalPaid = document.getElementById('interval-paid');
+    const intervalBusiness = document.getElementById('interval-business');
+
+    function setBilling(isYearly) {
+      if (!monthlyBtn || !yearlyBtn) return;
+      if (isYearly) {
+        yearlyBtn.classList.add('active');
+        monthlyBtn.classList.remove('active');
+        if (pricePaid) pricePaid.textContent = '2.49';
+        if (intervalPaid) intervalPaid.textContent = '/ month ($29.90 billed yearly)';
+        if (priceBusiness) priceBusiness.textContent = '4.15';
+        if (intervalBusiness) intervalBusiness.textContent = '/ month ($49.90 billed yearly)';
+      } else {
+        monthlyBtn.classList.add('active');
+        yearlyBtn.classList.remove('active');
+        if (pricePaid) pricePaid.textContent = '2.99';
+        if (intervalPaid) intervalPaid.textContent = '/ month';
+        if (priceBusiness) priceBusiness.textContent = '4.99';
+        if (intervalBusiness) intervalBusiness.textContent = '/ month';
+      }
+    }
+
+    monthlyBtn?.addEventListener('click', () => setBilling(false));
+    yearlyBtn?.addEventListener('click', () => setBilling(true));
+
+    // Mobile nav drawer
+    const mobileToggle = document.getElementById('mobile-nav-toggle');
+    const mobileDrawer = document.getElementById('mobile-nav-drawer');
+    const closeDrawer = document.getElementById('close-mobile-drawer');
+
+    mobileToggle?.addEventListener('click', () => {
+      if (mobileDrawer) mobileDrawer.style.display = 'flex';
+    });
+
+    closeDrawer?.addEventListener('click', () => {
+      if (mobileDrawer) mobileDrawer.style.display = 'none';
+    });
+  </script>
+</body>
+</html>

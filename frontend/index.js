@@ -84,4 +84,94 @@ document.addEventListener('DOMContentLoaded', () => {
   closeDrawer?.addEventListener('click', () => {
     if (mobileDrawer) mobileDrawer.style.display = 'none';
   });
+
+  // 6. Careers Viewport Mega Dropdown Toggle & Hover Logic
+  const careersTrigger = document.getElementById('careers-nav-trigger');
+  const careersDropdown = document.getElementById('careers-mega-dropdown');
+  const closeCareersBtn = document.getElementById('close-careers-mega');
+  const mobileCareersLink = document.getElementById('mobile-careers-link');
+  let closeTimeout = null;
+
+  function openCareersMega() {
+    clearTimeout(closeTimeout);
+    if (!careersDropdown) return;
+    careersDropdown.classList.add('is-open');
+    careersTrigger?.setAttribute('aria-expanded', 'true');
+    const arrow = careersTrigger?.querySelector('.nav-drop-arrow');
+    if (arrow) arrow.style.transform = 'rotate(180deg)';
+  }
+
+  function closeCareersMega() {
+    closeTimeout = setTimeout(() => {
+      if (!careersDropdown) return;
+      careersDropdown.classList.remove('is-open');
+      careersTrigger?.setAttribute('aria-expanded', 'false');
+      const arrow = careersTrigger?.querySelector('.nav-drop-arrow');
+      if (arrow) arrow.style.transform = 'rotate(0deg)';
+    }, 180);
+  }
+
+  if (careersTrigger && careersDropdown) {
+    // Click toggle
+    careersTrigger.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isOpen = careersDropdown.classList.contains('is-open');
+      if (isOpen) {
+        closeCareersMega();
+      } else {
+        openCareersMega();
+      }
+    });
+
+    // Hover intent on desktop
+    careersTrigger.addEventListener('mouseenter', openCareersMega);
+    careersTrigger.addEventListener('mouseleave', closeCareersMega);
+
+    careersDropdown.addEventListener('mouseenter', () => {
+      clearTimeout(closeTimeout);
+    });
+    careersDropdown.addEventListener('mouseleave', closeCareersMega);
+
+    // Close button
+    closeCareersBtn?.addEventListener('click', () => {
+      clearTimeout(closeTimeout);
+      careersDropdown.classList.remove('is-open');
+      careersTrigger.setAttribute('aria-expanded', 'false');
+      const arrow = careersTrigger.querySelector('.nav-drop-arrow');
+      if (arrow) arrow.style.transform = 'rotate(0deg)';
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && careersDropdown.classList.contains('is-open')) {
+        clearTimeout(closeTimeout);
+        careersDropdown.classList.remove('is-open');
+        careersTrigger.setAttribute('aria-expanded', 'false');
+        const arrow = careersTrigger.querySelector('.nav-drop-arrow');
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
+      }
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (
+        careersDropdown.classList.contains('is-open') &&
+        !careersDropdown.contains(e.target) &&
+        !careersTrigger.contains(e.target)
+      ) {
+        clearTimeout(closeTimeout);
+        careersDropdown.classList.remove('is-open');
+        careersTrigger.setAttribute('aria-expanded', 'false');
+        const arrow = careersTrigger.querySelector('.nav-drop-arrow');
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
+      }
+    });
+  }
+
+  mobileCareersLink?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (mobileDrawer) mobileDrawer.style.display = 'none';
+    openCareersMega();
+    careersDropdown?.scrollIntoView({ behavior: 'smooth' });
+  });
 });

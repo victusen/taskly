@@ -55,16 +55,16 @@ a {
 }
 
 .smartindex-link {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 500;
   color: #333333;
-  padding: 4px 12px;
+  /* padding: 4px 12px; */
   border-radius: 20px;
-  background-color: #f7f7f7;
-  border: 1px solid #e5e7eb;
+  /* background-color: #f7f7f7; */
+  /* border: 1px solid #e5e7eb; */
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
@@ -149,6 +149,233 @@ a {
 
 .nav-link:hover {
   color: #111111;
+}
+
+.nav-item-careers-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ── Careers Viewport-width Mega Menu Dropdown ── */
+.careers-mega-dropdown {
+  position: absolute;
+  top: 68px; /* sits directly flush beneath main-header */
+  left: 0;
+  right: 0;
+  width: 100vw;
+  background-color: #ffffff;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.12);
+  display: none;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 95;
+  box-sizing: border-box;
+}
+
+.careers-mega-dropdown.is-open {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.careers-mega-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  min-height: 380px;
+}
+
+/* Left Section: Opportunities in Bzade */
+.careers-mega-left {
+  padding: 44px 40px 44px 24px;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.careers-eyebrow-pill {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 4px 10px;
+  background-color: #ecfdf5;
+  color: #047857;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 20px;
+  border: 1px solid #a7f3d0;
+}
+
+.careers-mega-heading {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  color: #111111;
+}
+
+.careers-mega-lead {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+.careers-perks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.careers-perk {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.careers-general-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #047857;
+  text-decoration: none;
+  transition: gap 0.2s ease, color 0.15s ease;
+}
+
+.careers-general-link:hover {
+  gap: 10px;
+  color: #065f46;
+}
+
+/* Right Section: Jobs List Grid */
+.careers-mega-right {
+  padding: 40px 24px 40px 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: left;
+}
+
+.careers-mega-right-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.careers-jobs-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.careers-mega-close {
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.15s ease;
+}
+
+.careers-mega-close:hover {
+  background-color: #f3f4f6;
+  color: #111111;
+  border-color: #d1d5db;
+}
+
+.careers-jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.career-job-item {
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.career-job-item:hover {
+  background-color: #ffffff;
+  border-color: #e5e7eb;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.job-item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.job-item-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111111;
+  line-height: 1.3;
+}
+
+.job-item-type, .job-badge-pill {
+  font-size: 11px;
+  font-weight: 600;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.job-item-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+.job-apply-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #111111;
+  text-decoration: none;
+  margin-top: auto;
+  padding-top: 4px;
+  transition: gap 0.2s ease, color 0.15s ease;
+}
+
+.job-apply-link:hover {
+  color: #047857;
+  gap: 8px;
 }
 
 /* Right: Login & CTA with generous padding */
@@ -433,43 +660,66 @@ a {
   text-align: center;
 }
 
-/* 4. Proof / Stat Bar */
-.stats-strip {
+/* 4. Brevo-inspired Metrics Section */
+.stats-section {
   width: 100%;
-  /* border-top: 1px solid var(--border-light); */
-  border-bottom: 1px solid var(--border-light);
-  background-color: var(--bg-subtle);
-  padding: 48px 20px;
+  background-color: var(--bg-main);
+  padding: 88px 24px 96px;
   display: flex;
   justify-content: center;
+  border-bottom: 1px solid var(--border-light);
 }
 
-.stats-container {
-  max-width: 1040px;
+.stats-wrapper {
+  max-width: 1140px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 44px;
+}
+
+.stats-section-title {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #111111;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.stats-cards-grid {
   width: 100%;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  text-align: center;
-  padding: 70px 20px;
+  gap: 28px;
 }
 
-.stat-item {
+.stat-card {
+  background-color: #bbf7a3; /* Brevo-style crisp mint/lime container matching user screenshot */
+  border-radius: 20px;
+  padding: 44px 32px 38px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  justify-content: flex-start;
+  gap: 14px;
+  min-height: 180px;
 }
 
-.stat-number {
-  font-size: 32px;
+.stat-card-value {
+  font-size: 46px;
   font-weight: 800;
+  letter-spacing: -0.03em;
   color: #111111;
-  letter-spacing: -0.02em;
+  line-height: 1;
 }
 
-.stat-label {
-  font-size: 14px;
-  color: var(--text-muted);
+.stat-card-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1f2937;
+  line-height: 1.45;
+  max-width: 260px;
 }
 
 /* 5. Product Features Grid (Persona & Brevo inspired) */
@@ -824,7 +1074,7 @@ a {
 }
 
 .faq-item:hover {
-  border-color: #111111;
+  border-color: #656565;
 }
 
 .faq-item.open {
@@ -907,7 +1157,7 @@ a {
   position: sticky;
   top: 68px; /* height of .main-header */
   width: 100%;
-  min-height: 520px;
+  min-height: 560px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -916,29 +1166,31 @@ a {
 }
 
 .zade-card-inner {
-  max-width: 1040px;
+  max-width: 1080px;
   width: 100%;
-  padding: 80px 40px;
+  padding: 60px 32px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  height: 90vh;
+  justify-content: center;
+  min-height: 75vh;
 }
 
 .zade-two-col {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 60px;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 56px;
   align-items: center;
 }
 
 .zade-col-text {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
+  text-align: left;
 }
 
 .zade-col-img {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -962,24 +1214,34 @@ a {
 
 .zade-img-placeholder {
   width: 100%;
-  min-height: 220px;
-  background-color: #f0f0f0;
+  max-width: 440px;
+  height: 320px;
+  background-color: #f3f4f6;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
-  color: #999999;
-  text-align: center;
-  padding: 24px;
-  line-height: 1.4;
+}
+
+.zade-img-placeholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.zade-img-placeholder--wide {
+  max-width: 720px;
+  height: 260px;
+  margin-top: 24px;
 }
 
 /* Zade last card — maintain tall height, keep original left layout, vertically centered */
 .zade-card-inner--solution {
-  height: 90vh;
-  min-height: 90vh;
+  height: 85vh;
+  min-height: 85vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1166,7 +1428,19 @@ a {
   }
 }
 
+@media (max-width: 1024px) {
+  .careers-mega-container {
+    grid-template-columns: 320px 1fr;
+  }
+  .careers-jobs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
+  .careers-mega-dropdown {
+    display: none !important;
+  }
   .smartindex-bar {
     padding: 8px 16px;
   }
@@ -1197,7 +1471,7 @@ a {
     color: #111111;
     border-bottom: none;
   }
-  .stats-container {
+  .stats-cards-grid {
     grid-template-columns: 1fr;
     gap: 16px;
   }
@@ -1218,14 +1492,18 @@ a {
   }
   .zade-two-col {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 28px;
   }
   .zade-card-inner {
-    padding: 60px 20px;
-    height: auto;
+    padding: 48px 16px;
+    min-height: auto;
   }
   .zade-card-heading {
     font-size: 26px;
+  }
+  .zade-img-placeholder {
+    max-width: 100%;
+    height: 240px;
   }
 }
 

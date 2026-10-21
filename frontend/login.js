@@ -14,6 +14,24 @@ const facebookButton = document.querySelector('#facebook')
 const googleButton = document.querySelector('#google')
 const xButton = document.querySelector('#X')
 
+// Password visibility eye toggle
+document.querySelectorAll('.eye-toggle').forEach((btn) => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const targetId = btn.getAttribute('data-target');
+    const input = document.getElementById(targetId);
+    if (!input) return;
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    const eyeShow = btn.querySelector('.eye-show');
+    const eyeHide = btn.querySelector('.eye-hide');
+    if (eyeShow && eyeHide) {
+      eyeShow.style.display = isPassword ? 'none' : 'block';
+      eyeHide.style.display = isPassword ? 'block' : 'none';
+    }
+  });
+});
+
 
 googleButton.addEventListener("click", async (event) => {
   event.preventDefault()

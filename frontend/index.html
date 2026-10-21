@@ -9,12 +9,11 @@
   <link rel="stylesheet" href="./scripts/ui/toast.css">
 </head>
 <body>
-
   <!-- 1. Topmost Sticky Container -->
   <aside class="smartindex-bar" aria-label="Smartindex announcement">
     <a href="https://leakedprice.online" target="_blank" rel="noopener noreferrer" class="smartindex-link">
-      <img src="Smartindex-logo.png" alt="Smartindex logo" style="height: 16px; width: auto; display: block;" />
-      <span>Smartindex</span>
+      <img src="Smartindex-logo.png" alt="Smartindex logo" style="height: 12px; width: auto; display: block;" />
+      <span>Powered by</span><span style="color: black; font-weight: bold;">Smartindex</span>
     </a>
   </aside>
 
@@ -27,15 +26,16 @@
       </a> -->
       <img src="logo-bz.png" alt="My Designs (55)" style="height: 30px; width: auto; display: block;" />
       <nav class="header-center" aria-label="Primary navigation">
-      <a href="#product" class="nav-link nav-link--drop">Product <svg class="nav-drop-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
-      <a href="#solutions" class="nav-link nav-link--drop">Solutions <svg class="nav-drop-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
-      <a href="#pricing" class="nav-link">Pricing</a>
-      <a href="#resources" class="nav-link nav-link--drop">Resources <svg class="nav-drop-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
-      <a href="#docs" class="nav-link">Doc</a>
-    </nav>
+        <a href="#product" class="nav-link nav-link--drop">Product <svg class="nav-drop-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+        <a href="#solutions" class="nav-link nav-link--drop">Solutions <svg class="nav-drop-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+        <a href="pricing.html" class="nav-link">Pricing</a>
+        <a href="#resources" class="nav-link nav-link--drop">Resources <svg class="nav-drop-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+        <a href="#docs" class="nav-link">Doc</a>
+        <div class="nav-item-careers-wrap">
+          <a href="#careers" class="nav-link nav-link--drop" id="careers-nav-trigger" aria-expanded="false" aria-controls="careers-mega-dropdown">Careers <svg class="nav-drop-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+        </div>
+      </nav>
     </div>
-
-    
 
     <div class="header-right">
       <a href="login.html" class="login-link">Log in</a>
@@ -54,6 +54,109 @@
         </svg>
       </button>
     </div>
+
+    <!-- Viewport-width Mega Menu Dropdown for Careers -->
+    <div id="careers-mega-dropdown" class="careers-mega-dropdown" role="region" aria-label="Careers opportunities in Bzade">
+      <div class="careers-mega-container">
+        <!-- Left Section: Opportunities info with border right -->
+        <div class="careers-mega-left">
+          <div class="careers-eyebrow-pill">Hiring now</div>
+          <h2 class="careers-mega-heading">Opportunities to work in Bzade</h2>
+          <p class="careers-mega-lead">
+            We are building the future of automated, reliable customer communications. Join our nimble team to craft simple yet powerful email scheduling workflows for businesses worldwide.
+          </p>
+          <div class="careers-perks-list">
+            <div class="careers-perk">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Remote-first &amp; flexible working hours</span>
+            </div>
+            <div class="careers-perk">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>High ownership, real autonomy &amp; craft focus</span>
+            </div>
+            <div class="careers-perk">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Competitive compensation &amp; quick feedback cycles</span>
+            </div>
+          </div>
+          <a href="mailto:careers@bzade.app?subject=Careers%20at%20Bzade" class="careers-general-link">
+            <span>Ask us anything about our culture</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </a>
+        </div>
+
+        <!-- Right Section: Available Jobs -->
+        <div class="careers-mega-right">
+          <div class="careers-mega-right-top">
+            <span class="careers-jobs-label">AVAILABLE ROLES (4)</span>
+            <button type="button" class="careers-mega-close" id="close-careers-mega" aria-label="Close careers menu">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+          <div class="careers-jobs-grid">
+            <!-- Job 1 -->
+            <div class="career-job-item">
+              <div class="job-item-header">
+                <h3 class="job-item-title">Social media manager</h3>
+                <span class="job-item-type">Contract</span>
+              </div>
+              <p class="job-item-desc">
+                Own Bzade's public brand voice across X, LinkedIn, and Instagram. Drive organic conversations, customer stories, and weekly updates.
+              </p>
+              <a href="mailto:careers@bzade.app?subject=Application:%20Social%20Media%20Manager" class="job-apply-link">
+                <span>Apply for role</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </a>
+            </div>
+
+            <!-- Job 2 -->
+            <div class="career-job-item">
+              <div class="job-item-header">
+                <h3 class="job-item-title">Digital marketer</h3>
+                <span class="job-item-type">Full-time</span>
+              </div>
+              <p class="job-item-desc">
+                Build and optimize organic and paid acquisition funnels, increase visitor-to-campaign conversion, and scale customer discovery globally.
+              </p>
+              <a href="mailto:careers@bzade.app?subject=Application:%20Digital%20Marketer" class="job-apply-link">
+                <span>Apply for role</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </a>
+            </div>
+
+            <!-- Job 3 -->
+            <div class="career-job-item">
+              <div class="job-item-header">
+                <h3 class="job-item-title">Contract designers</h3>
+                <span class="job-badge-pill">Project-based</span>
+              </div>
+              <p class="job-item-desc">
+                Produce high-impact graphic design, launch assets, promotional visuals, and marketing illustrations that capture speed and elegance.
+              </p>
+              <a href="mailto:careers@bzade.app?subject=Application:%20Contract%20Designer" class="job-apply-link">
+                <span>Apply for role</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </a>
+            </div>
+
+            <!-- Job 4 -->
+            <div class="career-job-item">
+              <div class="job-item-header">
+                <h3 class="job-item-title">UI UX designer</h3>
+                <span class="job-badge-pill">Full-time</span>
+              </div>
+              <p class="job-item-desc">
+                Craft clean web interfaces, intuitive scheduling rules, calendar selectors, and friction-free settings for busy business owners.
+              </p>
+              <a href="mailto:careers@bzade.app?subject=Application:%20UI%20UX%20Designer" class="job-apply-link">
+                <span>Apply for role</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </header>
 
   <!-- Mobile Navigation Overlay Drawer -->
@@ -66,9 +169,10 @@
       <nav class="mobile-nav-links">
         <a href="#product" class="mobile-nav-item">Product</a>
         <a href="#solutions" class="mobile-nav-item">Solutions</a>
-        <a href="#pricing" class="mobile-nav-item">Pricing</a>
+        <a href="pricing.html" class="mobile-nav-item">Pricing</a>
         <a href="#resources" class="mobile-nav-item">Resources</a>
         <a href="#docs" class="mobile-nav-item">Doc</a>
+        <a href="#careers" class="mobile-nav-item" id="mobile-careers-link">Careers</a>
       </nav>
       <div class="mobile-drawer-auth">
         <a href="login.html" class="mobile-auth-login">Log in</a>
@@ -104,7 +208,7 @@
             </svg>
           </a>
 
-          <a href="#pricing" class="btn-secondary">
+          <a href="pricing.html" class="btn-secondary">
             <span>View pricing</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="6 9 12 15 18 9"></polyline>
@@ -116,20 +220,28 @@
       </div>
     </section>
 
-    <!-- 4. Stats Strip -->
-    <section class="stats-strip" aria-label="Platform metrics">
-      <div class="stats-container">
-        <div class="stat-item">
-          <span class="stat-number">99.9%</span>
-          <span class="stat-label">Delivery reliability across connected inboxes</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">0%</span>
-          <span class="stat-label">Vendor lock-in with direct SMTP & Gmail pairing</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">&lt; 3 mins</span>
-          <span class="stat-label">Average setup time from signup to first campaign</span>
+    <!-- 4. Stats Section (Brevo-inspired Clean Rounded Cards) -->
+    <section class="stats-section" aria-label="Platform metrics">
+      <div class="stats-wrapper">
+        <h2 class="stats-section-title">Bzade in action: the numbers speak for themselves</h2>
+        <div class="stats-cards-grid">
+          <!-- Card 1 -->
+          <div class="stat-card">
+            <div class="stat-card-value">40x ROI</div>
+            <div class="stat-card-label">for every $1 spent on email communication</div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="stat-card">
+            <div class="stat-card-value">+38%</div>
+            <div class="stat-card-label">more repeat conversions via automated schedules</div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="stat-card">
+            <div class="stat-card-value">&gt; avg. 3mins</div>
+            <div class="stat-card-label">setup time from signup to first live scheduled send</div>
+          </div>
         </div>
       </div>
     </section>
@@ -227,44 +339,60 @@
     <!-- 5b. Zade Story — Sticky Scroll Cards -->
     <section class="zade-story-section" aria-label="How Bzade helps business owners like Zade">
 
+      <!-- Card 1 -->
       <div class="zade-card" style="background:#ffffff; z-index:1;">
         <div class="zade-card-inner zade-two-col">
           <div class="zade-col-text">
             <span class="section-badge">Meet Zade</span>
-            <h2 class="zade-card-heading">Running a busy shop, wearing every hat</h2>
+            <h2 class="zade-card-heading">She runs a busy shop, wearing every hat</h2>
             <p class="zade-card-body">Zade manages a restaurant with a small team. Between managing staff, sourcing supplies, and serving customers, every hour counts. Communication with regulars too often falls through the cracks.</p>
           </div>
           <div class="zade-col-img">
-            <div class="zade-img-placeholder">Zade at the restaurant counter, mid-rush.</div>
+            <div class="zade-img-placeholder">
+              <img src="bz-unhappy.png" alt="Zade running a busy restaurant, wearing every hat">
+            </div>
           </div>
         </div>
       </div>
 
+      <!-- Card 2 -->
       <div class="zade-card" style="background:#fafafa; z-index:2;">
         <div class="zade-card-inner">
           <span class="section-badge">The Problem</span>
           <h2 class="zade-card-heading">Customer data, buried in spreadsheets</h2>
           <p class="zade-card-body">Zade keeps a running Excel file of loyal customers. Birthdays, preferences, last orders. All there. But sending a timely email to 80 people means opening a laptop, composing manually, and hoping nothing breaks.</p>
-          <div class="zade-img-placeholder" style="margin-top:32px;">Spreadsheet open on a laptop, names highlighted.</div>
+          <div class="zade-img-placeholder zade-img-placeholder--wide">
+            <img src="bz-spreadsheet.png" alt="Customer data buried in spreadsheets">
+          </div>
         </div>
       </div>
 
+      <!-- Card 3 -->
       <div class="zade-card" style="background:#f4f9f5; z-index:3;">
         <div class="zade-card-inner">
           <span class="section-badge">The Intent</span>
-          <h2 class="zade-card-heading">Warm interactions, kept close</h2>
+          <h2 class="zade-card-heading">Warm interactions, she kept close</h2>
           <p class="zade-card-body">Zade knows that a well-timed message, a birthday note, a weekly special, a quiet thank-you, keeps customers coming back. The relationship is there. The delivery system is not.</p>
-          <div class="zade-img-placeholder" style="margin-top:32px;">Zade smiling, handing a receipt to a happy customer.</div>
+          <div class="zade-img-placeholder zade-img-placeholder--wide">
+            <img src="bz-happy.png" alt="Warm customer interactions kept close">
+          </div>
         </div>
       </div>
 
+      <!-- Card 4 (Solution) -->
       <div class="zade-card" style="background:#111111; z-index:4;">
         <div class="zade-card-inner zade-card-inner--solution">
-          <span class="section-badge" style="color:#4ade80;">The Solution</span>
+          <span class="section-badge" style="color:#4ade80; border-color: rgba(74, 222, 128, 0.3); background-color: rgba(74, 222, 128, 0.1);">The Solution</span>
           <h2 class="zade-card-heading" style="color:#ffffff;">Zade signs up for Bzade.app</h2>
           <p class="zade-card-body" style="color:#9ca3af;">In under three minutes, Zade connects a Gmail account, uploads the customer list, and sets a weekly schedule. Every Friday, each customer gets a personal message automatically, on time, every time.</p>
-          <div style="margin-top:32px;">
-            <a href="signup.html" class="btn-primary" style="display:inline-flex;"><span>Try it free</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+          <div style="margin-top:24px;">
+            <a href="signup.html" class="btn-primary" style="display:inline-flex;">
+              <span>Try it free</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
           </div>
         </div>
       </div>
@@ -640,9 +768,9 @@
         <h4>Product</h4>
         <ul>
           <li><a href="#product" class="footer-link">Overview</a></li>
-          <li><a href="#pricing" class="footer-link">Pricing Plans</a></li>
+          <li><a href="pricing.html" class="footer-link">Pricing Plans</a></li>
           <li><a href="smtp.html" class="footer-link footer-link--ext">SMTP Configuration<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
-          <li><a href="dashboard.html" class="footer-link footer-link--ext">Web App Dashboard<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
+          <li><a href="dashboard.html" class="footer-link footer-link--ext">Dashboard<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
         </ul>
       </div>
 
@@ -652,7 +780,7 @@
           <li><a href="feedback.html" class="footer-link">Product Feedback</a></li>
           <li><a href="https://leakedprice.online" target="_blank" rel="noopener noreferrer" class="footer-link footer-link--ext">Smartindex Integration<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
           <li><a href="#resources" class="footer-link">Billing FAQ</a></li>
-          <li><a href="mailto:support@bzade.app" class="footer-link footer-link--ext">Contact Support<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
+          <li><a href="mailto:Victor@bzade.app" class="footer-link footer-link--ext">Contact Support<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
         </ul>
       </div>
 
@@ -676,7 +804,7 @@
           <!-- <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> -->
           <img src="instagram-icon.png" alt="" style="width: 18px; height: 18px;">
           <img src="facebook.png" alt="" style="width: 18px; height: 18px;">
-          <img src="x-social-icon.png" alt="" style="width: 18px; height: 18px;">
+          <img src="x-social-icon.png" alt="" style="width: 15px; height: 15px;">
           <span>@bzadeapp</span>
         </a>
       </div>

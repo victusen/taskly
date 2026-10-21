@@ -248,8 +248,8 @@
       main {
         flex: 1; min-width: 0; width: 100%;
         padding: 2rem;
-        background: white; border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        background: inherit; border-radius: 8px;
+        /* box-shadow: 0 2px 5px rgba(0,0,0,0.1); */
       }
       .col-empty-third { display: none; }
     }
@@ -277,7 +277,8 @@
 
   <header>
     <div class="banner-left">
-      <img src="menu.png" id="hamburger-btn" style="height: 30px; cursor: pointer;" alt="Menu" aria-expanded="false" />
+      <img src="logo-buZ.png" id="hamburger-btn" style="height: 30px; cursor: pointer;" alt="Menu" aria-expanded="false" />
+      <img src="logo-bz.png" style="height: 30px; width: auto;" alt="">
       <a href="index.html"><p class="brand">Bzade.app</p></a>
       <div class="drop-wrap">
         <img id="drop-toggle" class="drop-arrow" src="drop-arrow.png" alt="Switch view" />
@@ -352,7 +353,8 @@
   <div class="mobile-sidebar-overlay" id="mobile-sidebar-overlay">
     <aside class="mobile-sidebar" aria-label="Main navigation">
       <div class="mobile-sidebar-header">
-        <p class="brand">Bzade.app</p>
+        <img src="./logo-buZ.png" alt="" style="height: 30px; width: auto;">
+        <p class="brand" style="">Bzade.app</p>
         <button type="button" class="close-btn" id="sidebar-close-btn" aria-label="Close menu">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
         </button>
@@ -517,7 +519,6 @@
     });
   })();
   </script>
-
   <script src="https://js.paystack.co/v2/inline.js"></script>
   <script type="module" src="scripts/ui/toast.js"></script>
   <script type="module" src="dashboard.js"></script>

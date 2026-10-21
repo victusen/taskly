@@ -3,33 +3,167 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bzade | Create account</title>
+  <title>Create Account - Bzade</title>
   <link rel="icon" type="image/png" href="logo-2.png">
   <link rel="stylesheet" href="scripts/ui/toast.css">
   <link rel="stylesheet" href="login.css">
 </head>
 <body>
-  <main>
-    <div class="banner">
-      <a href="index.html"><img src="logo-wordmark-black.png" alt="Bzade" style="height:28px"></a>
-    </div>
-    <div class="accounts">
-      <h2>Create your account</h2>
-      <div class="acct-groups">
-        <button id="google" class="social-login" type="button"><img src="google.png" alt=""><p>Google</p></button>
-        <button id="facebook" class="social-login" type="button"><img src="facebook.png" alt=""><p>Facebook</p></button>
-        <p class="or-button">or</p>
+  <!-- Transparent Sticky Header matching SMTP -->
+  <header class="auth-header">
+    <a href="index.html" class="auth-brand">
+      <img src="logo-buZ.png" alt="Bzade logo" style="height: 30px; width: auto;" />
+      <span class="auth-brand-name">Bzade</span>
+    </a>
+  </header>
+
+  <main class="auth-main">
+    <div class="auth-wrapper">
+      <a href="index.html" class="back-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        <span>Back to home</span>
+      </a>
+
+      <div class="auth-card">
+        <div class="auth-card-head">
+          <h1>Create your account</h1>
+          <p class="auth-card-sub">Start scheduling punctual customer emails in minutes</p>
+        </div>
+
+        <!-- Social sign up buttons -->
+        <div class="social-login-group">
+          <button type="button" id="google" class="social-btn">
+            <img src="google.png" alt="Google">
+            <span>Google</span>
+          </button>
+          <button type="button" id="facebook" class="social-btn">
+            <img src="facebook.png" alt="Facebook">
+            <span>Facebook</span>
+          </button>
+        </div>
+
+        <div class="auth-divider">
+          <span>or register with email</span>
+        </div>
+
+        <form id="signup-form">
+          <!-- Person Names Row with icons -->
+          <div class="form-row">
+            <div class="form-field">
+              <label for="first">First name</label>
+              <div class="input-wrap">
+                <svg class="input-leading-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <input id="first" type="text" placeholder="First name" autocomplete="given-name" required>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="last">Last name</label>
+              <div class="input-wrap">
+                <svg class="input-leading-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <input id="last" type="text" placeholder="Last name" autocomplete="family-name" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- Business Name with store / business icon -->
+          <div class="form-field">
+            <div class="field-label-row">
+              <label for="business">Business name</label>
+              <span class="field-hint">Optional</span>
+            </div>
+            <div class="input-wrap">
+              <svg class="input-leading-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 21h18"></path>
+                <path d="M5 21V7l8-4v18"></path>
+                <path d="M19 21V11l-6-3"></path>
+                <path d="M9 9v.01"></path>
+                <path d="M9 12v.01"></path>
+                <path d="M9 15v.01"></path>
+              </svg>
+              <input id="business" type="text" placeholder="e.g. Zade's Diner or Brand Ltd" autocomplete="organization">
+            </div>
+          </div>
+
+          <!-- Email Field with mail icon -->
+          <div class="form-field">
+            <label for="email">Work email</label>
+            <div class="input-wrap">
+              <svg class="input-leading-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <input id="email" type="email" placeholder="you@company.com" autocomplete="email" required>
+            </div>
+          </div>
+
+          <!-- Password Field with lock icon and eye toggle -->
+          <div class="form-field">
+            <div class="field-label-row">
+              <label for="password">Password</label>
+              <span class="field-hint">Min. 8 characters</span>
+            </div>
+            <div class="input-wrap password-wrap">
+              <svg class="input-leading-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <input id="password" type="password" placeholder="Create a secure password" autocomplete="new-password" minlength="8" required>
+              <button type="button" class="eye-toggle" aria-label="Toggle password visibility" data-target="password">
+                <svg class="eye-icon eye-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg class="eye-icon eye-hide" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="signin-btn">
+            <span>Create account</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+
+          <p class="auth-switch">
+            Already have an account? <a class="alt-link" href="login.html">Sign in</a>
+          </p>
+        </form>
+      </div>
+
+      <div class="auth-notice">
+        <p class="auth-disclaimer">
+          By signing up, you agree to our 
+          <a href="./terms.html">Terms</a>, 
+          <a href="./privacy-policy.html">Privacy Policy</a> &amp; 
+          <a href="./data-protection.html">Data Protection</a>.
+        </p>
       </div>
     </div>
-    <form id="signup-form">
-      <div class="form-groups"><label for="first">First name</label><input id="first" type="text" autocomplete="given-name" required></div>
-      <div class="form-groups"><label for="last">Last name</label><input id="last" type="text" autocomplete="family-name" required></div>
-      <div class="form-groups"><label for="email">Email</label><input id="email" type="email" autocomplete="email" required></div>
-      <div class="form-groups"><label for="password">Password</label><input id="password" type="password" autocomplete="new-password" minlength="8" required></div>
-      <button type="submit" class="signin-btn">Create account</button>
-      <a class="alt-link" href="login.html">I already have an account</a>
-    </form>
   </main>
+
+  <!-- <footer class="smtp-footer">
+    <span>&copy; 2026 Bzade.app. All rights reserved.</span>
+    <div>
+      <a href="./privacy-policy.html">Privacy Policy</a> &middot;
+      <a href="./data-protection.html">Data Protection</a> &middot;
+      <a href="./terms.html">Terms</a>
+    </div>
+  </footer> -->
+
   <script type="module" src="signup.js"></script>
 </body>
 </html>

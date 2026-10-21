@@ -490,7 +490,7 @@
 <body>
   <header>
     <div class="banner-left">
-      <img src="menu.png" id="hamburger-btn" style="height: 30px; cursor: pointer;" alt="Menu" />
+      <img src="hamburger.png" id="hamburger-btn" style="height: 30px; cursor: pointer;" alt="Menu" />
       <a href="index.html" style="text-decoration: none; color: #111;"><p style="font-size: 20px; font-weight: 600;">Bzade.app</p></a>
       <div style="position: relative; display: flex;">
         <img onclick="document.querySelector(`.drop`).classList.toggle(`show`);" src="drop-arrow.png" style="height: 20px; cursor: pointer;"/>
@@ -576,12 +576,15 @@
       <div class="col-project-info">
         <div class="select-project" style="display: flex; gap: 10px; align-items: center; height: 20px; padding: 0 5px;">
           <h3 style="font-size: 16px;">Open projects</h3>
-          <img src="Menu.png" height="20px" alt="Menu" />
         </div>
         
         <div class="proj-display" style="border-top: none;">
           <p style="font-size: 14px; color: grey; text-transform: uppercase; letter-spacing: 0.5px;">MY PROJECTS</p>
-          <h2 style="font-size: 28px; font-weight: 700;">MatchSub</h2>
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <h2 style="font-size: 28px; font-weight: 700;">MatchSub</h2>
+            <img src="menu.png" height="20px" alt="Menu" />
+          </div>
+          
           <button id="add-schedule">
             <span style="font-size: 20px; color: black; margin-right: 10px; line-height: 1;">+</span>
             <p style="font-size: 15px;">Add a new task</p>
