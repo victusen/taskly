@@ -7,14 +7,35 @@
   <link rel="icon" type="image/png" href="logo-2.png" />
   <link rel="stylesheet" href="index.css?v=2.1">
   <link rel="stylesheet" href="./scripts/ui/toast.css">
+  <script>
+    (function() {
+      try {
+        var isAuth = false;
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k && (k.indexOf('-auth-token') !== -1 || k.indexOf('supabase.auth.token') !== -1)) {
+            var val = localStorage.getItem(k);
+            if (val && val.indexOf('access_token') !== -1) { isAuth = true; break; }
+          }
+        }
+        window.__BZ_IS_LOGGED_IN = isAuth;
+      } catch(e) { window.__BZ_IS_LOGGED_IN = false; }
+    })();
+  </script>
   <style>
     /* Dedicated Pricing Page Additions */
+    .pricing-card {
+      cursor: pointer;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+    .pricing-card:hover {
+      border-color: #999999;
+    }
     .pricing-page-hero {
       width: 100%;
       padding: 72px 24px 48px;
       text-align: center;
       background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
-      border-bottom: 1px solid var(--border-light);
     }
 
     .pricing-hero-inner {
@@ -852,10 +873,10 @@
       if (isYearly) {
         yearlyBtn.classList.add('active');
         monthlyBtn.classList.remove('active');
-        if (pricePaid) pricePaid.textContent = '2.49';
-        if (intervalPaid) intervalPaid.textContent = '/ month ($29.90 billed yearly)';
-        if (priceBusiness) priceBusiness.textContent = '4.15';
-        if (intervalBusiness) intervalBusiness.textContent = '/ month ($49.90 billed yearly)';
+        if (pricePaid) pricePaid.textContent = '23.88';
+        if (intervalPaid) intervalPaid.textContent = '/ year';
+        if (priceBusiness) priceBusiness.textContent = '47.88';
+        if (intervalBusiness) intervalBusiness.textContent = '/ year';
       } else {
         monthlyBtn.classList.add('active');
         yearlyBtn.classList.remove('active');
@@ -868,6 +889,19 @@
 
     monthlyBtn?.addEventListener('click', () => setBilling(false));
     yearlyBtn?.addEventListener('click', () => setBilling(true));
+
+    // Make each pricing card clickable without clicking CTA
+    document.querySelectorAll('.pricing-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('a') || e.target.closest('button')) return;
+        const link = card.querySelector('a.plan-cta');
+        if (link && link.href) {
+          window.location.href = link.href;
+        } else {
+          window.location.href = 'signup.html';
+        }
+      });
+    });
 
     // Mobile nav drawer
     const mobileToggle = document.getElementById('mobile-nav-toggle');

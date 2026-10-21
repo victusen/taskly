@@ -34,10 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isYearly) {
       yearlyBtn.classList.add('active');
       monthlyBtn.classList.remove('active');
-      if (pricePaid) pricePaid.textContent = '2.49';
-      if (intervalPaid) intervalPaid.textContent = '/ month ($29.90 billed yearly)';
-      if (priceBusiness) priceBusiness.textContent = '4.15';
-      if (intervalBusiness) intervalBusiness.textContent = '/ month ($49.90 billed yearly)';
+      if (pricePaid) pricePaid.textContent = '23.88';
+      if (intervalPaid) intervalPaid.textContent = '/ year';
+      if (priceBusiness) priceBusiness.textContent = '47.88';
+      if (intervalBusiness) intervalBusiness.textContent = '/ year';
     } else {
       monthlyBtn.classList.add('active');
       yearlyBtn.classList.remove('active');
@@ -173,5 +173,42 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mobileDrawer) mobileDrawer.style.display = 'none';
     openCareersMega();
     careersDropdown?.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // 7. Unauthenticated User Interceptor for Dashboard / Jobs Links
+  const authModal = document.getElementById('auth-required-modal');
+  const closeAuthModalBtn = document.getElementById('close-auth-modal');
+
+  function openAuthModal() {
+    if (authModal) {
+      authModal.style.display = 'flex';
+      authModal.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  function closeAuthModal() {
+    if (authModal) {
+      authModal.style.display = 'none';
+      authModal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  closeAuthModalBtn?.addEventListener('click', closeAuthModal);
+  authModal?.addEventListener('click', (e) => {
+    if (e.target === authModal) closeAuthModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && authModal && authModal.style.display === 'flex') {
+      closeAuthModal();
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href*="dashboard.html"], a[href*="jobs.html"]');
+    if (link && !window.__BZ_IS_LOGGED_IN) {
+      e.preventDefault();
+      openAuthModal();
+    }
   });
 });

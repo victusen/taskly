@@ -6,6 +6,21 @@
   <title>SMTP Connection - Bzade</title>
   <link rel="icon" type="image/png" href="logo-2.png" />
   <link rel="stylesheet" href="./scripts/ui/toast.css">
+  <script>
+    (function() {
+      try {
+        var isAuth = false;
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k && (k.indexOf('-auth-token') !== -1 || k.indexOf('supabase.auth.token') !== -1)) {
+            var val = localStorage.getItem(k);
+            if (val && val.indexOf('access_token') !== -1) { isAuth = true; break; }
+          }
+        }
+        window.__BZ_IS_LOGGED_IN = isAuth;
+      } catch(e) { window.__BZ_IS_LOGGED_IN = false; }
+    })();
+  </script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
