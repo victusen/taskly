@@ -1,3 +1,24 @@
+.hero-actions .btn-primary {
+  background-color: transparent;
+  color: #ffffff;
+  border: 1px solid black;
+}
+.hero-actions .btn-primary:hover {
+  background-color: #ffffff;
+  color: #111111;
+  border: 1px solid black;
+}
+.bottom-cta-box .hero-actions .btn-primary {
+  background-color: transparent;
+  color: #ffffff;
+  border: 1px solid black;
+}
+.bottom-cta-box .hero-actions .btn-primary:hover {
+  background-color: #ffffff;
+  color: #111111;
+  border: 1px solid black;
+}
+
 /* Bzade - Modern clean landing page design system */
 :root {
   --bg-main: #ffffff;
@@ -1372,39 +1393,41 @@ a {
   display: inline-block;
 }
 
-/* Footer link with external icon on hover */
-.footer-link {
-  font-size: 14px;
-  color: var(--text-muted);
+/* Legal Links with custom rectangular stroke box pointer icon */
+.legal-link {
   display: inline-flex;
   align-items: center;
-  gap: 0;
-  transition: color 0.15s ease, gap 0.2s ease;
+  gap: 6px;
+  color: #777777; /* normal grey state */
+  transition: color 0.15s ease;
 }
-
-.footer-link:hover {
-  color: #111111;
+.legal-link:hover {
+  color: #111111; /* becomes black on hover */
 }
-
-.footer-ext-icon {
-  width: 13px !important;
-  height: 13px !important;
-  max-width: 13px !important;
-  max-height: 13px !important;
+.legal-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #777777;
+  border-radius: 4px;
+  background: transparent;
   flex-shrink: 0;
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-2px, 2px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  margin-left: 4px;
-  display: inline-block;
-  vertical-align: middle;
+  padding: 1px;
 }
-
-.footer-link:hover .footer-ext-icon,
-.footer-link--ext:hover .footer-ext-icon {
-  opacity: 1;
-  transform: translate(0, 0);
+.legal-link:hover .legal-box {
+  border-color: #111111;
+}
+.legal-icon {
+  width: 12px;
+  height: 12px;
+  stroke: #777777;
+  stroke-width: 2;
+  transition: stroke 0.15s ease;
+}
+.legal-link:hover .legal-icon {
+  stroke: #111111;
 }
 
 /* 11. Responsive Media Queries */
@@ -1439,6 +1462,14 @@ a {
 }
 
 @media (max-width: 768px) {
+  .hero-pill {
+    /*flex-direction: column;*/
+    align-items: center;
+    gap: 4px;
+    padding: 8px 14px;
+    text-align: left;
+    width: 100%;
+  }
   .careers-mega-dropdown {
     display: none !important;
   }
@@ -1462,7 +1493,7 @@ a {
     justify-content: center;
   }
   .hero-heading {
-    font-size: 36px;
+    font-size: 45px;
     text-align: center;
   }
   .flip-word-box {
