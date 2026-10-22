@@ -364,6 +364,9 @@ form {
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
+  .back-link {
+    display: none;
+  }
   .auth-header {
     padding: 16px 20px;
   }

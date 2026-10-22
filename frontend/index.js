@@ -25,7 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const monthlyBtn = document.getElementById('billing-monthly');
   const yearlyBtn = document.getElementById('billing-yearly');
   const pricePaid = document.getElementById('price-paid');
+  const crossedPaid = document.getElementById('crossed-paid');
   const priceBusiness = document.getElementById('price-business');
+  const crossedBusiness = document.getElementById('crossed-business');
   const intervalPaid = document.getElementById('interval-paid');
   const intervalBusiness = document.getElementById('interval-business');
 
@@ -35,15 +37,19 @@ document.addEventListener('DOMContentLoaded', () => {
       yearlyBtn.classList.add('active');
       monthlyBtn.classList.remove('active');
       if (pricePaid) pricePaid.textContent = '23.88';
+      if (crossedPaid) crossedPaid.style.display = 'inline';
       if (intervalPaid) intervalPaid.textContent = '/ year';
       if (priceBusiness) priceBusiness.textContent = '47.88';
+      if (crossedBusiness) crossedBusiness.style.display = 'inline';
       if (intervalBusiness) intervalBusiness.textContent = '/ year';
     } else {
       monthlyBtn.classList.add('active');
       yearlyBtn.classList.remove('active');
       if (pricePaid) pricePaid.textContent = '2.99';
+      if (crossedPaid) crossedPaid.style.display = 'none';
       if (intervalPaid) intervalPaid.textContent = '/ month';
       if (priceBusiness) priceBusiness.textContent = '4.99';
+      if (crossedBusiness) crossedBusiness.style.display = 'none';
       if (intervalBusiness) intervalBusiness.textContent = '/ month';
     }
   }
@@ -210,5 +216,32 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       openAuthModal();
     }
+  });
+
+  // 8. Pricing Cards Click Handler (Direct to dashboard if signed in, else to login)
+  document.querySelectorAll('.pricing-card').forEach((card) => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('[data-paystack-btn]')) return;
+      e.preventDefault();
+      let isAuth = false;
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && (k.indexOf('-auth-token') !== -1 || k.indexOf('supabase.auth.token') !== -1)) {
+            const val = localStorage.getItem(k);
+            if (val && val.indexOf('access_token') !== -1) {
+              isAuth = true;
+              break;
+            }
+          }
+        }
+      } catch (err) {}
+
+      if (isAuth || window.__BZ_IS_LOGGED_IN) {
+        window.location.href = 'dashboard.html';
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
   });
 });

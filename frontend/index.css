@@ -342,6 +342,9 @@ a {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
@@ -892,11 +895,21 @@ a {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.pricing-card:hover {
+  border-color: #999999;
 }
 
 .pricing-card.featured {
   border: 2px solid var(--brand-green);
   position: relative;
+}
+
+.pricing-card.featured:hover {
+  border-color: var(--brand-green-hover);
 }
 
 .popular-badge {
