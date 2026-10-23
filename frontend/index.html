@@ -55,7 +55,8 @@
     <div class="header-right">
       <a href="login.html" class="login-link">Log in</a>
       <a href="signup.html" class="signup-btn">
-        <span>Sign up free</span>
+        <span class="signup-text-full">Sign up free</span>
+        <span class="signup-text-mobile">Sign up</span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="5" y1="12" x2="19" y2="12"></line>
           <polyline points="12 5 19 12 12 19"></polyline>
@@ -112,7 +113,7 @@
             <!-- Job 1 -->
             <a href="mailto:careers@bzade.app?subject=Application:%20Social%20Media%20Manager" class="career-job-item">
               <div class="job-item-header">
-                <h3 class="job-item-title">Social media manager</h3>
+                <h3 class="job-item-title">Social Media Manager</h3>
                 <span class="job-item-type">Contract</span>
               </div>
               <p class="job-item-desc">
@@ -127,7 +128,7 @@
             <!-- Job 2 -->
             <a href="mailto:careers@bzade.app?subject=Application:%20Digital%20Marketer" class="career-job-item">
               <div class="job-item-header">
-                <h3 class="job-item-title">Digital marketer</h3>
+                <h3 class="job-item-title">Digital Marketer</h3>
                 <span class="job-item-type">Full-time</span>
               </div>
               <p class="job-item-desc">
@@ -142,7 +143,7 @@
             <!-- Job 3 -->
             <a href="mailto:careers@bzade.app?subject=Application:%20Contract%20Designer" class="career-job-item">
               <div class="job-item-header">
-                <h3 class="job-item-title">Contract designers</h3>
+                <h3 class="job-item-title">Contract Designer</h3>
                 <span class="job-badge-pill">Project-based</span>
               </div>
               <p class="job-item-desc">
@@ -157,7 +158,7 @@
             <!-- Job 4 -->
             <a href="mailto:careers@bzade.app?subject=Application:%20UI%20UX%20Designer" class="career-job-item">
               <div class="job-item-header">
-                <h3 class="job-item-title">UI UX designer</h3>
+                <h3 class="job-item-title">UI / UX Designer</h3>
                 <span class="job-badge-pill">Full-time</span>
               </div>
               <p class="job-item-desc">
@@ -401,8 +402,8 @@
           <h2 class="zade-card-heading" style="color:#ffffff;">Zade signs up to Bzade.app</h2>
           <p class="zade-card-body" style="color:#9ca3af;">In under 3 minutes, she connects her Gmail account, uploads the customer list, and sets a weekly schedule. every Friday, her customers get a personal message automatically, on time, every time.</p>
           <div style="margin-top:24px;">
-            <a href="signup.html" class="btn-primary" style="display:inline-flex;">
-              <span>Try it free</span>
+            <a href="login.html" class="btn-primary" style="display:inline-flex;">
+              <span>Sign In</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="5" y1="12" x2="19" y2="12"></line>
                 <polyline points="12 5 19 12 12 19"></polyline>
@@ -428,7 +429,7 @@
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            Billing is processed in USD or local currency conversion depending on your payment location through our secure payment gateway. All amounts are transparently displayed before confirmation.
+            Billing is handled in both US Dollars and Nigerian Naira (NGN). Payments made via card are charged at the exact subscription fee (e.g., $2.99), while payments via bank transfer are charged at the rounded figure (e.g., $3 to be transferred) since card deductions allow exact decimals.
           </div>
         </div>
 
@@ -442,6 +443,7 @@
           </div>
         </div>
 
+        <!--
         <div class="faq-item">
           <button type="button" class="faq-question">
             <span>What exactly counts as a send and an API request?</span>
@@ -451,6 +453,7 @@
             One recipient equals one send. If a single schedule delivers an email to 10 recipients, it counts as 10 sends. Each REST API call made to create, update, or trigger a schedule counts as one API request.
           </div>
         </div>
+        -->
 
         <div class="faq-item">
           <button type="button" class="faq-question">
@@ -478,10 +481,11 @@
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            If a subscription expires or is canceled, your existing schedules enter a grace period so ongoing operations are not immediately disrupted. New schedule creation is paused until reactivated.
+            If a subscription expires or is canceled, your existing schedules enter a grace period so ongoing operations are not immediately disrupted. New schedule creation is paused until reactivated. You can also opt to immediately seize all on the go directly from your dashboard.
           </div>
         </div>
 
+        <!--
         <div class="faq-item">
           <button type="button" class="faq-question">
             <span>What counts as a send and an API request?</span>
@@ -491,6 +495,7 @@
             One recipient is one send. One API call is one request. We count exact units with zero hidden overhead.
           </div>
         </div>
+        -->
 
         <div class="faq-item">
           <button type="button" class="faq-question">
@@ -504,11 +509,21 @@
 
         <div class="faq-item">
           <button type="button" class="faq-question">
+            <span>Why yearly discount is "Two months free" but much cheaper?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            We are running this rates for every paying user in their first year, this is to help them build, scale and automate their marketing workflow very affordably.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button type="button" class="faq-question">
             <span>Can I cancel anytime?</span>
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            Yes. No card lock-in and no hidden cancellation fees. Cancel with a single click from your billing settings. Payload, SMS, and WhatsApp channels are labeled on the roadmap but are not yet priced.
+            Yes. No card lock-in and no hidden cancellation fees. Cancel with a single click from your billing settings. Payload, SMS, and WhatsApp channels are labeled on the roadmap but are not yet priced. Thanks for checking our FAQ.
           </div>
         </div>
       </div>
@@ -529,7 +544,7 @@
         <button type="button" class="billing-btn active" id="billing-monthly">Monthly</button>
         <button type="button" class="billing-btn" id="billing-yearly">
           <span>Yearly</span>
-          <span class="savings-tag">Two months free</span>
+          <span class="savings-tag">Two months free (-$12)</span>
         </button>
       </div>
 
@@ -595,7 +610,7 @@
             <div class="plan-price-box">
               <span class="plan-currency">$</span>
               <span class="plan-amount" id="price-paid">2.99</span>
-              <span class="plan-crossed" id="crossed-paid" style="display: none; text-decoration: line-through; color: #9ca3af; font-size: 16px; margin-left: 6px; font-weight: 600;">$35.88</span>
+              <span class="plan-discount-badge" id="discount-paid" style="display: none; color: #16a34a; font-size: 15px; margin-left: 6px; font-weight: 700;">(-$12)</span>
               <span class="plan-interval" id="interval-paid">/ month</span>
             </div>
             <ul class="plan-features-list">
@@ -647,7 +662,7 @@
             <div class="plan-price-box">
               <span class="plan-currency">$</span>
               <span class="plan-amount" id="price-business">4.99</span>
-              <span class="plan-crossed" id="crossed-business" style="display: none; text-decoration: line-through; color: #9ca3af; font-size: 16px; margin-left: 6px; font-weight: 600;">$59.88</span>
+              <span class="plan-discount-badge" id="discount-business" style="display: none; color: #16a34a; font-size: 15px; margin-left: 6px; font-weight: 700;">(-$12)</span>
               <span class="plan-interval" id="interval-business">/ month</span>
             </div>
             <ul class="plan-features-list">
@@ -751,8 +766,8 @@
           Join businesses using Bzade to send punctual updates, recurring notifications, and customer newsletters.
         </p>
         <div class="hero-actions" style="margin-top: 8px;">
-          <a href="signup.html" class="btn-primary">
-            <span>join on bzade</span>
+          <a href="login.html" class="btn-primary">
+            <span>Sign in to Bzade</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="5" y1="12" x2="19" y2="12"></line>
               <polyline points="12 5 19 12 12 19"></polyline>
@@ -804,9 +819,9 @@
           <div class="footer-col">
         <h4>Legal</h4>
         <ul>
-          <li><a href="terms.html" class="footer-link legal-link">Terms of Service<span class="legal-box"><svg class="legal-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></a></li>
-          <li><a href="privacy-policy.html" class="footer-link legal-link">Privacy Policy<span class="legal-box"><svg class="legal-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></a></li>
-          <li><a href="data-protection.html" class="footer-link legal-link">Data Protection<span class="legal-box"><svg class="legal-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></span></a></li>
+          <li><a href="terms.html" class="footer-link legal-link"><span>Terms of Service</span><svg class="claude-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></li>
+          <li><a href="privacy-policy.html" class="footer-link legal-link"><span>Privacy Policy</span><svg class="claude-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></li>
+          <li><a href="data-protection.html" class="footer-link legal-link"><span>Data Protection</span><svg class="claude-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></li>
         </ul>
       </div>
     </div>

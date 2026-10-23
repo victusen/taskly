@@ -25,9 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const monthlyBtn = document.getElementById('billing-monthly');
   const yearlyBtn = document.getElementById('billing-yearly');
   const pricePaid = document.getElementById('price-paid');
-  const crossedPaid = document.getElementById('crossed-paid');
+  const discountPaid = document.getElementById('discount-paid');
   const priceBusiness = document.getElementById('price-business');
-  const crossedBusiness = document.getElementById('crossed-business');
+  const discountBusiness = document.getElementById('discount-business');
   const intervalPaid = document.getElementById('interval-paid');
   const intervalBusiness = document.getElementById('interval-business');
 
@@ -37,19 +37,25 @@ document.addEventListener('DOMContentLoaded', () => {
       yearlyBtn.classList.add('active');
       monthlyBtn.classList.remove('active');
       if (pricePaid) pricePaid.textContent = '23.88';
-      if (crossedPaid) crossedPaid.style.display = 'inline';
+      if (discountPaid) {
+        discountPaid.textContent = '(-$12)';
+        discountPaid.style.display = 'inline';
+      }
       if (intervalPaid) intervalPaid.textContent = '/ year';
       if (priceBusiness) priceBusiness.textContent = '47.88';
-      if (crossedBusiness) crossedBusiness.style.display = 'inline';
+      if (discountBusiness) {
+        discountBusiness.textContent = '(-$12)';
+        discountBusiness.style.display = 'inline';
+      }
       if (intervalBusiness) intervalBusiness.textContent = '/ year';
     } else {
       monthlyBtn.classList.add('active');
       yearlyBtn.classList.remove('active');
       if (pricePaid) pricePaid.textContent = '2.99';
-      if (crossedPaid) crossedPaid.style.display = 'none';
+      if (discountPaid) discountPaid.style.display = 'none';
       if (intervalPaid) intervalPaid.textContent = '/ month';
       if (priceBusiness) priceBusiness.textContent = '4.99';
-      if (crossedBusiness) crossedBusiness.style.display = 'none';
+      if (discountBusiness) discountBusiness.style.display = 'none';
       if (intervalBusiness) intervalBusiness.textContent = '/ month';
     }
   }

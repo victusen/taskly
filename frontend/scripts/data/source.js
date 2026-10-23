@@ -5,7 +5,7 @@ import { listEmailConnections } from "../api/emailConnections.js";
 import { getSchedules, pauseSchedule, resumeSchedule, cancelSchedule } from "../api/schedules.js";
 
 /* One switch. true: the pages use the sample data below. false: the pages call the backend. */
-export const USE_MOCK = true;
+export const USE_MOCK = false;
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const HOUR = 3600000;
@@ -132,17 +132,10 @@ export async function addSchedule(payload) {
     return newSchedule;
   }
 
-  const res = await authenticatedFetch(`${BACKEND_URL}/api/schedules`, {
+  const json = await authenticatedFetch("/api/schedules", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-
-  const json = await res.json();
-  if (!res.ok || json.success === false) {
-    throw new Error(json.message || "Could not create the task.");
-  }
-
   return json.data;
 }
 
@@ -160,17 +153,10 @@ export async function updateSchedule(id, payload) {
     return { id, ...payload };
   }
 
-  const res = await authenticatedFetch(`${BACKEND_URL}/api/schedules/${id}`, {
+  const json = await authenticatedFetch(`/api/schedules/${encodeURIComponent(id)}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-
-  const json = await res.json();
-  if (!res.ok || json.success === false) {
-    throw new Error(json.message || "Could not update the task.");
-  }
-
   return json.data;
 }
 

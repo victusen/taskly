@@ -17,22 +17,7 @@ export async function requireAuth() {
   } catch (err) {
     console.warn("Session check:", err);
   }
-
-  // Allow testing mock projects without getting redirected to login.html
-  const urlParams = new URLSearchParams(window.location.search);
-  const proj = urlParams.get("project");
-  if (!proj || proj.startsWith("mock-")) {
-    return {
-      user: {
-        id: "mock-user-1",
-        email: "usenvictor40@gmail.com",
-        user_metadata: { full_name: "Victor Usen", name: "Victor Usen" },
-      },
-      signOut: async () => {},
-    };
-  }
-
-  window.location.href = 'login.html';
+  window.location.replace("./login.html");
   return null;
 }
 

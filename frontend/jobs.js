@@ -350,10 +350,9 @@ scheduleForm?.addEventListener("submit", async (event) => {
       name: String(form.get("subject") || "Scheduled email"),
       job_type: "email",
       schedule_type: type,
-      email_connection_id: String(form.get("email_connection_id") || ""),
-      timezone: "Africa/Lagos",
+      email_connection_id: String(form.get("email_connection_id") || "") || null,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       scheduled_for: String(form.get("scheduled_for") || ""),
-      schedule_expression: type === "recurring" ? String(form.get("schedule_expression") || "") : null,
       config: {
         recipients: String(form.get("recipient") || "")
           .split(",")
@@ -363,6 +362,9 @@ scheduleForm?.addEventListener("submit", async (event) => {
         body: String(form.get("body") || ""),
         body_type: "html",
       },
+    };
+    if (type === "recurring") {
+      payload.schedule_rule = { every: String(form.get("schedule_expression") || "") };
     };
 
     await addSchedule(payload);
@@ -390,7 +392,7 @@ function payloadFor(draft, sender) {
     email_connection_id: sender?.id || null,
     name: draft.name,
     schedule_type: draft.schedule_type,
-    timezone: "Africa/Lagos",
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     config: {
       recipients: draft.recipients,
       subject: draft.subject,

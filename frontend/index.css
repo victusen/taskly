@@ -2,21 +2,25 @@
   background-color: transparent;
   color: #ffffff;
   border: 1px solid black;
+  transition: color 0.2s ease, background-color 0.15s ease, gap 0.2s ease;
 }
 .hero-actions .btn-primary:hover {
   background-color: #ffffff;
   color: #111111;
   border: 1px solid black;
+  transition: color 0.15s ease 0.2s, background-color 0.15s ease, gap 0.2s ease;
 }
 .bottom-cta-box .hero-actions .btn-primary {
   background-color: transparent;
   color: #ffffff;
   border: 1px solid black;
+  transition: color 0.2s ease, background-color 0.15s ease, gap 0.2s ease;
 }
 .bottom-cta-box .hero-actions .btn-primary:hover {
   background-color: #ffffff;
   color: #111111;
   border: 1px solid black;
+  transition: color 0.15s ease 0.2s, background-color 0.15s ease, gap 0.2s ease;
 }
 
 /* Bzade - Modern clean landing page design system */
@@ -637,7 +641,6 @@ a {
 
 .btn-primary {
   padding: 12px 24px;
-  /* background-color: #111111; */
   color: #ffffff;
   border: 1px solid #111111;
   border-radius: var(--radius-md);
@@ -647,13 +650,23 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: gap 0.2s ease, background-color 0.15s ease;
+  transition: color 0.2s ease, gap 0.2s ease, background-color 0.15s ease;
   text-decoration: none;
 }
 
 .btn-primary:hover {
-  /* background-color: #000000; */
+  color: #111111;
+  background-color: #ffffff;
   gap: 14px;
+  transition: color 0.3s ease 0.5s, gap 0.2s ease, background-color 0.15s ease;
+}
+
+.signup-text-mobile {
+  display: none;
+}
+
+.signup-text-full {
+  display: inline;
 }
 
 .btn-secondary {
@@ -1406,41 +1419,28 @@ a {
   display: inline-block;
 }
 
-/* Legal Links with custom rectangular stroke box pointer icon */
+/* Legal Links with Claude-style external link icon */
 .legal-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #777777; /* normal grey state */
+  color: #6b7280;
+  text-decoration: none;
   transition: color 0.15s ease;
 }
 .legal-link:hover {
-  color: #111111; /* becomes black on hover */
+  color: #111111;
 }
-.legal-box {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border: 1px solid #777777;
-  border-radius: 4px;
-  background: transparent;
+.claude-ext-icon {
+  width: 13px;
+  height: 13px;
+  stroke: #9ca3af;
   flex-shrink: 0;
-  padding: 1px;
+  transition: stroke 0.15s ease, transform 0.15s ease;
 }
-.legal-link:hover .legal-box {
-  border-color: #111111;
-}
-.legal-icon {
-  width: 12px;
-  height: 12px;
-  stroke: #777777;
-  stroke-width: 2;
-  transition: stroke 0.15s ease;
-}
-.legal-link:hover .legal-icon {
+.legal-link:hover .claude-ext-icon {
   stroke: #111111;
+  transform: translate(1px, -1px);
 }
 
 /* 11. Responsive Media Queries */
@@ -1450,6 +1450,20 @@ a {
   }
   .main-header {
     padding: 0 32px;
+  }
+  .header-center {
+    display: none;
+  }
+  .mobile-nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .header-right .login-link {
+    display: inline-flex;
+  }
+  .header-right .signup-btn {
+    display: inline-flex;
   }
   .pricing-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -1463,9 +1477,6 @@ a {
   .main-footer {
     padding: 48px 32px 32px;
   }
-}
-
-@media (max-width: 1024px) {
   .careers-mega-container {
     grid-template-columns: 320px 1fr;
   }
@@ -1496,9 +1507,20 @@ a {
   .header-center {
     display: none;
   }
-  .header-right .login-link,
+  .header-right .login-link {
+    display: none;
+  }
   .header-right .signup-btn {
-    display: none; /* Avoid mobile header compression */
+    display: inline-flex;
+    padding: 8px 13px;
+    font-size: 13px;
+    gap: 6px;
+  }
+  .signup-text-full {
+    display: none;
+  }
+  .signup-text-mobile {
+    display: inline;
   }
   .mobile-nav-toggle {
     display: flex;
