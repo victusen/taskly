@@ -336,7 +336,22 @@
 
 
     <!-- 4 Sophisticated Pricing Cards (Matching Index Route specifications) -->
-    <section class="section-pricing" style="padding-top: 56px;">
+    <section class="section-pricing" style="padding-top: 48px; padding-bottom: 64px;">
+      <div class="section-intro" style="text-align: center; margin-bottom: 32px;">
+        <span class="section-badge" style="display: inline-block; padding: 4px 12px; background: #e6f4ea; color: #166534; font-size: 12px; font-weight: 700; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">Section content, plan by plan</span>
+        <h1 class="section-title" style="font-size: 38px; font-weight: 800; letter-spacing: -0.025em; color: #111111; margin-bottom: 8px;">Transparent pricing for growing teams</h1>
+        <p class="section-desc" style="font-size: 16px; color: #6b7280; max-width: 600px; margin: 0 auto;">Select the capacity your business requires. Switch between monthly and yearly billing anytime.</p>
+      </div>
+
+      <!-- Billing Toggle -->
+      <div class="billing-toggle-wrap" role="group" aria-label="Billing frequency" style="display: flex; justify-content: center; margin-bottom: 36px;">
+        <button type="button" class="billing-btn active" id="billing-monthly">Monthly</button>
+        <button type="button" class="billing-btn" id="billing-yearly">
+          <span>Yearly</span>
+          <span class="savings-tag">Two months free</span>
+        </button>
+      </div>
+
       <div class="pricing-grid">
         <!-- Plan 1: Free -->
         <div class="pricing-card">
@@ -397,6 +412,7 @@
             <div class="plan-price-box">
               <span class="plan-currency">$</span>
               <span class="plan-amount" id="price-paid">2.99</span>
+              <span class="plan-discount-badge" id="discount-paid" style="display: none; color: #16a34a; font-size: 15px; margin-left: 6px; font-weight: 700;">(-$12)</span>
               <span class="plan-interval" id="interval-paid">/ month</span>
             </div>
             <ul class="plan-features-list">
@@ -435,7 +451,7 @@
             </ul>
           </div>
           <div class="plan-info-badge">
-            <span>Recommended for Small Businesses</span>
+            <span>Most Popular</span>
           </div>
         </div>
 
@@ -447,6 +463,7 @@
             <div class="plan-price-box">
               <span class="plan-currency">$</span>
               <span class="plan-amount" id="price-business">4.99</span>
+              <span class="plan-discount-badge" id="discount-business" style="display: none; color: #16a34a; font-size: 15px; margin-left: 6px; font-weight: 700;">(-$12)</span>
               <span class="plan-interval" id="interval-business">/ month</span>
             </div>
             <ul class="plan-features-list">
@@ -556,10 +573,10 @@
             <thead>
               <tr>
                 <th>Capability / Feature</th>
-                <th>Free</th>
-                <th>Paid</th>
-                <th>Business</th>
                 <th>Custom</th>
+                <th>Business</th>
+                <th>Paid</th>
+                <th>Free</th>
               </tr>
             </thead>
             <tbody>
@@ -569,17 +586,17 @@
               </tr>
               <tr>
                 <td>Active recurring schedules</td>
-                <td>5</td>
-                <td>50</td>
-                <td>Unlimited</td>
                 <td>Contractual</td>
+                <td>Unlimited</td>
+                <td>50</td>
+                <td>5</td>
               </tr>
               <tr>
                 <td>Max recipients per schedule send</td>
-                <td>1,000</td>
-                <td>50,000</td>
-                <td>High Volume</td>
                 <td>Contractual</td>
+                <td>High Volume</td>
+                <td>50,000</td>
+                <td>1,000</td>
               </tr>
               <tr>
                 <td>Daily, weekly, monthly recurrence</td>
@@ -597,10 +614,10 @@
               </tr>
               <tr>
                 <td>Dynamic payload parameterization</td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
                 <td><span class="dash-icon">&mdash;</span></td>
-                <td><span class="check-icon">&#10003;</span></td>
-                <td><span class="check-icon">&#10003;</span></td>
-                <td><span class="check-icon">&#10003;</span></td>
               </tr>
 
               <!-- Group 2: Mailbox Connectors -->
@@ -616,17 +633,17 @@
               </tr>
               <tr>
                 <td>Custom SMTP relay connection</td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
                 <td><span class="dash-icon">&mdash;</span></td>
-                <td><span class="check-icon">&#10003;</span></td>
-                <td><span class="check-icon">&#10003;</span></td>
-                <td><span class="check-icon">&#10003;</span></td>
               </tr>
               <tr>
                 <td>Dedicated IP pools</td>
-                <td><span class="dash-icon">&mdash;</span></td>
-                <td><span class="dash-icon">&mdash;</span></td>
-                <td>Add-on</td>
                 <td><span class="check-icon">&#10003;</span></td>
+                <td>Add-on</td>
+                <td><span class="dash-icon">&mdash;</span></td>
+                <td><span class="dash-icon">&mdash;</span></td>
               </tr>
               <tr>
                 <td>Zero vendor lock-in guarantee</td>
@@ -642,24 +659,24 @@
               </tr>
               <tr>
                 <td>Independent project workspaces</td>
-                <td>1</td>
-                <td>3</td>
-                <td>Unlimited</td>
                 <td>Contractual</td>
+                <td>Unlimited</td>
+                <td>3</td>
+                <td>1</td>
               </tr>
               <tr>
                 <td>Collaborator seats</td>
-                <td>1 member</td>
-                <td>1 member</td>
-                <td>Multi-member</td>
                 <td>Unlimited</td>
+                <td>Multi-member</td>
+                <td>1 member</td>
+                <td>1 member</td>
               </tr>
               <tr>
                 <td>Role-based permissions (Admin/Editor)</td>
-                <td><span class="dash-icon">&mdash;</span></td>
-                <td><span class="dash-icon">&mdash;</span></td>
                 <td><span class="check-icon">&#10003;</span></td>
                 <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="dash-icon">&mdash;</span></td>
+                <td><span class="dash-icon">&mdash;</span></td>
               </tr>
 
               <!-- Group 4: Developer Platform -->
@@ -668,24 +685,24 @@
               </tr>
               <tr>
                 <td>Monthly REST API call limit</td>
-                <td>200</td>
-                <td>5,000</td>
-                <td>50,000</td>
                 <td>Contractual</td>
+                <td>50,000</td>
+                <td>5,000</td>
+                <td>200</td>
               </tr>
               <tr>
                 <td>Status webhooks on schedule run</td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
+                <td><span class="check-icon">&#10003;</span></td>
                 <td><span class="dash-icon">&mdash;</span></td>
-                <td><span class="check-icon">&#10003;</span></td>
-                <td><span class="check-icon">&#10003;</span></td>
-                <td><span class="check-icon">&#10003;</span></td>
               </tr>
               <tr>
                 <td>Audit logs and run history</td>
-                <td>7 days</td>
-                <td>30 days</td>
-                <td>90 days</td>
                 <td>365 days</td>
+                <td>90 days</td>
+                <td>30 days</td>
+                <td>7 days</td>
               </tr>
 
               <!-- Group 5: Compliance & Support -->
@@ -708,10 +725,10 @@
               </tr>
               <tr>
                 <td>Customer support level</td>
-                <td>Community</td>
-                <td>Priority Email</td>
-                <td>24/7 Priority</td>
                 <td>Dedicated TAM</td>
+                <td>24/7 Priority</td>
+                <td>Priority Email</td>
+                <td>Community</td>
               </tr>
             </tbody>
           </table>
@@ -860,12 +877,33 @@
     </div>
   </footer>
 
+  <!-- Auth Required Popup Modal for Unauthenticated Users -->
+  <div id="auth-required-modal" class="auth-modal-backdrop" aria-hidden="true" style="display: none;">
+    <div class="auth-modal-card">
+      <div class="auth-modal-icon-wrap">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+      <h3 class="auth-modal-title">Sign in or create an account to access schedules and workspace.</h3>
+      <p class="auth-modal-desc">Create your free account to connect your Gmail or custom SMTP inboxes, configure punctual customer email campaigns, and access your dashboard.</p>
+      <div class="auth-modal-actions">
+        <a href="signup.html" class="btn-primary auth-modal-btn">Sign up</a>
+        <a href="login.html" class="btn-secondary auth-modal-cancel" style="display:inline-flex; align-items:center; justify-content:center;">Log in</a>
+        <button type="button" id="close-auth-modal" class="btn-secondary auth-modal-cancel" style="max-width: 44px; padding: 0;" aria-label="Close modal">&times;</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Billing Toggle for pricing.html
     const monthlyBtn = document.getElementById('billing-monthly');
     const yearlyBtn = document.getElementById('billing-yearly');
     const pricePaid = document.getElementById('price-paid');
+    const discountPaid = document.getElementById('discount-paid');
     const priceBusiness = document.getElementById('price-business');
+    const discountBusiness = document.getElementById('discount-business');
     const intervalPaid = document.getElementById('interval-paid');
     const intervalBusiness = document.getElementById('interval-business');
 
@@ -875,15 +913,25 @@
         yearlyBtn.classList.add('active');
         monthlyBtn.classList.remove('active');
         if (pricePaid) pricePaid.textContent = '23.88';
+        if (discountPaid) {
+          discountPaid.textContent = '(-$12)';
+          discountPaid.style.display = 'inline';
+        }
         if (intervalPaid) intervalPaid.textContent = '/ year';
         if (priceBusiness) priceBusiness.textContent = '47.88';
+        if (discountBusiness) {
+          discountBusiness.textContent = '(-$12)';
+          discountBusiness.style.display = 'inline';
+        }
         if (intervalBusiness) intervalBusiness.textContent = '/ year';
       } else {
         monthlyBtn.classList.add('active');
         yearlyBtn.classList.remove('active');
         if (pricePaid) pricePaid.textContent = '2.99';
+        if (discountPaid) discountPaid.style.display = 'none';
         if (intervalPaid) intervalPaid.textContent = '/ month';
         if (priceBusiness) priceBusiness.textContent = '4.99';
+        if (discountBusiness) discountBusiness.style.display = 'none';
         if (intervalBusiness) intervalBusiness.textContent = '/ month';
       }
     }
@@ -891,15 +939,50 @@
     monthlyBtn?.addEventListener('click', () => setBilling(false));
     yearlyBtn?.addEventListener('click', () => setBilling(true));
 
-    // Make each pricing card clickable without clicking CTA
+    // Auth Modal handling
+    const authModal = document.getElementById('auth-required-modal');
+    const closeAuthModalBtn = document.getElementById('close-auth-modal');
+
+    function openAuthModal() {
+      if (authModal) {
+        authModal.style.display = 'flex';
+        authModal.setAttribute('aria-hidden', 'false');
+      }
+    }
+
+    function closeAuthModal() {
+      if (authModal) {
+        authModal.style.display = 'none';
+        authModal.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    closeAuthModalBtn?.addEventListener('click', closeAuthModal);
+    authModal?.addEventListener('click', (e) => {
+      if (e.target === authModal) closeAuthModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && authModal && authModal.style.display === 'flex') closeAuthModal();
+    });
+
+    // Intercept account-only addresses (smtp.html, dashboard.html, jobs.html)
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('a[href*="dashboard.html"], a[href*="jobs.html"], a[href*="smtp.html"]');
+      if (link && !window.__BZ_IS_LOGGED_IN) {
+        e.preventDefault();
+        openAuthModal();
+      }
+    });
+
+    // Make each pricing card clickable with auth session check
     document.querySelectorAll('.pricing-card').forEach(card => {
       card.addEventListener('click', (e) => {
-        if (e.target.closest('a') || e.target.closest('button')) return;
-        const link = card.querySelector('a.plan-cta');
-        if (link && link.href) {
-          window.location.href = link.href;
+        if (e.target.closest('[data-paystack-btn]')) return;
+        e.preventDefault();
+        if (window.__BZ_IS_LOGGED_IN) {
+          window.location.href = 'dashboard.html';
         } else {
-          window.location.href = 'signup.html';
+          openAuthModal();
         }
       });
     });

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Careers - Work with us at Bzade</title>
+  <link rel="icon" type="image/png" href="../logo-2.png" />
+  <link rel="stylesheet" href="../index.css">
+  <link rel="stylesheet" href="../scripts/ui/toast.css">
+  <script>
+    (function() {
+      try {
+        var isAuth = false;
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k && (k.indexOf('-auth-token') !== -1 || k.indexOf('supabase.auth.token') !== -1)) {
+            var val = localStorage.getItem(k);
+            if (val && val.indexOf('access_token') !== -1) { isAuth = true; break; }
+          }
+        }
+        window.__BZ_IS_LOGGED_IN = isAuth;
+      } catch(e) { window.__BZ_IS_LOGGED_IN = false; }
+    })();
+  </script>
+  <style>
+    .careers-hero {
+      background-color: #ffffff;
+      padding: 56px 24px 32px;
+      width: 100%;
+    }
+    .careers-hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .careers-media-container {
+      width: 100%;
+      height: 380px;
+      border-radius: var(--radius-lg, 12px);
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      margin-bottom: 36px;
+      background-color: #f3f4f6;
+    }
+    .careers-media-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 20%;
+      display: block;
+    }
+    .careers-headline {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #111111;
+      margin-bottom: 12px;
+    }
+    .careers-subtext {
+      font-size: 18px;
+      color: var(--text-muted, #555555);
+      max-width: 620px;
+      line-height: 1.6;
+      margin-bottom: 40px;
+    }
+    .careers-form-section {
+      background-color: #fafafa;
+      border-top: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 64px 24px 80px;
+      width: 100%;
+    }
+    .careers-form-card {
+      max-width: 680px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 40px 36px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+    }
+    .careers-form-card h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111111;
+      margin-bottom: 6px;
+    }
+    .careers-form-card p.form-note {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 28px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 11px 14px;
+      font-size: 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background-color: #ffffff;
+      color: #111827;
+      font-family: inherit;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      box-sizing: border-box;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: green;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .submit-app-btn {
+      width: 100%;
+      padding: 14px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: none;
+      background-color: #111111;
+      color: #ffffff;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background-color 0.15s ease, transform 0.15s ease;
+      margin-top: 10px;
+    }
+    .submit-app-btn:hover {
+      background-color: green;
+    }
+    @media (max-width: 768px) {
+      .careers-headline { font-size: 32px; }
+      .careers-media-container { height: 240px; margin-bottom: 24px; }
+      .form-row { grid-template-columns: 1fr; }
+      .careers-form-card { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="main-header">
+    <div class="header-left">
+      <a href="../index.html" class="brand-wrap">
+        <img src="../logo-bz.png" alt="Bzade logo" style="height: 30px; width: auto; display: block;" />
+      </a>
+      <nav class="header-center" aria-label="Primary navigation">
+        <a href="../index.html#product" class="nav-link">Product</a>
+        <a href="../index.html#solutions" class="nav-link">Solutions</a>
+        <a href="../pricing.html" class="nav-link">Pricing</a>
+        <a href="../index.html#resources" class="nav-link">Resources</a>
+        <a href="../index.html#docs" class="nav-link">Doc</a>
+        <a href="careers.html" class="nav-link" style="color: #111111; font-weight: 700;">Careers</a>
+      </nav>
+    </div>
+
+    <div class="header-right">
+      <a href="../login.html" class="login-link">Log in</a>
+      <a href="../signup.html" class="signup-btn">
+        <span class="signup-text-full">Sign up free</span>
+        <span class="signup-text-mobile">Sign up</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </a>
+      <button type="button" class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Open menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Navigation Overlay Drawer -->
+  <div id="mobile-nav-drawer" class="mobile-drawer-overlay">
+    <div class="mobile-drawer-content">
+      <div class="mobile-drawer-head">
+        <img src="../logo-bz.png" alt="Bzade" style="height: 32px; width: auto; display: block;" />
+        <button type="button" id="close-mobile-drawer" class="mobile-drawer-close" aria-label="Close menu">&times;</button>
+      </div>
+      <nav class="mobile-nav-links">
+        <a href="../index.html#product" class="mobile-nav-item">Product</a>
+        <a href="../index.html#solutions" class="mobile-nav-item">Solutions</a>
+        <a href="../pricing.html" class="mobile-nav-item">Pricing</a>
+        <a href="../index.html#resources" class="mobile-nav-item">Resources</a>
+        <a href="../index.html#docs" class="mobile-nav-item">Doc</a>
+        <a href="careers.html" class="mobile-nav-item" style="font-weight: 700;">Careers</a>
+      </nav>
+      <div class="mobile-drawer-auth">
+        <a href="../login.html" class="mobile-auth-login">Log in</a>
+        <a href="../signup.html" class="mobile-auth-signup">Sign up free</a>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <!-- White Hero Background Section -->
+    <section class="careers-hero">
+      <div class="careers-hero-inner">
+        <!-- Landscaped Image Aligned to 100% Height of Container -->
+        <div class="careers-media-container">
+          <img src="../tech-career-professionals.png" alt="Bzade team and career opportunities" />
+        </div>
+        <h1 class="careers-headline">Work with us</h1>
+        <p class="careers-subtext">Never reject yourself, we'll send you a mail to confirm your application.</p>
+      </div>
+    </section>
+
+    <!-- Job Submission Form Section -->
+    <section class="careers-form-section">
+      <div class="careers-form-card">
+        <h2>Submit your application</h2>
+        <p class="form-note">Fill out this quick form and our hiring team will get in touch with you directly.</p>
+
+        <form id="career-application-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="full_name">Full Name *</label>
+              <input type="text" id="full_name" name="full_name" placeholder="Alex Morgan" required />
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address *</label>
+              <input type="email" id="email" name="email" placeholder="alex@company.com" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" name="phone" placeholder="+1 (555) 000-0000" />
+            </div>
+            <div class="form-group">
+              <label for="role">Role of Interest *</label>
+              <select id="role" name="role" required>
+                <option value="">Select a role...</option>
+                <option value="social-content">Social Media Content &amp; Hook Lead</option>
+                <option value="customer-success">Customer Success &amp; Delivery Engineer</option>
+                <option value="fullstack-automation">Fullstack Automation Engineer</option>
+                <option value="growth-partnerships">Growth &amp; Partnerships Specialist</option>
+                <option value="general-inquiry">Other / Open Application</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="portfolio_url">Portfolio or LinkedIn URL</label>
+            <input type="url" id="portfolio_url" name="portfolio_url" placeholder="https://linkedin.com/in/alexmorgan" />
+          </div>
+
+          <div class="form-group">
+            <label for="note">Tell us about yourself &amp; your relevant experience *</label>
+            <textarea id="note" name="note" rows="5" placeholder="Share what excites you about Bzade, links to recent work, or paste your resume details..." required></textarea>
+          </div>
+
+          <button type="submit" class="submit-app-btn">
+            <span>Send Application</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="main-footer" style="padding: 48px 24px; border-top: 1px solid #e5e7eb; background-color: #ffffff; text-align: center; font-size: 14px; color: #6b7280;">
+    <div style="max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; align-items: center;">
+      <div style="display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;">
+        <a href="../index.html" style="color: #374151;">Home</a>
+        <a href="../pricing.html" style="color: #374151;">Pricing</a>
+        <a href="../terms.html" style="color: #374151;">Terms of Service</a>
+        <a href="../privacy-policy.html" style="color: #374151;">Privacy Policy</a>
+        <a href="../data-protection.html" style="color: #374151;">Data Protection</a>
+      </div>
+      <p>&copy; 2026 Bzade.app - Reliable business mail automations and scheduling.</p>
+    </div>
+  </footer>
+
+  <!-- Auth Required Popup Modal -->
+  <div id="auth-required-modal" class="auth-modal-backdrop" aria-hidden="true" style="display: none;">
+    <div class="auth-modal-card">
+      <div class="auth-modal-icon-wrap">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+      <h3 class="auth-modal-title">Sign in or create an account to submit your application.</h3>
+      <p class="auth-modal-desc">Please log in or create a verified Bzade account so we can automatically route and confirm your application receipt.</p>
+      <div class="auth-modal-actions">
+        <a href="../signup.html" class="btn-primary auth-modal-btn">Sign up</a>
+        <a href="../login.html" class="btn-secondary auth-modal-cancel" style="display:inline-flex; align-items:center; justify-content:center;">Log in</a>
+        <button type="button" id="close-auth-modal" class="btn-secondary auth-modal-cancel" style="max-width: 44px; padding: 0;" aria-label="Close modal">&times;</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { showToast } from '../scripts/ui/toast.js';
+
+    // Auth modal controls
+    const authModal = document.getElementById('auth-required-modal');
+    const closeAuthModalBtn = document.getElementById('close-auth-modal');
+
+    function openAuthModal() {
+      if (authModal) {
+        authModal.style.display = 'flex';
+        authModal.setAttribute('aria-hidden', 'false');
+      }
+    }
+
+    function closeAuthModal() {
+      if (authModal) {
+        authModal.style.display = 'none';
+        authModal.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    closeAuthModalBtn?.addEventListener('click', closeAuthModal);
+    authModal?.addEventListener('click', (e) => {
+      if (e.target === authModal) closeAuthModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && authModal && authModal.style.display === 'flex') closeAuthModal();
+    });
+
+    // Intercept form submission if not authenticated
+    const form = document.getElementById('career-application-form');
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!window.__BZ_IS_LOGGED_IN) {
+        openAuthModal();
+        return;
+      }
+      showToast('Thank you! Your application has been submitted successfully.', 'success');
+      form.reset();
+    });
+
+    // Mobile nav toggle
+    const mobileToggle = document.getElementById('mobile-nav-toggle');
+    const mobileDrawer = document.getElementById('mobile-nav-drawer');
+    const closeDrawer = document.getElementById('close-mobile-drawer');
+
+    mobileToggle?.addEventListener('click', () => {
+      if (mobileDrawer) mobileDrawer.style.display = 'flex';
+    });
+    closeDrawer?.addEventListener('click', () => {
+      if (mobileDrawer) mobileDrawer.style.display = 'none';
+    });
+  </script>
+</body>
+</html>

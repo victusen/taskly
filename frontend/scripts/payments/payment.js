@@ -18,41 +18,49 @@ export async function startPayment() {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-  throw new Error(
-    'No active session. Please sign in again.'
-  );
+      throw new Error(
+        'No active session. Please sign in again.'
+      );
+    }
+
+    let browserIp = null;
+    try {
+      const ipRes = await fetch("https://api.ipify.org?format=json");
+      if (ipRes.ok) {
+        const ipData = await ipRes.json();
+        browserIp = ipData.ip || null;
+      }
+    } catch {
+      // Non-blocking. If the lookup fails we still proceed with payment.
     }
 
     console.log("starting edge function invocation");
-   const response = await fetch(`${supabase.supabaseUrl}/functions/v1/initialize-payment`, 
- {
-       method: 'POST',
-       headers: {
-         'Authorization': `Bearer ${session.access_token}`,
-         'Content-Type': 'application/json'
-       },
-       body: JSON.stringify({})
-     });
+    const response = await fetch(`${supabase.supabaseUrl}/functions/v1/initialize-payment`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        browser_ip: browserIp,
+        user_id: session.user.id,
+        user_email: session.user.email,
+      }),
+    });
 
-     const result = await response.json();
+    const result = await response.json();
 
-     if (!response.ok) {
-       console.error("Edge Function failed with status:", 
- response.status, result);
-       throw new Error(
-  result.error ||
-  result.message ||
-  "Failed to initialize payment"
-);
-     }
+    if (!response.ok) {
+      console.error("Edge Function failed with status:", 
+        response.status, result);
+      throw new Error(
+        result.error ||
+        result.message ||
+        "Failed to initialize payment"
+      );
+    }
 
     const { payment } = result;
-    
-   // if (error) {
-   //   console.error("Function invocation error:", error);
-   //   throw error;
-   // }
-
     const accessCode = payment?.access_code || "";
 
     if (!accessCode) {

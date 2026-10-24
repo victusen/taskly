@@ -41,8 +41,11 @@ export const projectController = {
         .single();
 
       if (error) {
+        if (error.code === "P0001") {
+          return fail(res, 403, "PROJECT_LIMIT_REACHED", "Your plan does not allow more projects. Upgrade to add more.");
+        }
         if (error.code === "23505") {
-          return fail(res, 409, "PROJECT_LIMIT_REACHED", "Your plan allows one project.");
+          return fail(res, 409, "PROJECT_NAME_TAKEN", "You already have an active project with this name.");
         }
         throw error;
       }

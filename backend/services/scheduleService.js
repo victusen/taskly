@@ -9,7 +9,7 @@ import {
 import { computeNextRun } from "./scheduleRule.js";
 
 /* Active plus paused schedules one user may hold, by plan_tier. Change the numbers when pricing is decided. */
-const PLAN_LIMITS = { free: 5, Paid: 50 };
+const PLAN_LIMITS = { free: 5, paid: 50 };
 
 class ServiceError extends Error {
   constructor(status, code, message) {

@@ -85,92 +85,237 @@
     }
     .mobile-sidebar-body { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 20px; }
 
-    /* Laptop sidebar card */
+    /* Laptop sidebar card — full height, sticky, space-between */
     .left-sidebar { display: none; }
-    .left-sidebar-card { background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden; }
-    .left-sidebar-content { padding: 16px; display: flex; flex-direction: column; gap: 20px; }
-    /* Dashboard Activity / Metrics Panel */
+    .left-sidebar-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+      overflow: hidden;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .left-sidebar-content {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .left-sidebar-content .nav-section:first-child {
+      flex: 1;
+    }
+
+    /* Skeleton shimmer — shows before sub-nav items load */
+    @keyframes shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position:  400px 0; }
+    }
+    .skeleton-line {
+      height: 28px;
+      border-radius: 5px;
+      background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s infinite ease-in-out;
+    }
+    .skeleton-nav-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-left: 14px;
+      margin: 6px 0 0 10px;
+      border-left: 2px solid #e0e0e0;
+    }
+    .skeleton-nav-group .skeleton-line:nth-child(2) { width: 82%; }
+    .skeleton-nav-group .skeleton-line:nth-child(3) { width: 68%; }
+
+    /* ============================================================
+       STATS PANEL — clean light-theme layout (after project cards)
+       ============================================================ */
     .dashboard-panel {
       background-color: #ffffff;
-      border: 1px solid lightgray;
-      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      margin-top: 10px;
+      margin-top: 20px;
     }
-    .dashboard-panel-header {
-      padding: 8px 16px;
-      height: 44px;
-      border-bottom: 1px solid lightgray;
+    /* Top metrics bar */
+    .dp-metrics-bar {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
-      background-color: #fafafa;
+      gap: 0;
+      padding: 0 20px;
+      border-bottom: 1px solid #e5e7eb;
+      background: #fafafa;
+      flex-wrap: wrap;
     }
-    .days-toggle-group {
+    .dp-metric {
+      padding: 14px 24px 14px 0;
+      margin-right: 24px;
+      border-right: 1px solid #e5e7eb;
+      min-width: 110px;
+    }
+    .dp-metric:last-of-type { border-right: none; margin-right: auto; }
+    .dp-metric-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 4px;
+    }
+    .dp-metric-label .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background-color: #6b7280;
+      display: inline-block;
+    }
+    .dp-metric-label .dot.green  { background-color: #22c55e; }
+    .dp-metric-label .dot.red    { background-color: #ef4444; }
+    .dp-metric-label .dot.orange { background-color: #f97316; }
+    .dp-metric-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #111827;
+      line-height: 1.1;
+    }
+    /* Time pill group — right side of metrics bar */
+    .dp-time-pills {
       display: inline-flex;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      overflow: hidden;
+      gap: 4px;
+      padding: 4px;
       background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 7px;
+      margin-left: auto;
     }
-    .days-toggle-btn {
-      padding: 4px 12px;
-      font-size: 13px;
+    .dp-pill {
+      padding: 4px 11px;
+      font-size: 12px;
+      font-weight: 500;
       border: none;
       background: transparent;
-      color: #4b5563;
+      color: #6b7280;
+      border-radius: 5px;
       cursor: pointer;
       font-family: inherit;
-      transition: background-color 0.15s ease, color 0.15s ease;
+      transition: background 0.15s ease, color 0.15s ease;
     }
-    .days-toggle-btn:not(:last-child) {
-      border-right: 1px solid #e5e7eb;
-    }
-    .days-toggle-btn:hover {
-      background-color: #e5e7eb;
-      color: #111827;
-    }
-    .days-toggle-btn.active {
-      background-color: #ffffff;
+    .dp-pill:hover { background: #e5e7eb; color: #374151; }
+    .dp-pill.active {
+      background: #ffffff;
       color: #111827;
       font-weight: 600;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     }
-    .dashboard-panel-body {
-      padding: 36px 20px;
+    /* Empty chart box */
+    .dp-chart-box {
+      min-height: 140px;
+      border-bottom: 1px solid #e5e7eb;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 160px;
-      background-color: #ffffff;
+      gap: 6px;
+      background: #ffffff;
+      padding: 24px;
     }
-    .dashboard-no-result {
+    .dp-chart-icon {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      color: #777;
-    }
-    .dashboard-no-result svg {
-      width: 44px;
-      height: 44px;
-      margin-bottom: 10px;
-      stroke: #9ca3af;
-    }
-    .dashboard-no-result h4 {
-      font-size: 15px;
-      font-weight: 600;
-      color: #333;
+      align-items: flex-end;
+      gap: 3px;
       margin-bottom: 4px;
     }
-    .dashboard-no-result p {
+    .dp-chart-icon span {
+      display: inline-block;
+      width: 5px;
+      background-color: #d1d5db;
+      border-radius: 2px 2px 0 0;
+    }
+    .dp-chart-icon span:nth-child(1) { height: 16px; }
+    .dp-chart-icon span:nth-child(2) { height: 28px; }
+    .dp-chart-icon span:nth-child(3) { height: 20px; }
+    .dp-chart-icon span:nth-child(4) { height: 36px; }
+    .dp-chart-icon span:nth-child(5) { height: 24px; }
+    .dp-chart-icon span:nth-child(6) { height: 12px; }
+    .dp-empty-label {
       font-size: 13px;
-      color: #777;
-      max-width: 340px;
-      margin: 0;
+      font-weight: 500;
+      color: #374151;
+    }
+    .dp-empty-sub {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    /* Error card */
+    .dp-card {
+      padding: 16px 20px;
+      border-bottom: 1px solid #e5e7eb;
+      background: #ffffff;
+    }
+    .dp-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 12px;
+    }
+    .dp-inline-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #374151;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 10px 14px;
+    }
+    .dp-inline-status strong { color: #111827; }
+    /* Two-column usage grid */
+    .dp-usage-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    .dp-usage-col {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .dp-usage-col:first-child { border-right: 1px solid #e5e7eb; }
+    .dp-usage-stats {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .dp-usage-stat label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin-bottom: 2px;
+    }
+    .dp-usage-stat span {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111827;
+    }
+    @media (max-width: 640px) {
+      .dp-usage-grid { grid-template-columns: 1fr; }
+      .dp-usage-col:first-child { border-right: none; border-bottom: 1px solid #e5e7eb; }
+      .dp-metrics-bar { flex-direction: column; align-items: flex-start; gap: 8px; padding: 14px 16px; }
+      .dp-metric { border-right: none; padding: 6px 0; margin-right: 0; }
+      .dp-time-pills { margin-left: 0; }
     }
 
     /* Layout wrapper: stacked on phones, three columns on laptops */
@@ -243,26 +388,29 @@
         display: flex; flex-direction: column;
         width: 250px; min-width: 250px; flex-shrink: 0;
         position: sticky; top: 68px;
+        height: calc(100vh - 88px);
+        align-self: flex-start;
         transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
       main {
         flex: 1; min-width: 0; width: 100%;
         padding: 2rem;
         background: inherit; border-radius: 8px;
-        /* box-shadow: 0 2px 5px rgba(0,0,0,0.1); */
       }
-      .col-empty-third { display: none; }
+      .col-empty-third { display: none !important; }
     }
 
-    /* Desktop (>= 1200px): 3 columns where middle section is balanced by third column */
+    /* Desktop (>= 1200px): sidebar wider, main takes all remaining width */
     @media (min-width: 1200px) {
       .left-sidebar {
         width: 270px; min-width: 270px;
+        align-self: stretch;
       }
       main {
-        max-width: 860px;
+        flex: 1;
+        max-width: none !important;
       }
-      .col-empty-third { display: block; width: 270px; flex-shrink: 0; pointer-events: none; }
+      .col-empty-third { display: none !important; }
     }
 
     @media (max-width: 600px) {
@@ -305,12 +453,18 @@
       <div class="nav-links-list">
         <div class="nav-item nav-item-collapsible active" role="button" tabindex="0" aria-expanded="true" data-toggle-projects>
           <div style="display: flex; align-items: center; gap: 10px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
             <span>Projects</span>
           </div>
           <svg class="projects-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="sub-nav" data-sub-nav>
+        <!-- Skeleton placeholder shows while backend loads real projects -->
+        <div class="skeleton-nav-group" id="subnav-skeleton">
+          <div class="skeleton-line" style="width: 90%;"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line"></div>
+        </div>
+        <div class="sub-nav" data-sub-nav style="display:none;">
           <a href="jobs.html?project=mock-1" class="nav-item sub-item">Saja Restaurant</a>
           <a href="jobs.html?project=mock-2" class="nav-item sub-item active">Matchsub</a>
           <a href="jobs.html?project=mock-3" class="nav-item sub-item">Glassdoor</a>
@@ -407,26 +561,98 @@
         </button>
       </div>
 
-      <!-- Dashboard Section: Rectangular rounded container with toggles and empty state -->
+      <!-- Stats Panel — clean light theme, after project cards -->
       <section class="dashboard-panel">
-        <div class="dashboard-panel-header">
-          <div class="days-toggle-group" role="group" aria-label="Timeframe">
-            <button type="button" class="days-toggle-btn active" data-days="7">1 week</button>
-            <button type="button" class="days-toggle-btn" data-days="14">2 weeks</button>
-            <button type="button" class="days-toggle-btn" data-days="30">1 month</button>
+
+        <!-- Top metrics bar -->
+        <div class="dp-metrics-bar">
+          <div class="dp-metric">
+            <div class="dp-metric-label"><span class="dot"></span> TOTAL DISPATCHED</div>
+            <div class="dp-metric-value">0</div>
+          </div>
+          <div class="dp-metric">
+            <div class="dp-metric-label"><span class="dot green"></span> DELIVERED</div>
+            <div class="dp-metric-value">0%</div>
+          </div>
+          <div class="dp-metric">
+            <div class="dp-metric-label"><span class="dot orange"></span> BOUNCED</div>
+            <div class="dp-metric-value">0%</div>
+          </div>
+          <div class="dp-metric">
+            <div class="dp-metric-label"><span class="dot red"></span> FAILED</div>
+            <div class="dp-metric-value">0%</div>
+          </div>
+          <!-- Time-range pills -->
+          <div class="dp-time-pills" role="group" aria-label="Timeframe">
+            <button type="button" class="dp-pill active" data-days="7">7d</button>
+            <button type="button" class="dp-pill" data-days="1">1d</button>
+            <button type="button" class="dp-pill" data-days="3">3h</button>
+            <button type="button" class="dp-pill" data-days="30">30d</button>
           </div>
         </div>
-        <div class="dashboard-panel-body">
-          <div class="dashboard-no-result">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              <line x1="8" y1="11" x2="14" y2="11"></line>
-            </svg>
-            <h4>No results found</h4>
-            <p>There are no activities or statistics recorded for this period yet.</p>
+
+        <!-- Empty state chart -->
+        <div class="dp-chart-box">
+          <div class="dp-chart-icon">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <p class="dp-empty-label">No data to show</p>
+          <p class="dp-empty-sub">It may take up to 24 hours for data to refresh</p>
+        </div>
+
+        <!-- Errors in last 24h -->
+        <div class="dp-card">
+          <p class="dp-card-title">Errors in the last 24h</p>
+          <div class="dp-inline-status">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            There have been <strong>0 dispatches</strong> since last run and <strong>no errors</strong>.
           </div>
         </div>
+
+        <!-- Performance -->
+        <div class="dp-card">
+          <p class="dp-card-title">Performance</p>
+          <div class="dp-usage-stats">
+            <div class="dp-usage-stat">
+              <label>AVG. SEND TIME</label>
+              <span>0ms</span>
+            </div>
+            <div class="dp-usage-stat">
+              <label>MAX SEND TIME</label>
+              <span>0ms</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Usage two columns -->
+        <div class="dp-usage-grid">
+          <div class="dp-usage-col">
+            <p class="dp-card-title" style="margin-bottom:0;">CPU usage</p>
+            <div class="dp-usage-stats">
+              <div class="dp-usage-stat"><label>AVG CPU TIME</label><span>0ms</span></div>
+              <div class="dp-usage-stat"><label>MAX CPU TIME</label><span>0ms</span></div>
+            </div>
+            <div class="dp-chart-box" style="min-height:100px; margin: 0 -20px -16px; border-bottom:none; border-top:1px solid #e5e7eb;">
+              <div class="dp-chart-icon"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+              <p class="dp-empty-label">No data to show</p>
+              <p class="dp-empty-sub">It may take up to 24 hours for data to refresh</p>
+            </div>
+          </div>
+          <div class="dp-usage-col">
+            <p class="dp-card-title" style="margin-bottom:0;">Memory usage</p>
+            <div class="dp-usage-stats">
+              <div class="dp-usage-stat"><label>AVG MEMORY</label><span>0MB</span></div>
+              <div class="dp-usage-stat"><label>HEAP</label><span>0%</span></div>
+              <div class="dp-usage-stat"><label>EXTERNAL</label><span>0%</span></div>
+            </div>
+            <div class="dp-chart-box" style="min-height:100px; margin: 0 -20px -16px; border-bottom:none; border-top:1px solid #e5e7eb;">
+              <div class="dp-chart-icon"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+              <p class="dp-empty-label">No data to show</p>
+              <p class="dp-empty-sub">It may take up to 24 hours for data to refresh</p>
+            </div>
+          </div>
+        </div>
+
       </section>
     </main>
 
@@ -509,13 +735,28 @@
       if (event.target.closest("[data-soon]")) event.preventDefault();
     });
 
-    /* Days toggle buttons interactive handling */
-    document.querySelectorAll(".days-toggle-btn").forEach((btn) => {
+    /* Stats panel time-pill interactive handling */
+    document.querySelectorAll(".dp-pill").forEach((btn) => {
       btn.addEventListener("click", () => {
-        document.querySelectorAll(".days-toggle-btn").forEach((b) => b.classList.remove("active"));
+        btn.closest(".dp-time-pills").querySelectorAll(".dp-pill").forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
       });
     });
+
+    /* Reveal real sub-nav items after a simulated load delay (skeleton UX) */
+    setTimeout(() => {
+      document.querySelectorAll("#subnav-skeleton").forEach(el => {
+        el.style.transition = "opacity 0.3s ease";
+        el.style.opacity = "0";
+        setTimeout(() => el.remove(), 300);
+      });
+      document.querySelectorAll("[data-sub-nav]").forEach(el => {
+        el.style.display = "";
+        el.style.opacity = "0";
+        el.style.transition = "opacity 0.3s ease";
+        requestAnimationFrame(() => { el.style.opacity = "1"; });
+      });
+    }, 900);
   })();
   </script>
   <script src="https://js.paystack.co/v2/inline.js"></script>
