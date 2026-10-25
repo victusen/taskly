@@ -6,6 +6,38 @@ function fail(res, status, code, message, fieldErrors) {
 
 const COLUMNS = "id, project_name, business_name, status, created_at";
 
+// Must match the values in scheduleService.js PLAN_LIMITS.
+const PROJECT_LIMITS = {
+  free:     1,
+  paid:     3,
+  business: 10,
+};
+
+async function assertUnderProjectLimit(userId) {
+  const { data: profile, error: profileError } = await supabase
+    .from("users")
+    .select("plan_tier")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (profileError) throw profileError;
+
+  const limit = PROJECT_LIMITS[profile?.plan_tier] ?? PROJECT_LIMITS.free;
+
+  const { count, error } = await supabase
+    .from("projects")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("status", "active");
+
+  if (error) throw error;
+
+  if ((count || 0) >= limit) {
+    return { allowed: false, limit };
+  }
+  return { allowed: true, limit };
+}
+
 export const projectController = {
   async getProjects(req, res) {
     try {
@@ -34,6 +66,11 @@ export const projectController = {
         return fail(res, 400, "VALIDATION_FAILED", "Check the highlighted fields.", fieldErrors);
       }
 
+      const { allowed, limit } = await assertUnderProjectLimit(req.user.id);
+      if (!allowed) {
+        return fail(res, 403, "PLAN_LIMIT_REACHED", `Your plan allows ${limit} project${limit === 1 ? "" : "s"}. Upgrade to add more.`);
+      }
+
       const { data, error } = await supabase
         .from("projects")
         .insert({ user_id: req.user.id, project_name: projectName, business_name: businessName })
@@ -42,7 +79,7 @@ export const projectController = {
 
       if (error) {
         if (error.code === "23505") {
-          return fail(res, 409, "PROJECT_LIMIT_REACHED", "Your plan allows one project.");
+          return fail(res, 409, "DUPLICATE_NAME", "A project with that name already exists.");
         }
         throw error;
       }

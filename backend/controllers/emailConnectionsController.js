@@ -3,6 +3,8 @@ import {
   listConnections,
   deleteConnection
 } from "../services/emailConnectionService.js";
+import { assertPublicHost } from "../utils/networkGuard.js";
+
 
 const EMAIL_REGEX =
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -80,6 +82,15 @@ export async function createEmailConnection(req, res) {
     ) {
       return res.status(400).json({
         message: "SMTP password is required.",
+      });
+    }
+
+    // Reject private/internal SMTP hosts before saving.
+    try {
+      await assertPublicHost(host.trim().toLowerCase());
+    } catch {
+      return res.status(400).json({
+        message: "That SMTP host address is not allowed.",
       });
     }
 
