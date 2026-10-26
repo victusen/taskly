@@ -7,6 +7,7 @@ import accountRoute from "./routes/accountRoute.js";
 import scheduleRoute from './routes/scheduleRoute.js';
 import projectRoute from "./routes/projectRoute.js";
 import emailConnectionRoute from './routes/emailConnectionRoute.js';
+import { startScheduler } from "./workers/startScheduler.js";
 
 
 dotenv.config();
@@ -76,7 +77,12 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is listening on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
+
+  // Start the email scheduler only when explicitly enabled.
+  // Set ENABLE_SCHEDULER=true on Render for the worker service.
+  // Do not enable on the API-only instance.
+  if (process.env.ENABLE_SCHEDULER === "true") {
+    startScheduler();
+  }
 });
-
-

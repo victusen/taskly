@@ -1,15 +1,18 @@
 import { supabase } from "../config/supabase.js";
-
 import {
   UUID_PATTERN,
   ValidationError,
   validateScheduleInput,
 } from "./scheduleValidation.js";
-
 import { computeNextRun } from "./scheduleRule.js";
+import { syncSchedule } from "../workers/planDay.js";
 
-/* Active plus paused schedules one user may hold, by plan_tier. Change the numbers when pricing is decided. */
-const PLAN_LIMITS = { free: 5, paid: 50 };
+/* Active plus paused schedules one user may hold, by plan_tier. Change the numbers when pricing is decided. */ 
+const PLAN_LIMITS = {
+  free:     { schedules: 5,  projects: 1  },
+  paid:     { schedules: 20, projects: 3  },
+  business: { schedules: 50, projects: 10 },
+};
 
 class ServiceError extends Error {
   constructor(status, code, message) {
@@ -79,7 +82,7 @@ async function assertUnderPlanLimit(userId) {
 
   if (profileError) throw profileError;
 
-  const limit = PLAN_LIMITS[profile?.plan_tier] ?? PLAN_LIMITS.free;
+  const limits = PLAN_LIMITS[profile?.plan_tier] ?? PLAN_LIMITS.free;
 
   const { count, error } = await supabase
     .from("schedules")
@@ -89,11 +92,11 @@ async function assertUnderPlanLimit(userId) {
 
   if (error) throw error;
 
-  if ((count || 0) >= limit) {
+  if ((count || 0) >= limits.schedules) {
     throw new ServiceError(
       403,
       "PLAN_LIMIT_REACHED",
-      `Your plan allows ${limit} active schedules. Upgrade to add more.`
+      `Your plan allows ${limits.schedules} active schedules. Upgrade to add more.`
     );
   }
 }
@@ -182,6 +185,10 @@ export const scheduleService = {
 
     if (error) throw error;
 
+    if (process.env.ENABLE_SCHEDULER === "true") {
+      syncSchedule(userId, data);
+    }
+
     return data;
   },
 
@@ -247,11 +254,22 @@ export const scheduleService = {
       Object.assign(changes, { status: "active", retry_count: 0, last_failure_reason: null });
     }
 
-    return changeStatus(userId, id, ["active", "paused", "failed"], changes);
+    const updated = await changeStatus(userId, id, ["active", "paused", "failed"], changes);
+
+    if (process.env.ENABLE_SCHEDULER === "true") {
+      syncSchedule(userId, updated);
+    }
+    return updated;
   },
 
   async pauseSchedule(userId, id) {
-    return changeStatus(userId, id, ["active"], { status: "paused" });
+    const updated = await changeStatus(userId, id, ["active"], { status: "paused" });
+  
+    if (process.env.ENABLE_SCHEDULER === "true") {
+      syncSchedule(userId, updated);
+    }
+  
+    return updated;
   },
 
   async resumeSchedule(userId, id) {
@@ -274,14 +292,26 @@ export const scheduleService = {
       throw new ServiceError(409, "INVALID_STATE", "The send time has passed. Edit the schedule and pick a new time.");
     }
 
-    return changeStatus(userId, id, ["paused"], { status: "active", next_run_at: nextRunAt });
+    const updated = await changeStatus(userId, id, ["paused"], { status: "active", next_run_at: nextRunAt });
+
+    if (process.env.ENABLE_SCHEDULER === "true") {
+      syncSchedule(userId, updated);
+    }
+  
+    return updated;
   },
 
   /* "Delete" in the app. The row stays for history, the schedule never runs again. */
   async cancelSchedule(userId, id) {
-    return changeStatus(userId, id, ["active", "paused", "failed"], {
+    const updated = await changeStatus(userId, id, ["active", "paused", "failed"], {
       status: "cancelled",
       next_run_at: null,
     });
+  
+    if (process.env.ENABLE_SCHEDULER === "true") {
+      syncSchedule(userId, updated);
+    }
+  
+    return updated;
   },
 };
