@@ -1,9 +1,10 @@
 import { signUp, signInWithGoogle, signInWithFacebook } from "./scripts/auth/auth.js";
+import { showToast } from "./scripts/ui/toast.js";
 
 const form = document.getElementById("signup-form");
 
-document.getElementById("google")?.addEventListener("click", () => signInWithGoogle().catch((e) => alert(e.message)));
-document.getElementById("facebook")?.addEventListener("click", () => signInWithFacebook().catch((e) => alert(e.message)));
+document.getElementById("google")?.addEventListener("click", () => signInWithGoogle().catch((e) => showToast("error", e.message || "Google sign-in failed.")));
+document.getElementById("facebook")?.addEventListener("click", () => signInWithFacebook().catch((e) => showToast("error", e.message || "Facebook sign-in failed.")));
 
 // Password visibility eye toggle
 document.querySelectorAll('.eye-toggle').forEach((btn) => {
@@ -41,12 +42,15 @@ form?.addEventListener("submit", async (event) => {
       document.getElementById("last").value.trim()
     );
     if (result.session) {
-      window.location.href = "dashboard.html";
+      showToast("success", "Account created successfully! Redirecting...");
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 400);
     } else {
-      alert("Check your email to confirm your account.");
+      showToast("info", "Check your email to confirm your account.");
     }
   } catch (error) {
-    alert(error.message);
+    showToast("error", error.message || "Could not create account.");
   } finally {
     button.disabled = false;
   }

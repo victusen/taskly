@@ -10,3 +10,9 @@ export function createProject(project) {
     body: JSON.stringify(project),
   });
 }
+
+export function deleteProject(id) {
+  return authenticatedFetch(`/api/projects/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}

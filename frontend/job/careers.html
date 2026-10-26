@@ -253,15 +253,15 @@
           <div class="form-row">
             <div class="form-group">
               <label for="phone">Phone Number</label>
-              <input type="tel" id="phone" name="phone" placeholder="+1 (555) 000-0000" />
+              <input type="tel" id="phone" name="phone" placeholder="+234 708 095 2597" />
             </div>
             <div class="form-group">
               <label for="role">Role of Interest *</label>
               <select id="role" name="role" required>
                 <option value="">Select a role...</option>
-                <option value="social-content">Social Media Content &amp; Hook Lead</option>
-                <option value="customer-success">Customer Success &amp; Delivery Engineer</option>
-                <option value="fullstack-automation">Fullstack Automation Engineer</option>
+                <option value="social-content">Social Media Content</option>
+                <option value="customer-success">Customer Success &amp; Marketer</option>
+                <option value="fullstack-automation">Graphic/Web Designer</option>
                 <option value="growth-partnerships">Growth &amp; Partnerships Specialist</option>
                 <option value="general-inquiry">Other / Open Application</option>
               </select>
@@ -325,6 +325,7 @@
 
   <script type="module">
     import { showToast } from '../scripts/ui/toast.js';
+    import { submitCareerApplication } from '../scripts/data/careers.js';
 
     // Auth modal controls
     const authModal = document.getElementById('auth-required-modal');
@@ -352,16 +353,35 @@
       if (e.key === 'Escape' && authModal && authModal.style.display === 'flex') closeAuthModal();
     });
 
-    // Intercept form submission if not authenticated
+    // Handle form submission to Google Spreadsheet (Sheet1!B6:G)
     const form = document.getElementById('career-application-form');
-    form?.addEventListener('submit', (e) => {
+    form?.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!window.__BZ_IS_LOGGED_IN) {
         openAuthModal();
         return;
       }
-      showToast('Thank you! Your application has been submitted successfully.', 'success');
-      form.reset();
+
+      const submitBtn = form.querySelector('.submit-app-btn');
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        await submitCareerApplication({
+          fullName: document.getElementById('full_name')?.value,
+          email: document.getElementById('email')?.value,
+          phone: document.getElementById('phone')?.value,
+          role: document.getElementById('role')?.value,
+          linkedInUrl: document.getElementById('portfolio_url')?.value,
+          aboutMe: document.getElementById('note')?.value
+        });
+
+        showToast('success', 'Thank you! Your application has been logged to Google Sheets and submitted successfully.');
+        form.reset();
+      } catch (err) {
+        showToast('error', err.message || 'Could not submit application. Please check your inputs.');
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
     });
 
     // Mobile nav toggle

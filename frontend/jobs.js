@@ -10,10 +10,12 @@ import {
   changeStatus,
   updateSchedule,
   addSchedule,
+  removeProject,
 } from "./scripts/data/source.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 const projectId = urlParams.get("project") || "mock-1";
+let currentProject = null;
 
 // DOM references
 const taskList = document.getElementById("task-list");
@@ -66,18 +68,27 @@ function statusBadge(status) {
 
 /**
  * Manages the smooth animated donut loader state inside the task list.
- * While loading, the donut spinner is visible and empty/task states are hidden.
+ * While loading, the donut spinner uses the whole space, and add button + states are hidden.
  */
 function setLoading(isLoading) {
   if (isLoading) {
-    if (taskLoader) taskLoader.hidden = false;
+    if (taskLoader) {
+      taskLoader.hidden = false;
+      taskLoader.style.display = "flex";
+    }
     if (noJobState) noJobState.hidden = true;
     if (addTaskCta) addTaskCta.hidden = true;
-    if (addScheduleBtn) addScheduleBtn.hidden = true;
-    if (jobRows) jobRows.hidden = true;
+    if (addScheduleBtn) addScheduleBtn.style.visibility = "hidden";
+    if (jobRows) {
+      jobRows.hidden = true;
+      jobRows.style.display = "none";
+    }
   } else {
-    if (taskLoader) taskLoader.hidden = true;
-    if (addScheduleBtn) addScheduleBtn.hidden = false;
+    if (taskLoader) {
+      taskLoader.hidden = true;
+      taskLoader.style.display = "none";
+    }
+    if (addScheduleBtn) addScheduleBtn.style.visibility = "visible";
   }
 }
 
@@ -203,7 +214,7 @@ async function updateProjectUI(project) {
       for (const p of allProjects) {
         const isCurrent = p.id === (project?.id || projectId);
         const item = el("a", `nav-item ${isCurrent ? "active" : ""}`, p.project_name);
-        item.href = `jobs.html?project=${encodeURIComponent(p.id)}`;
+        item.href = `schedules.html?project=${encodeURIComponent(p.id)}`;
         item.style.padding = "6px 10px";
         item.style.fontSize = "13px";
         container.appendChild(item);
@@ -481,6 +492,7 @@ async function init() {
   // Load project info
   try {
     const project = await loadProject(projectId);
+    currentProject = project;
     await updateProjectUI(project);
   } catch (err) {
     console.warn("Could not load project info:", err);
@@ -488,6 +500,86 @@ async function init() {
 
   // Populate connection select
   populateConnections();
+
+  // Wire up Project Settings & Delete Project Modals
+  const deleteModal = document.getElementById("delete-project-modal");
+  const deleteModalName = document.getElementById("delete-modal-project-name");
+  const deleteModalCancel = document.getElementById("delete-modal-cancel");
+  const deleteModalConfirm = document.getElementById("delete-modal-confirm");
+  const settingsModal = document.getElementById("project-settings-modal");
+  const settingsActiveName = document.getElementById("settings-active-name");
+  const settingsModalClose = document.getElementById("settings-modal-close");
+  const settingsDeleteBtn = document.getElementById("settings-delete-btn");
+
+  function openSettings() {
+    const pName = currentProject?.project_name || currentProject?.business_name || "Active Project";
+    if (settingsActiveName) settingsActiveName.textContent = pName;
+    if (settingsModal) settingsModal.style.display = "flex";
+  }
+
+  function closeSettings() {
+    if (settingsModal) settingsModal.style.display = "none";
+  }
+
+  function openDeleteModal() {
+    const pName = currentProject?.project_name || currentProject?.business_name || "Active Project";
+    if (deleteModalName) deleteModalName.textContent = pName;
+    if (deleteModal) deleteModal.style.display = "flex";
+  }
+
+  function closeDeleteModal() {
+    if (deleteModal) deleteModal.style.display = "none";
+  }
+
+  // Wire settings navigation items
+  document.querySelectorAll('a[onclick*="Project settings"], [data-action="open-settings"]').forEach((link) => {
+    link.removeAttribute("onclick");
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      openSettings();
+    });
+  });
+
+  settingsModalClose?.addEventListener("click", closeSettings);
+  settingsModal?.addEventListener("click", (e) => {
+    if (e.target === settingsModal) closeSettings();
+  });
+
+  settingsDeleteBtn?.addEventListener("click", () => {
+    closeSettings();
+    openDeleteModal();
+  });
+
+  deleteModalCancel?.addEventListener("click", closeDeleteModal);
+  deleteModal?.addEventListener("click", (e) => {
+    if (e.target === deleteModal) closeDeleteModal();
+  });
+
+  deleteModalConfirm?.addEventListener("click", async () => {
+    if (!currentProject) return;
+    deleteModalConfirm.disabled = true;
+    deleteModalConfirm.textContent = "Deleting...";
+
+    try {
+      await removeProject(currentProject.id);
+      showToast("success", "Project deleted successfully.");
+      closeDeleteModal();
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 500);
+    } catch (err) {
+      showToast("error", err.message || "Could not delete project.");
+      deleteModalConfirm.disabled = false;
+      deleteModalConfirm.textContent = "Delete Project";
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeDeleteModal();
+      closeSettings();
+    }
+  });
 
   // Load schedules (runs animated red donut loader before showing empty state or jobs)
   await loadRows();

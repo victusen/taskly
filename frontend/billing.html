@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bzade - Account & Project Billing</title>
+  <link rel="icon" type="image/png" href="logo-2.png" />
+  <link rel="stylesheet" href="scripts/ui/toast.css">
+  <link rel="stylesheet" href="scripts/ui/states.css">
+  <style>
+    * { margin: 0; box-sizing: border-box; }
+    body { margin: 0; line-height: 1.6; background-color: #f4f4f4; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    a { text-decoration: none; color: inherit; }
+    button { font: inherit; }
+
+    /* Header */
+    header {
+      position: fixed; top: 0; left: 0; right: 0;
+      padding: 12px 15px; height: 50px;
+      display: flex; justify-content: space-between;
+      background-color: white; border: 1px solid lightgray;
+      z-index: 5;
+    }
+    .banner-left { display: flex; align-items: center; gap: 8px; }
+    .banner-right { display: flex; align-items: center; }
+    .banner-right div {
+      height: 30px; width: 30px; border-radius: 20px;
+      background-color: red; color: white; font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand { font-size: 20px; font-weight: 600; color: #111; }
+    .drop-wrap { position: relative; display: flex; }
+    .drop-arrow { height: 20px; cursor: pointer; }
+    .drop {
+      display: none; position: absolute; top: 34px; left: 0; width: 200px; z-index: 12;
+      border-radius: 12px; overflow: hidden; background-color: white;
+      border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .drop.show { display: block; }
+    .taskly-projs { padding: 10px 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .taskly-projs p { font-size: 13px; }
+    .taskly-projs:hover { background-color: #e6f4ea; color: green; }
+
+    /* Shared navigation */
+    .nav-section h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #888; margin-bottom: 8px; }
+    .nav-links-list { display: flex; flex-direction: column; gap: 4px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 6px;
+      color: #333; font-size: 14px;
+      transition: background 0.15s, color 0.15s;
+    }
+    button.nav-item { width: 100%; background: none; border: 0; text-align: left; cursor: pointer; }
+    .nav-item:hover { background-color: #f0fdf4; color: green; }
+    .nav-item.active { background-color: #e6f4ea; color: green; font-weight: 500; }
+    .nav-item[data-soon] { color: #aaa; }
+    .nav-item[data-soon]:hover { background: transparent; color: #aaa; }
+    .nav-item-collapsible { cursor: pointer; user-select: none; justify-content: space-between; }
+    .projects-toggle-icon { transition: transform 0.2s ease; }
+    .nav-item-collapsible.collapsed .projects-toggle-icon { transform: rotate(-90deg); }
+    .sub-nav {
+      display: flex; flex-direction: column; gap: 2px;
+      padding-left: 14px; margin: 4px 0 0 10px;
+      border-left: 2px solid #e0e0e0;
+    }
+    .sub-nav.collapsed { display: none; }
+    .sub-item { padding: 6px 10px; font-size: 13px; }
+    .soon { margin-left: auto; font-size: 11px; color: #888; border: 1px solid #ddd; padding: 1px 6px; border-radius: 4px; }
+
+    /* Phone drawer */
+    .mobile-sidebar-overlay { display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); z-index: 3000; }
+    .mobile-sidebar-overlay.open { display: block; }
+    .mobile-sidebar {
+      position: absolute; top: 0; left: 0; bottom: 0;
+      width: 280px; max-width: 85vw;
+      background: white; box-shadow: 4px 0 15px rgba(0,0,0,0.15);
+      display: flex; flex-direction: column;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-sidebar-overlay.open .mobile-sidebar { transform: translateX(0); }
+    .mobile-sidebar-header {
+      padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid #eee;
+    }
+    .mobile-sidebar-body { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 20px; }
+
+    /* Laptop sidebar card — full height, sticky, space-between */
+    .left-sidebar { display: none; }
+    .left-sidebar-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+      overflow: hidden;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .left-sidebar-content {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .left-sidebar-content .nav-section:first-child {
+      flex: 1;
+    }
+
+    /* Skeleton shimmer */
+    @keyframes shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position:  400px 0; }
+    }
+    .skeleton-line {
+      height: 28px;
+      border-radius: 5px;
+      background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.4s infinite ease-in-out;
+    }
+    .skeleton-nav-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-left: 14px;
+      margin: 6px 0 0 10px;
+      border-left: 2px solid #e0e0e0;
+    }
+
+    /* Layout wrapper */
+    .asymmetric-wrapper { display: block; width: 95%; margin: 60px auto 2rem auto; }
+    .col-empty-third { display: none; }
+
+    /* Main column */
+    main { display: flex; flex-direction: column; gap: 20px; width: 100%; padding: 12px 15px; }
+    .dash-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .dash-top h2 { font-size: 28px; font-weight: 700; color: #111827; }
+
+    /* Billing Cards & Sections */
+    .billing-section {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .billing-section-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fafafa;
+    }
+    .billing-section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      margin: 0;
+    }
+    .billing-section-sub {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+    .billing-section-body {
+      padding: 24px;
+    }
+
+    /* Plan Banner */
+    .plan-card-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      align-items: center;
+    }
+    .plan-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      background: #e6f4ea;
+      color: #166534;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 9999px;
+      margin-bottom: 8px;
+    }
+    .plan-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+    .plan-desc {
+      font-size: 14px;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+    .plan-price-box {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+    .plan-price-num {
+      font-size: 32px;
+      font-weight: 800;
+      color: #111827;
+      line-height: 1;
+    }
+    .plan-price-cadence {
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+    .btn-green {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background-color: green;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 18px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.15s ease;
+    }
+    .btn-green:hover {
+      background-color: #0b7027;
+    }
+    .btn-outline {
+      padding: 8px 14px;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-outline:hover {
+      border-color: #111827;
+      color: #111827;
+      background: #f9fafb;
+    }
+
+    /* Quota Bars */
+    .quota-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #f3f4f6;
+    }
+    .quota-item {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .quota-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+    .quota-values {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+    .quota-bar-bg {
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+    .quota-bar-fill {
+      height: 100%;
+      background: green;
+      border-radius: 9999px;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    /* Projects Billing Table */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+    table.billing-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+    table.billing-table th {
+      padding: 12px 16px;
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7280;
+    }
+    table.billing-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #f3f4f6;
+      color: #374151;
+      vertical-align: middle;
+    }
+    table.billing-table tr:last-child td {
+      border-bottom: none;
+    }
+    table.billing-table tr:hover td {
+      background-color: #fafafa;
+    }
+    .badge-status {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    /* Responsive */
+    @media (min-width: 768px) {
+      #hamburger-btn { display: none; }
+      .asymmetric-wrapper {
+        display: flex; justify-content: flex-start; align-items: flex-start; gap: 24px;
+        width: calc(100% - 32px); max-width: 1680px;
+        margin: 68px 16px 3rem 16px;
+      }
+      .left-sidebar {
+        display: flex; flex-direction: column;
+        width: 250px; min-width: 250px; flex-shrink: 0;
+        position: sticky; top: 68px;
+        height: calc(100vh - 88px);
+        align-self: flex-start;
+      }
+      main {
+        flex: 1; min-width: 0; width: 100%;
+        padding: 1.5rem 2rem;
+      }
+    }
+    @media (min-width: 1200px) {
+      .left-sidebar { width: 270px; min-width: 270px; }
+    }
+    @media (max-width: 767px) {
+      .plan-card-grid { grid-template-columns: 1fr; }
+      .quota-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="banner-left">
+      <img src="logo-bz.png" style="height: 30px; width: auto;" alt="Bzade">
+      <a href="index.html"><p class="brand">Bzade.app</p></a>
+      <div class="drop-wrap">
+        <img id="drop-toggle" class="drop-arrow" src="drop-arrow.png" alt="Switch view" />
+        <div class="drop" id="drop">
+          <div class="taskly-projs" onclick="window.location.href='dashboard.html'">
+            <img src="Check.png" style="height: 12px;" alt="">
+            <p>Overview</p>
+          </div>
+          <div class="taskly-projs" onclick="window.location.href='smtp.html'">
+            <img src="Check.png" style="height: 12px;" alt="">
+            <p>Mail Connections</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="banner-right">
+      <div id="header-avatar">B</div>
+    </div>
+  </header>
+
+  <!-- Navigation template: identical to dashboard.html -->
+  <template id="nav-template">
+    <div class="nav-section">
+      <h4>Navigation</h4>
+      <div class="nav-links-list">
+        <div class="nav-item nav-item-collapsible" role="button" tabindex="0" aria-expanded="true" data-toggle-projects>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <!-- 3 Isometric Cubes Icon -->
+            <svg class="projects-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L16.5 4.6V9.8L12 12.4L7.5 9.8V4.6L12 2Z"/>
+              <path d="M12 12.4V7.2M12 7.2L16.5 4.6M12 7.2L7.5 4.6"/>
+              <path d="M7.5 10.2L12 12.8V18L7.5 20.6L3 18V12.8L7.5 10.2Z"/>
+              <path d="M7.5 20.6V15.4M7.5 15.4L12 12.8M7.5 15.4L3 12.8"/>
+              <path d="M16.5 10.2L21 12.8V18L16.5 20.6L12 18V12.8L16.5 10.2Z"/>
+              <path d="M16.5 20.6V15.4M16.5 15.4L21 12.8M16.5 15.4L12 12.8"/>
+            </svg>
+            <span>Projects</span>
+          </div>
+          <svg class="projects-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <!-- Skeleton subnav -->
+        <div class="skeleton-nav-group" id="subnav-skeleton">
+          <div class="skeleton-line" style="width: 90%;"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line"></div>
+        </div>
+        <div class="sub-nav" data-sub-nav style="display:none;"></div>
+
+        <a href="dashboard.html" class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Overview</span>
+        </a>
+        <a href="#" class="nav-item" data-soon aria-disabled="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Audiences</span> <span class="soon">Soon</span>
+        </a>
+        <a href="#" class="nav-item" data-soon aria-disabled="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+          <span>Team members</span> <span class="soon">Soon</span>
+        </a>
+        <a href="smtp.html" class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          <span>API keys</span>
+        </a>
+        <a href="billing.html" class="nav-item active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          <span>Billing</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="nav-section" style="margin-top: auto; padding-top: 16px;">
+      <div class="nav-links-list">
+        <button type="button" class="nav-item" data-logout style="color: #d93838; width: 100%; border: none; background: transparent; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 8px; font-weight: 500;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Sign out</span>
+        </button>
+      </div>
+    </div>
+  </template>
+
+  <!-- Phone Drawer -->
+  <div class="mobile-sidebar-overlay" id="mobile-sidebar-overlay">
+    <aside class="mobile-sidebar" aria-label="Main navigation">
+      <div class="mobile-sidebar-header">
+        <img src="./logo-buZ.png" alt="" style="height: 30px; width: auto;">
+        <p class="brand">Bzade.app</p>
+        <button type="button" class="close-btn" id="sidebar-close-btn" aria-label="Close menu" style="background: lightgray; width: 35px; height: 35px; border-radius: 50%; border: 0; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="mobile-sidebar-body" id="mobile-nav"></div>
+    </aside>
+  </div>
+
+  <div class="asymmetric-wrapper">
+    <!-- Laptop sidebar (left column) -->
+    <aside class="left-sidebar" id="left-sidebar" aria-label="Main navigation">
+      <div class="left-sidebar-card">
+        <div class="left-sidebar-content" id="desktop-nav"></div>
+      </div>
+    </aside>
+
+    <!-- Main Section: Billing & User Project Breakdown -->
+    <main>
+      <div class="dash-top">
+        <div>
+          <h2>Billing & Usage</h2>
+          <p style="color: #6b7280; font-size: 14px; margin-top: 2px;">Review current subscription, quota allocation, and billing breakdown across all your Bzade projects.</p>
+        </div>
+        <button type="button" class="btn-green" id="btn-upgrade-top" style="width: auto;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Upgrade Plan
+        </button>
+      </div>
+
+      <!-- Current Subscription Banner -->
+      <section class="billing-section">
+        <div class="billing-section-header">
+          <div>
+            <h3 class="billing-section-title">Subscription Overview</h3>
+            <p class="billing-section-sub">Active billing cycle and included quotas</p>
+          </div>
+          <span class="badge-status">Active Account</span>
+        </div>
+        <div class="billing-section-body">
+          <div class="plan-card-grid">
+            <div>
+              <span class="plan-badge" id="plan-badge">Free Starter</span>
+              <h4 class="plan-name" id="plan-title">Bzade Community Starter</h4>
+              <p class="plan-desc">
+                Ideal for building and experimenting with automated email schedules, webhook dispatchers, and transactional campaigns.
+              </p>
+              <p style="font-size: 13px; color: #6b7280; margin-top: 10px;">
+                Account billing email: <strong id="user-billing-email" style="color: #111827;">Victor@bzade.app</strong>
+              </p>
+            </div>
+            <div class="plan-price-box">
+              <div>
+                <span class="plan-price-num">$0</span>
+                <span class="plan-price-cadence">/ month</span>
+              </div>
+              <button type="button" class="btn-green" id="btn-upgrade-plan">Upgrade to Pro ($2.99/mo)</button>
+            </div>
+          </div>
+
+          <!-- Usage Allocation Across All Projects -->
+          <div class="quota-grid">
+            <div class="quota-item">
+              <div class="quota-title">Total Projects</div>
+              <div class="quota-values" id="quota-projects">0 / 5</div>
+              <div class="quota-bar-bg">
+                <div class="quota-bar-fill" id="quota-bar-projects" style="width: 0%;"></div>
+              </div>
+            </div>
+            <div class="quota-item">
+              <div class="quota-title">Active Schedules</div>
+              <div class="quota-values" id="quota-schedules">0 / 25</div>
+              <div class="quota-bar-bg">
+                <div class="quota-bar-fill" id="quota-bar-schedules" style="width: 0%;"></div>
+              </div>
+            </div>
+            <div class="quota-item">
+              <div class="quota-title">Monthly Dispatches</div>
+              <div class="quota-values" id="quota-dispatches">0 / 1,000</div>
+              <div class="quota-bar-bg">
+                <div class="quota-bar-fill" id="quota-bar-dispatches" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Projects Billing Information Breakdown -->
+      <section class="billing-section">
+        <div class="billing-section-header">
+          <div>
+            <h3 class="billing-section-title">Projects Billing Breakdown</h3>
+            <p class="billing-section-sub">Individual resource usage, status, and cost breakdown per project</p>
+          </div>
+          <a href="dashboard.html" class="btn-outline">Add Project</a>
+        </div>
+        <div class="billing-section-body" style="padding: 0;">
+          <div class="table-container">
+            <table class="billing-table">
+              <thead>
+                <tr>
+                  <th>Project Name</th>
+                  <th>Business Entity</th>
+                  <th>Schedules Running</th>
+                  <th>Monthly Usage</th>
+                  <th>Billing Status</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="projects-billing-tbody">
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 36px 20px; color: #9ca3af;">
+                    Loading projects billing information...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Payment Method -->
+      <section class="billing-section">
+        <div class="billing-section-header">
+          <div>
+            <h3 class="billing-section-title">Payment Method</h3>
+            <p class="billing-section-sub">Cards and recurring billing channels processed via Paystack</p>
+          </div>
+          <button type="button" class="btn-outline" id="btn-update-card">Manage Card</button>
+        </div>
+        <div class="billing-section-body" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 32px; background: #111827; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 700; letter-spacing: 1px;">
+              CARD
+            </div>
+            <div>
+              <p style="font-size: 14px; font-weight: 600; color: #111827; margin: 0;">Paystack Secure Checkout</p>
+              <p style="font-size: 13px; color: #6b7280; margin: 2px 0 0;">Connected to Paystack tokenized card payments.</p>
+            </div>
+          </div>
+          <span style="font-size: 13px; color: #166534; font-weight: 600; background: #dcfce7; padding: 4px 10px; border-radius: 4px;">Protected with 256-bit encryption</span>
+        </div>
+      </section>
+
+      <!-- Invoice History -->
+      <section class="billing-section">
+        <div class="billing-section-header">
+          <div>
+            <h3 class="billing-section-title">Invoices & Receipts</h3>
+            <p class="billing-section-sub">Download your official VAT receipts and transaction statements</p>
+          </div>
+        </div>
+        <div class="billing-section-body" style="padding: 0;">
+          <div class="table-container">
+            <table class="billing-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th style="text-align: right;">Receipt</th>
+                </tr>
+              </thead>
+              <tbody id="invoices-tbody">
+                <tr>
+                  <td>Today</td>
+                  <td>Bzade Monthly Free Starter Tier</td>
+                  <td>$0.00</td>
+                  <td><span class="badge-status">Free</span></td>
+                  <td style="text-align: right;">
+                    <button type="button" class="btn-outline invoice-dl-btn" style="padding: 4px 10px; font-size: 12px;">Download</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+  /* Layout behaviour */
+  (() => {
+    const navTemplate = document.getElementById("nav-template");
+    document.getElementById("desktop-nav").append(navTemplate.content.cloneNode(true));
+    document.getElementById("mobile-nav").append(navTemplate.content.cloneNode(true));
+
+    const overlay = document.getElementById("mobile-sidebar-overlay");
+    const closeBtn = document.getElementById("sidebar-close-btn");
+
+    function setDrawer(open) {
+      overlay.classList.toggle("open", open);
+      document.body.style.overflow = open ? "hidden" : "";
+    }
+
+    closeBtn?.addEventListener("click", () => setDrawer(false));
+    overlay?.addEventListener("click", (event) => {
+      if (event.target === overlay) setDrawer(false);
+    });
+
+    document.getElementById("drop-toggle")?.addEventListener("click", () => {
+      document.getElementById("drop").classList.toggle("show");
+    });
+
+    document.addEventListener("click", (event) => {
+      const toggle = event.target.closest("[data-toggle-projects]");
+      if (toggle) {
+        const sub = toggle.closest(".nav-section").querySelector("[data-sub-nav]");
+        if (!sub) return;
+        const collapsed = sub.classList.toggle("collapsed");
+        toggle.classList.toggle("collapsed", collapsed);
+        return;
+      }
+      if (event.target.closest("[data-soon]")) event.preventDefault();
+    });
+  })();
+  </script>
+  <script src="https://js.paystack.co/v2/inline.js"></script>
+  <script type="module" src="scripts/ui/toast.js"></script>
+  <script type="module" src="billing.js"></script>
+</body>
+</html>

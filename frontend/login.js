@@ -1,5 +1,5 @@
-// console.log(window.supabase.createClient);
 import { getCurrentSession } from "./scripts/auth/session.js";
+import { showToast } from "./scripts/ui/toast.js";
 import {
   signIn,
   signInWithGoogle,
@@ -32,34 +32,30 @@ document.querySelectorAll('.eye-toggle').forEach((btn) => {
   });
 });
 
-
 googleButton.addEventListener("click", async (event) => {
   event.preventDefault()
   try {
     await signInWithGoogle();
   } catch (error) {
-    console.error(error.message);
-    alert(error.message);
+    showToast('error', error.message || 'Google sign-in failed.');
   }
-  
 })
+
 facebookButton.addEventListener("click", async (event) => {
   event.preventDefault();
-
   try {
     await signInWithFacebook();
   } catch (error) {
-    console.error(error.message);
-    alert(error.message);
+    showToast('error', error.message || 'Facebook sign-in failed.');
   }
 });
+
 xButton.addEventListener('click', async (event) => {
   event.preventDefault();
   try {
     await signInWithX();
   } catch (error) {
-    console.error(error.message);
-    alert(error.message);
+    showToast('error', error.message || 'X sign-in failed.');
   }
 })
 
@@ -71,11 +67,12 @@ form.addEventListener('submit', async (event) => {
 
   try {
     await signIn(email, password);
-
-    window.location.href = 'dashboard.html';
+    showToast('success', 'Signed in successfully. Redirecting...');
+    setTimeout(() => {
+      window.location.href = 'dashboard.html';
+    }, 400);
   } catch (error) {
-    console.error(error.message);
-    alert(error.message);
+    showToast('error', error.message || 'Invalid email or password.');
   }
 });
 
@@ -85,16 +82,14 @@ forgotPassword.addEventListener('click', async (event) => {
   const email = form.querySelector('input[type="email"]').value;
 
   if (!email) {
-    alert('Enter your email address first.');
+    showToast('warn', 'Enter your email address in the field above first.');
     return;
   }
 
   try {
     await resetPassword(email);
-
-    alert('Password reset email sent. Check your inbox.');
+    showToast('success', 'Password reset email sent. Check your inbox.');
   } catch (error) {
-    console.error(error.message);
-    alert(error.message);
+    showToast('error', error.message || 'Could not send reset email.');
   }
 });

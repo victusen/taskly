@@ -1,6 +1,6 @@
 import { authenticatedFetch } from "../auth/api.js";
 import { BACKEND_URL } from "../config.js";
-import { getProjects, createProject } from "../api/projects.js";
+import { getProjects, createProject, deleteProject } from "../api/projects.js";
 import { listEmailConnections } from "../api/emailConnections.js";
 import { getSchedules, pauseSchedule, resumeSchedule, cancelSchedule } from "../api/schedules.js";
 
@@ -113,6 +113,18 @@ export async function addProject({ project_name, business_name, email_connection
 
   writeExtra([...readExtra(), project]);
   return project;
+}
+
+export async function removeProject(id) {
+  if (USE_MOCK) {
+    await delay(500);
+    const extra = readExtra().filter((p) => p.id !== id);
+    writeExtra(extra);
+    const idx = BASE_PROJECTS.findIndex((p) => p.id === id);
+    if (idx !== -1) BASE_PROJECTS.splice(idx, 1);
+    return true;
+  }
+  return await deleteProject(id);
 }
 
 export async function addSchedule(payload) {

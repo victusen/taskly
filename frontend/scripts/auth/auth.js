@@ -12,12 +12,26 @@ export const supabase = createClient(
   SUPABASE_PUBLISHABLE_KEY
 );
 
+// Silence console.log in production
+if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+  console.log = () => {};
+}
+
+export function getAppRedirectUrl(targetFile = "dashboard.html") {
+  const path = window.location.pathname;
+  let dir = path.substring(0, path.lastIndexOf('/') + 1) || '/';
+  if (dir.endsWith('/job/')) {
+    dir = dir.substring(0, dir.length - 4);
+  }
+  return `${window.location.origin}${dir}${targetFile}`;
+}
+
 export async function signInWithGoogle() {
   ensureNetworkConnection();
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/dashboard.html`
+      redirectTo: getAppRedirectUrl('dashboard.html')
     }
   })
 }
@@ -27,7 +41,7 @@ export async function signInWithGithub() {
   return supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: `${window.location.origin}/dashboard.html`
+      redirectTo: getAppRedirectUrl('dashboard.html')
     }
   })
 }
@@ -37,7 +51,7 @@ export async function signInWithFacebook() {
   return supabase.auth.signInWithOAuth({
     provider: 'facebook',
     options: {
-      redirectTo: `${window.location.origin}/dashboard.html`
+      redirectTo: getAppRedirectUrl('dashboard.html')
     }
   })
 }
@@ -47,7 +61,7 @@ export async function signInWithX() {
   return supabase.auth.signInWithOAuth({
     provider: 'x',
     options: {
-      redirectTo: `${window.location.origin}/dashboard.html`
+      redirectTo: getAppRedirectUrl('dashboard.html')
     }
   })
 }
@@ -75,7 +89,7 @@ export async function signUp(email, password, firstName, lastName) {
     password,
     options: {
       data: { first_name: firstName, last_name: lastName },
-      emailRedirectTo: `${window.location.origin}/dashboard.html`
+      emailRedirectTo: getAppRedirectUrl('dashboard.html')
     }
   });
 
@@ -89,7 +103,7 @@ export async function signUp(email, password, firstName, lastName) {
 export async function resetPassword(email) {
   ensureNetworkConnection();
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password.html`
+    redirectTo: getAppRedirectUrl('reset-password.html')
   });
 
   if (error) {

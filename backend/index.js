@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from 'dotenv';
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import authRoute from "./routes/authRoute.js";
 import accountRoute from "./routes/accountRoute.js";
 import scheduleRoute from './routes/scheduleRoute.js';
 import projectRoute from "./routes/projectRoute.js";
@@ -66,6 +67,7 @@ app.get('/', (req, res) => {
   res.send('Bzade backend is running!');
 });
 
+app.use("/api/auth", authRoute);
 app.use("/api/account", accountRoute);
 app.use('/api/schedules', scheduleRoute);
 app.use('/api/projects', projectRoute);

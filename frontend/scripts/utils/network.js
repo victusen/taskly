@@ -1,3 +1,5 @@
+import { showToast } from '../ui/toast.js';
+
 export function ensureNetworkConnection() {
   if (!navigator.onLine) {
     const error = new Error(
@@ -6,9 +8,9 @@ export function ensureNetworkConnection() {
 
     error.code = 'NETWORK_OFFLINE';
 
-    console.error('[NETWORK]', error.message);
-
-    alert('Error: Check your internet connection.');
+    try {
+      showToast('error', 'No internet connection. Check your network.');
+    } catch (_) {}
 
     throw error;
   }

@@ -92,4 +92,31 @@ export const projectController = {
       return fail(res, 500, "SERVER_ERROR", "Could not create the project.");
     }
   },
+
+  async deleteProject(req, res) {
+    try {
+      const projectId = req.params.id;
+      if (!projectId) {
+        return fail(res, 400, "MISSING_ID", "Project ID is required.");
+      }
+
+      const { data, error } = await supabase
+        .from("projects")
+        .update({ status: "deleted" })
+        .eq("id", projectId)
+        .eq("user_id", req.user.id)
+        .select(COLUMNS)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) {
+        return fail(res, 404, "NOT_FOUND", "Project not found or already deleted.");
+      }
+
+      return res.status(200).json({ success: true, message: "Project deleted successfully", data });
+    } catch (error) {
+      console.error("[DELETE PROJECT]", error);
+      return fail(res, 500, "SERVER_ERROR", "Could not delete project.");
+    }
+  },
 };

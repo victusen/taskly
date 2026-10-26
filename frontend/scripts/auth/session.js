@@ -13,7 +13,13 @@ export async function getCurrentSession() {
 export async function requireAuth() {
   try {
     const session = await getCurrentSession();
-    if (session) return session;
+    if (session) {
+      // Clean tokens, hashes, and OAuth codes from the browser address bar
+      if (window.location.hash || window.location.search.includes("code=") || window.location.search.includes("access_token")) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      return session;
+    }
   } catch (err) {
     console.warn("Session check:", err);
   }

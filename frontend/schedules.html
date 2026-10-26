@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bzade - Schedules</title>
+  <link rel="icon" type="image/png" href="logo-2.png" />
+  <link rel="stylesheet" href="scripts/ui/toast.css">
+  <link rel="stylesheet" href="scripts/ui/states.css">
+  <style>
+    * { margin: 0; box-sizing: border-box; }
+    body {
+      margin: 0;
+      line-height: 1.6;
+      background-color: #f4f4f4;
+      font-family: sans-serif;
+    }
+
+    /* Fixed Top Header */
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      padding: 12px 15px;
+      height: 50px;
+      display: flex;
+      background-color: white;
+      border: 1px solid lightgray;
+      justify-content: space-between;
+      z-index: 5;
+    }
+    .banner-left {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .banner-right {
+      display: flex;
+    }
+    .banner-right div {
+      height: 30px; width: 30px; border-radius: 20px;
+      background-color: red;
+      display: flex; align-items: center; justify-content: center; align-self: center;
+      color: white; font-weight: 600;
+    }
+    .drop-down {
+      pointer-events: none;
+      position: absolute;
+      bottom: -95px; left: 0; right: 0; z-index: 12;
+    }
+    .taskly-projs {
+      padding: 10px 12px;
+      width: 100%;
+      display: flex; align-items: center; gap: 10px; 
+    }
+    .taskly-projs:hover {
+      background-color: #e6f4ea;
+      color: green;
+    }
+
+    /* Asymmetric Desktop Layout Wrapper */
+    .asymmetric-wrapper {
+      display: flex;
+      justify-content: flex-start;
+      max-width: 1680px;
+      width: calc(100% - 32px);
+      margin: 68px 16px 3rem 16px;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    /* Left Side Navigation (Desktop Persistent Sidebar Column) */
+    .left-sidebar {
+      width: 270px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: sticky;
+      top: 68px;
+      height: calc(100vh - 100px);
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Main Shadowed Sidebar Container */
+    .left-sidebar-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+
+    /* Sidebar Collapse Button Bar */
+    .left-sidebar-collapse-bar {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-start;
+      width: 100%;
+    }
+
+    .left-sidebar.collapsed {
+      width: 60px;
+      min-width: 60px;
+    }
+    .left-sidebar.collapsed .left-sidebar-card {
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .left-sidebar.collapsed .left-sidebar-collapse-bar {
+      position: static;
+      margin-top: 0;
+      width: 100%;
+      justify-content: flex-start;
+    }
+    .left-sidebar-content {
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .nav-section h4 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+    .nav-links-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 6px;
+      color: #333;
+      text-decoration: none;
+      font-size: 14px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-item:hover {
+      background-color: #f0fdf4;
+      color: green;
+    }
+    .nav-item.active {
+      background-color: #e6f4ea;
+      color: green;
+      font-weight: 500;
+    }
+    .nav-item-collapsible {
+      cursor: pointer;
+      user-select: none;
+    }
+    .nav-item-collapsible.collapsed .projects-toggle-icon {
+      transform: rotate(-90deg);
+    }
+    .sub-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding-left: 14px;
+      border-left: 2px solid #e0e0e0;
+      margin-top: 4px;
+      margin-left: 10px;
+      transition: all 0.2s ease;
+    }
+    .sub-nav.collapsed {
+      display: none !important;
+    }
+    .left-sidebar-footer {
+      border-top: 1px solid #eee;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fafafa;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+    .collapse-btn {
+      background: #e5e7eb;
+      border: none;
+      border-radius: 6px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #444;
+      transition: color 0.2s ease, transform 0.15s ease;
+    }
+    .collapse-btn:hover {
+      background: #e5e7eb;
+      color: #111;
+    }
+
+    /* Main Middle Section */
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 860px;
+      margin: 0;
+      padding: 2rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .col-project-info {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .col-tasks-area {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .col-empty-third {
+      width: 270px;
+      flex-shrink: 0;
+      pointer-events: none;
+    }
+
+    .proj-display {
+      display: flex; 
+      flex-direction: column; gap: 20px; 
+      border-top: 1px solid lightgray;
+      border-bottom: 2px solid lightgray;
+      padding: 24px 0;
+    }
+    .proj-display button { 
+      display: flex;
+      align-items: center; 
+      align-self: start;
+      padding: 10px 20px;
+      background-color: inherit;
+      border: 1px solid lightgray;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .task-toggle { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 10px;
+    } 
+    .toggles { 
+      display: flex; 
+      border: 1px solid grey;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .toggle {
+      padding: 6px 12px; 
+      background-color: lightgray;
+      color: black;
+      font-size: 14px;
+      border: 0;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background-color 0.18s ease, color 0.18s ease;
+    }
+    .toggle:hover { background-color: #bdbdbd; }
+    .toggle.active { background-color: green; color: white; }
+    .toggle.active:hover { background-color: #047857; }
+
+    .task-list {
+      display: flex; flex-direction: column; gap: 15px;
+      width: 100%; 
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+    .no-job { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px 20px; color: #777; }
+    .no-job[hidden] { display: none; }
+    .no-job svg { width: 76px; height: 76px; margin-top: 8px; margin-bottom: 24px; transform: rotate(-8deg); }
+    .no-job h3 { font-size: 18px; color: #333; margin-bottom: 4px; }
+    .no-job p { font-size: 14px; max-width: 320px; }
+
+    .close-btn {
+      background-color: lightgray; 
+      width: 35px; height: 35px; 
+      padding: 4px;
+      border-radius:50px;
+      display: flex;
+      align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .schedule-overlay {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      top: 0; bottom: 0; left: 0; right: 0;
+      background-color: rgba(0,0,0,0.85);
+      position: fixed;
+      z-index: 2000;
+    }
+    .schedule-overlay.open {
+      display: flex;
+    }
+    .job-board {
+      display: flex; 
+      flex-direction: column;
+      justify-content: space-between;
+      background-color: white; 
+      width: 95%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .job-board label { display: block; font-size: 13px; margin-top: 8px; font-weight: 500; }
+    .job-board input, .job-board select, .job-board textarea {
+      width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;
+    }
+
+    .add-hidden { display: none; }
+    .show { display: block; }
+
+    .mobile-sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 3000;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .mobile-sidebar-overlay.open {
+      display: block;
+      opacity: 1;
+    }
+    .mobile-sidebar {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 280px;
+      max-width: 85vw;
+      height: 100%;
+      background-color: white;
+      box-shadow: 4px 0 15px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-sidebar-overlay.open .mobile-sidebar {
+      transform: translateX(0);
+    }
+    .mobile-sidebar-header {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #eee;
+    }
+    .mobile-sidebar-body {
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex: 1;
+    }
+    .mobile-sidebar-footer {
+      border-top: 1px solid #eee;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #fafafa;
+    }
+
+    @media (max-width: 1024px) {
+      .asymmetric-wrapper {
+        display: block;
+        width: 95%;
+        margin: 60px auto 2rem auto;
+      }
+      .left-sidebar {
+        display: none;
+      }
+      main {
+        display: flex !important;
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
+        max-width: 100%;
+        padding: 1rem;
+      }
+      .col-empty-third {
+        display: none;
+      }
+    }
+
+    /* Composer panel */
+    .cmp { margin-top: 8px; border: 1px solid #d9d9d9; background: #ffffff; padding: 20px; display: flex; flex-direction: column; gap: 20px; font-family: "DM Sans", system-ui, sans-serif; color: #111111; }
+    .cmp[hidden] { display: none; }
+    .cmp-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #d9d9d9; }
+    .cmp-title { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+    .cmp-icon { width: 32px; height: 32px; display: grid; place-items: center; background: transparent; border: 1px solid #3a3a3a; border-radius: 0; color: #111111; font: inherit; font-size: 20px; line-height: 1; cursor: pointer; }
+    .cmp-form { display: flex; flex-direction: column; gap: 18px; }
+    .cmp-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
+    .cmp-field { display: flex; flex-direction: column; gap: 6px; min-width: 160px; }
+    .cmp-grow { flex: 1 1 260px; }
+    .cmp-label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6b6b6b; }
+    .cmp-input { width: 100%; min-width: 0; box-sizing: border-box; padding: 10px 12px; font: inherit; font-size: 14px; color: #111111; background: #ffffff; border: 1px solid #3a3a3a; border-radius: 0; }
+    .cmp-input:focus { outline: 2px solid #111111; outline-offset: 0; }
+    .cmp-input:disabled { background: #f5f5f5; color: #6b6b6b; cursor: not-allowed; }
+    .cmp-ellipsis { width: 240px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .cmp-editor { display: flex; flex-direction: column; border: 1px solid #3a3a3a; }
+    .cmp-editor-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; background: #f5f5f5; border-bottom: 1px solid #d9d9d9; }
+    .cmp-tools { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+    .cmp-tool { padding: 6px 10px; font: inherit; font-size: 13px; color: #111111; background: #ffffff; border: 1px solid #3a3a3a; border-radius: 0; cursor: pointer; }
+    .cmp-tool:hover { background: #111111; color: #ffffff; }
+    .cmp-tool:focus-visible { outline: 2px solid #111111; outline-offset: 2px; }
+    .cmp-code { display: block; width: 100%; min-height: 360px; box-sizing: border-box; padding: 16px; border: 0; border-radius: 0; resize: vertical; background: #ffffff; color: #111111; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; line-height: 1.6; white-space: pre; tab-size: 2; }
+    .cmp-code:focus { outline: none; }
+    .cmp-assets { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; padding: 12px; border-top: 1px solid #d9d9d9; }
+    .cmp-assets[hidden] { display: none; }
+    .cmp-asset { display: flex; flex-direction: column; gap: 6px; padding: 6px; font: inherit; font-size: 12px; color: #111111; text-align: left; background: #ffffff; border: 1px solid #d9d9d9; border-radius: 0; cursor: pointer; }
+    .cmp-asset:hover { border-color: #111111; }
+    .cmp-asset img { width: 100%; height: 90px; object-fit: contain; background: #f5f5f5; }
+    .cmp-asset span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cmp-muted { font-size: 13px; color: #6b6b6b; }
+
+    .cmp-foot { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+    .cmp-error { align-self: stretch; font-size: 13px; color: #7a1f1f; }
+    .cmp-error[hidden] { display: none; }
+    .cmp-create { padding: 12px 22px; font: inherit; font-size: 14px; font-weight: 600; color: #111111; background: inherit; border: 1px solid #3a3a3a; border-radius: 0; cursor: pointer; }
+    .cmp-create:hover:not(:disabled) { background: #111111; color: #ffffff; }
+    .cmp-create:disabled { opacity: 0.5; cursor: wait; }
+
+    body.composer-open #schedule-empty,
+    body.editing #schedule-empty { display: none !important; }
+    body.composer-open #task-list { display: none !important; }
+
+    #job-rows .task.is-editing { border: 1px solid #b42318; border-radius: 12px; padding: 16px; }
+    .edit-slot { margin: 12px 0 24px; }
+    .task-edit { padding: 6px 12px; font: inherit; font-size: 13px; color: #111111; background: #ffffff; border: 1px solid #3a3a3a; border-radius: 0; cursor: pointer; }
+    .task-edit:hover { background: #111111; color: #ffffff; }
+
+    .cmp-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .cmp-cancel { padding: 12px 22px; font: inherit; font-size: 14px; color: #6b6b6b; background: transparent; border: 1px solid #d9d9d9; border-radius: 0; cursor: pointer; }
+
+    #job-rows { display: flex; flex-direction: column; }
+    #job-rows .task { display: flex; flex-direction: column; gap: 6px; padding: 16px 0; border-bottom: 1px solid #d9d9d9; }
+
+    @media (max-width: 600px) {
+      .cmp { padding: 16px; }
+      .cmp-field { min-width: 100%; }
+      .cmp-ellipsis { width: 100%; }
+      .cmp-code { min-height: 260px; }
+      .cmp-foot { align-items: stretch; }
+      .cmp-create { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="banner-left">
+      <img src="hamburger.png" id="hamburger-btn" style="height: 30px; cursor: pointer;" alt="Menu" />
+      <a href="index.html" style="text-decoration: none; color: #111;"><p style="font-size: 20px; font-weight: 600;">Bzade.app</p></a>
+      <div style="position: relative; display: flex;">
+        <img onclick="document.querySelector(`.drop`).classList.toggle(`show`);" src="drop-arrow.png" style="height: 20px; cursor: pointer;"/>
+        <div class="drop-down">
+          <div class="drop add-hidden" style="width:200px; margin: 0 auto; border-radius: 12px; overflow: hidden; background-color: white; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <div class="taskly-projs" onclick="window.location.href='dashboard.html'">
+              <img src="Check.png" style="height: 12px;">
+              <p style="font-size: 13px;">Overview</p>
+            </div>
+            <div class="taskly-projs" onclick="window.location.href='smtp.html'">
+              <img src="Check.png" style="height: 12px;">
+              <p style="font-size: 13px;">Mail Connections</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="banner-right">
+      <div id="avatar-btn" style="cursor: pointer;">S</div>
+    </div>
+  </header>
+  
+  <div class="asymmetric-wrapper">
+    <!-- Left Side Navigation (Desktop Persistent Sidebar Column) -->
+    <aside class="left-sidebar">
+      <div class="left-sidebar-card">
+        <div class="left-sidebar-content">
+          <div class="nav-section">
+            <h4>Navigation</h4>
+            <div class="nav-links-list">
+              <div class="nav-item nav-item-collapsible" id="desktop-projects-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleProjectsNav(this, document.getElementById('desktop-sibling-projects'))" style="justify-content: space-between; cursor: pointer; user-select: none;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <!-- 3 Isometric Cubes Icon -->
+                  <svg class="projects-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L16.5 4.6V9.8L12 12.4L7.5 9.8V4.6L12 2Z"/>
+                    <path d="M12 12.4V7.2M12 7.2L16.5 4.6M12 7.2L7.5 4.6"/>
+                    <path d="M7.5 10.2L12 12.8V18L7.5 20.6L3 18V12.8L7.5 10.2Z"/>
+                    <path d="M7.5 20.6V15.4M7.5 15.4L12 12.8M7.5 15.4L3 12.8"/>
+                    <path d="M16.5 10.2L21 12.8V18L16.5 20.6L12 18V12.8L16.5 10.2Z"/>
+                    <path d="M16.5 20.6V15.4M16.5 15.4L21 12.8M16.5 15.4L12 12.8"/>
+                  </svg>
+                  <span>Projects</span>
+                </div>
+                <svg class="projects-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="sub-nav" id="desktop-sibling-projects">
+                <!-- Dynamically populated -->
+              </div>
+              <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Audiences view opened');">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Audiences</span>
+              </a>
+              <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Team members view opened');">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                <span>Team members</span>
+              </a>
+              <a href="#" class="nav-item" data-action="open-settings">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Project settings</span>
+              </a>
+              <a href="smtp.html" class="nav-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                <span>API keys</span>
+              </a>
+              <a href="billing.html" class="nav-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                <span>Billing</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="left-sidebar-footer">
+          <a href="index.html" class="nav-item" style="color: #d93838; padding: 6px 0; font-weight: 500;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+            <span>Sign out</span>
+          </a>
+        </div>
+      </div>
+      <div class="left-sidebar-collapse-bar">
+        <button type="button" class="collapse-btn" id="desktop-collapse-btn" title="Collapse sidebar" aria-label="Collapse sidebar" onclick="toggleDesktopSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><polyline points="15 8 11 12 15 16"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Section Restyled as 3 Column Grid -->
+    <main>
+      <!-- Column 1: Project Level Info & Actions -->
+      <div class="col-project-info">
+        <div class="select-project" style="display: flex; gap: 10px; align-items: center; height: 20px; padding: 0 5px;">
+          <h3 style="font-size: 16px;">Open projects</h3>
+        </div>
+        
+        <div class="proj-display" style="border-top: none;">
+          <p style="font-size: 14px; color: grey; text-transform: uppercase; letter-spacing: 0.5px;">MY PROJECTS</p>
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <h2 id="project-title" style="font-size: 28px; font-weight: 700;">Project</h2>
+            <img src="menu.png" height="20px" alt="Menu" style="cursor: pointer;" onclick="document.querySelector('[data-action=open-settings]')?.click();" />
+          </div>
+          
+          <button id="add-schedule">
+            <span style="font-size: 20px; color: black; margin-right: 10px; line-height: 1;">+</span>
+            <p style="font-size: 15px;">Add a new task</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- Column 2: Tasks List & Toggles -->
+      <div class="col-tasks-area">
+        <div class="task-toggle">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+            <h2 style="font-size: 22px;">Tasks</h2>
+            <button id="connect-gmail-btn" class="btn" type="button" style="padding: 4px 10px; background-color: inherit; border: 1px solid lightgray; border-radius: 4px; cursor: pointer; font-weight: normal; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; color: #111;">
+              <img src="gmail-btn.png" style="height: 14px;" alt="Gmail" />
+              <span>Connect Gmail</span>
+            </button>
+          </div>
+          <div class="toggles">
+            <button class="toggle active" data-filter="all" type="button">All (0)</button>
+            <button class="toggle" data-filter="running" type="button">Running (0)</button>
+            <button class="toggle" data-filter="new" type="button">New (0)</button>
+            <button class="toggle" data-filter="paused" type="button">Paused (0)</button>
+          </div>
+
+          <section id="job-composer" class="cmp" hidden aria-labelledby="cmp-title">
+            <header class="cmp-head">
+              <h3 id="cmp-title" class="cmp-title">New task</h3>
+              <button type="button" id="cmp-close" class="cmp-icon" aria-label="Close new task">&times;</button>
+            </header>
+  
+            <form id="cmp-form" class="cmp-form" novalidate>
+              <div class="cmp-row">
+                <label class="cmp-field cmp-grow">
+                  <span class="cmp-label">Job name</span>
+                  <input id="cmp-name" class="cmp-input" name="name" maxlength="120" autocomplete="off" placeholder="Welcome series">
+                </label>
+                <label class="cmp-field">
+                  <span class="cmp-label">Send type</span>
+                  <select class="cmp-input" name="channel">
+                    <option value="emails" selected>Emails</option>
+                    <option value="payload" disabled>Payload (coming soon)</option>
+                  </select>
+                </label>
+              </div>
+  
+              <div class="cmp-row">
+                <label class="cmp-field cmp-grow">
+                  <span class="cmp-label">To (separate with commas)</span>
+                  <input class="cmp-input" name="recipients" autocomplete="off" placeholder="ada@example.com, tunde@example.com">
+                </label>
+                <label class="cmp-field cmp-grow">
+                  <span class="cmp-label">Subject</span>
+                  <input class="cmp-input" name="subject" maxlength="300" autocomplete="off">
+                </label>
+              </div>
+  
+              <div class="cmp-row">
+                <label class="cmp-field">
+                  <span class="cmp-label">Sender</span>
+                  <input id="cmp-sender" class="cmp-input cmp-ellipsis" value="usenvictor40@gmail.com" title="usenvictor40@gmail.com" disabled>
+                </label>
+                <label class="cmp-field">
+                  <span class="cmp-label">Date</span>
+                  <input id="cmp-date" class="cmp-input" type="date">
+                </label>
+                <label class="cmp-field">
+                  <span class="cmp-label">Time</span>
+                  <input id="cmp-time" class="cmp-input" type="time" value="09:00">
+                </label>
+                <label class="cmp-field">
+                  <span class="cmp-label">How often</span>
+                  <select id="cmp-how" class="cmp-input">
+                    <option value="now">Now</option>
+                    <option value="once" selected>Once</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                    <option value="christmas">Christmas</option>
+                    <option value="new_year">New year</option>
+                  </select>
+                </label>
+              </div>
+  
+              <div class="cmp-editor">
+                <div class="cmp-editor-bar">
+                  <span class="cmp-label">Message (HTML)</span>
+                  <div class="cmp-tools" role="toolbar" aria-label="Insert element">
+                    <button type="button" class="cmp-tool" data-insert="h1">H1</button>
+                    <button type="button" class="cmp-tool" data-insert="p">P</button>
+                    <button type="button" class="cmp-tool" data-insert="a">Link</button>
+                    <button type="button" class="cmp-tool" data-insert="button">Button</button>
+                    <button type="button" class="cmp-tool" data-insert="img">Image</button>
+                    <button type="button" class="cmp-tool" data-insert="column">Column</button>
+                    <button type="button" class="cmp-tool" data-insert="row">Row</button>
+                    <button type="button" class="cmp-tool" id="cmp-upload-btn">Upload asset</button>
+                    <button type="button" class="cmp-tool" id="cmp-assets-toggle">Assets (<span id="cmp-asset-count">0</span>)</button>
+                    <input id="cmp-file" type="file" accept="image/*" hidden>
+                  </div>
+                </div>
+                <textarea id="cmp-body" class="cmp-code" spellcheck="false" placeholder="<p>Write your message here.</p>"></textarea>
+                <div id="cmp-assets" class="cmp-assets" hidden></div>
+              </div>
+  
+              <div class="cmp-foot">
+                <p id="cmp-error" class="cmp-error" role="alert" hidden></p>
+                <div class="cmp-actions">
+                  <button type="button" id="cmp-cancel" class="cmp-cancel">Cancel</button>
+                  <button type="submit" id="cmp-create" class="cmp-create">Create task</button>
+                </div>
+              </div>
+            </form>
+          </section>
+
+          <!-- Tasks appear here -->
+          <div class="task-list" id="task-list">
+            <!-- Full space Donut Loader Spinner -->
+            <div class="task-loader" id="task-loader" style="min-height: 280px; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+              <svg class="bz-donut-spinner" viewBox="0 0 44 44" width="40" height="40" aria-hidden="true">
+                <circle class="bz-spinner-track" cx="22" cy="22" r="17" fill="none" stroke-width="3"></circle>
+                <circle class="bz-spinner-arc" cx="22" cy="22" r="17" fill="none" stroke-width="3" stroke-linecap="round" stroke-dasharray="106.8" stroke-dashoffset="78"></circle>
+              </svg>
+              <p class="bz-loader-text" style="font-size: 13px; color: #6b7280; font-weight: 500;">Loading schedules...</p>
+            </div>
+            <div class="job-rows" id="job-rows" hidden style="display: none;"></div>
+            <div class="no-job" id="no-job-state" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <h3>No results found</h3>
+              <p>There are no jobs or tasks available matching your filter at the moment.</p>
+            </div>
+            <button id="add-task-cta" class="btn btn-dark" type="button" hidden style="margin: 4px auto 0; background-color: #111; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <span>Add a new task</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Column 3: Third Side -->
+    <div class="col-empty-third">
+      <p>Hi, User. We are still working on this page. Can you tell us what you'd like to see <a href="./feedback.html">here</a></p>
+    </div>
+  </div>
+
+  <!-- Add new task overlay -->
+  <div class="schedule-overlay" id="schedule-overlay">
+    <form class="job-board" id="schedule-form" novalidate>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+        <h3 style="line-height:1.2; font-size:20px;">Create a new <br><span style="color:green;">Schedule</span></h3>
+        <div class="close-btn" id="close-btn" role="button" aria-label="Close">
+          <img src="Close.png" style="pointer-events:none;" height="100%" alt="">
+        </div>
+      </div>
+
+      <label>Send from
+        <select name="email_connection_id" id="email-connection" required></select>
+      </label>
+
+      <label>To (separate with commas)
+        <input type="text" name="recipient" autocomplete="off" required>
+      </label>
+
+      <label>Subject
+        <input type="text" name="subject" maxlength="200" required>
+      </label>
+
+      <label>Message (plain text)
+        <textarea name="body" rows="5" maxlength="20000" required></textarea>
+      </label>
+
+      <label>Schedule type
+        <select name="schedule_type" id="schedule-type">
+          <option value="once">One time</option>
+          <option value="recurring">Repeating</option>
+        </select>
+      </label>
+
+      <label>Send at (first send, if repeating)
+        <input type="datetime-local" name="scheduled_for" required>
+      </label>
+
+      <div id="recurring-fields" hidden>
+        <label>Repeat
+          <select name="every">
+            <option value="daily">Every day</option>
+            <option value="weekday">Every weekday</option>
+            <option value="weekends">Every weekend</option>
+            <option value="weekly">Every week</option>
+            <option value="monthly">Every month</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </label>
+      </div>
+
+      <input type="hidden" name="timezone" value="Africa/Lagos">
+
+      <button type="submit" id="schedule-submit" style="font-weight:500; border:none; border-radius:6px; background-color:green; color:white; width:100%; margin-top:14px; padding:12px; cursor:pointer;">Write this Schedule</button>
+    </form>
+  </div>
+
+  <!-- Mobile Absolute Position Sidebar -->
+  <div class="mobile-sidebar-overlay" id="mobile-sidebar-overlay">
+    <div class="mobile-sidebar" id="mobile-sidebar">
+      <div class="mobile-sidebar-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="logo-2.png" style="height: 24px;" alt="Logo">
+          <span style="font-weight: 600; font-size: 18px;">Bzade.app</span>
+        </div>
+        <div class="close-btn" id="sidebar-close-btn" role="button" aria-label="Close Sidebar" style="width: 30px; height: 30px;">
+          <img src="Close.png" style="pointer-events:none; height: 14px;" alt="">
+        </div>
+      </div>
+      <div class="mobile-sidebar-body">
+        <div class="nav-section">
+          <h4>Navigation</h4>
+          <div class="nav-links-list">
+            <div class="nav-item nav-item-collapsible" id="mobile-projects-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleProjectsNav(this, document.getElementById('mobile-sibling-projects'))" style="justify-content: space-between; cursor: pointer; user-select: none;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <!-- 3 Isometric Cubes Icon -->
+                <svg class="projects-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2L16.5 4.6V9.8L12 12.4L7.5 9.8V4.6L12 2Z"/>
+                  <path d="M12 12.4V7.2M12 7.2L16.5 4.6M12 7.2L7.5 4.6"/>
+                  <path d="M7.5 10.2L12 12.8V18L7.5 20.6L3 18V12.8L7.5 10.2Z"/>
+                  <path d="M7.5 20.6V15.4M7.5 15.4L12 12.8M7.5 15.4L3 12.8"/>
+                  <path d="M16.5 10.2L21 12.8V18L16.5 20.6L12 18V12.8L16.5 10.2Z"/>
+                  <path d="M16.5 20.6V15.4M16.5 15.4L21 12.8M16.5 15.4L12 12.8"/>
+                </svg>
+                <span>Projects</span>
+              </div>
+              <svg class="projects-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="sub-nav" id="mobile-sibling-projects">
+              <!-- Dynamically populated -->
+            </div>
+            <a href="#" class="nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Audiences</span>
+            </a>
+            <a href="#" class="nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+              <span>Team members</span>
+            </a>
+            <a href="#" class="nav-item" data-action="open-settings">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              <span>Project settings</span>
+            </a>
+            <a href="smtp.html" class="nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              <span>API keys</span>
+            </a>
+            <a href="billing.html" class="nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              <span>Billing</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="mobile-sidebar-footer">
+        <a href="index.html" class="nav-item" style="color: #d93838; padding: 6px 0; font-weight: 500;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+          <span>Sign out</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleDesktopSidebar() {
+      const sidebar = document.querySelector('.left-sidebar');
+      const btn = document.getElementById('desktop-collapse-btn');
+      if (!sidebar || !btn) return;
+      const isCollapsed = sidebar.classList.toggle('collapsed');
+      if (isCollapsed) {
+        btn.title = "Expand sidebar";
+        btn.setAttribute("aria-label", "Expand sidebar");
+        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><polyline points="9 8 13 12 9 16"/></svg>';
+      } else {
+        btn.title = "Collapse sidebar";
+        btn.setAttribute("aria-label", "Collapse sidebar");
+        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><polyline points="15 8 11 12 15 16"/></svg>';
+      }
+    }
+    window.toggleDesktopSidebar = toggleDesktopSidebar;
+
+    function toggleProjectsNav(toggleEl, subNavEl) {
+      if (!toggleEl || !subNavEl) return;
+      const isCollapsed = subNavEl.classList.toggle('collapsed');
+      toggleEl.classList.toggle('collapsed', isCollapsed);
+      toggleEl.setAttribute('aria-expanded', !isCollapsed);
+    }
+    window.toggleProjectsNav = toggleProjectsNav;
+  </script>
+  <script type="module" src="scripts/ui/toast.js"></script>
+  <script>
+/* Job composer. Create mode sits where the empty state is. Edit mode moves the same composer under the job being edited. */
+(() => {
+  const SENDER = "usenvictor40@gmail.com";
+  const page = document.body;
+
+  const composer = document.getElementById("job-composer");
+  const form = document.getElementById("cmp-form");
+  const titleEl = document.getElementById("cmp-title");
+  const openButton = document.getElementById("add-task-cta");
+  const closeButton = document.getElementById("cmp-close");
+  const cancelButton = document.getElementById("cmp-cancel");
+  const nameInput = document.getElementById("cmp-name");
+  const recipientsInput = form.elements.namedItem("recipients");
+  const subjectInput = form.elements.namedItem("subject");
+  const howSelect = document.getElementById("cmp-how");
+  const dateInput = document.getElementById("cmp-date");
+  const timeInput = document.getElementById("cmp-time");
+  const bodyInput = document.getElementById("cmp-body");
+  const errorBox = document.getElementById("cmp-error");
+  const createButton = document.getElementById("cmp-create");
+  const uploadButton = document.getElementById("cmp-upload-btn");
+  const fileInput = document.getElementById("cmp-file");
+  const assetsToggle = document.getElementById("cmp-assets-toggle");
+  const assetsBox = document.getElementById("cmp-assets");
+  const assetCount = document.getElementById("cmp-asset-count");
+  const jobRows = document.getElementById("job-rows");
+  const filterButtons = document.querySelectorAll("[data-filter]");
+
+  const home = composer.parentElement;
+  const homeNext = composer.nextElementSibling;
+
+  let mode = "create";
+  let editingRow = null;
+  let editingId = null;
+  let slot = null;
+  let submitLabel = "Create task";
+
+  window.bzComposer = window.bzComposer || {};
+  window.bzComposer.onSubmit = window.bzComposer.onSubmit || (async () => {
+    throw new Error("Saving is not connected yet.");
+  });
+  window.bzComposer.onUpdate = window.bzComposer.onUpdate || (async () => {
+    throw new Error("Updating is not connected yet.");
+  });
+  window.bzComposer.uploadAsset = window.bzComposer.uploadAsset || readAsDataUrl;
+
+  const SNIPPETS = {
+    h1: "<h1>|</h1>",
+    p: "<p>|</p>",
+    a: '<a href="https://|" target="_blank" rel="noopener noreferrer">Link text</a>',
+    button: '<a href="https://|" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:12px 22px;background-color:#111111;color:#ffffff;text-decoration:none;">Button text</a>',
+    img: '<img src="|" alt="" width="240" style="display:block;max-width:100%;height:auto;">',
+    column: '<div style="display:flex;flex-direction:column;gap:12px;">\n  |\n</div>',
+    row: '<div style="display:flex;flex-direction:row;align-items:center;gap:12px;">\n  |\n</div>',
+  };
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+  function showError(message) {
+    errorBox.textContent = message;
+    errorBox.hidden = false;
+  }
+
+  function clearError() {
+    errorBox.hidden = true;
+    errorBox.textContent = "";
+  }
+
+  function setBusy(busy) {
+    createButton.disabled = busy;
+    createButton.textContent = busy ? "Saving..." : submitLabel;
+  }
+
+  function setHeading(title, label) {
+    titleEl.textContent = title;
+    submitLabel = label;
+    createButton.textContent = label;
+  }
+
+  function insertAtCursor(text, caretOffset) {
+    const start = bodyInput.selectionStart;
+    const end = bodyInput.selectionEnd;
+    bodyInput.value = bodyInput.value.slice(0, start) + text + bodyInput.value.slice(end);
+    const caret = start + caretOffset;
+    bodyInput.focus();
+    bodyInput.setSelectionRange(caret, caret);
+  }
+
+  function insertTemplate(template) {
+    const marker = template.indexOf("|");
+    insertAtCursor(template.replace("|", ""), marker);
+  }
+
+  document.querySelectorAll("[data-insert]").forEach((button) => {
+    button.addEventListener("click", () => insertTemplate(SNIPPETS[button.dataset.insert]));
+  });
+
+  bodyInput.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") return;
+    event.preventDefault();
+    insertAtCursor("  ", 2);
+  });
+
+  const assets = [];
+
+  function readAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Could not read that file."));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderAssets() {
+    assetCount.textContent = String(assets.length);
+    assetsBox.innerHTML = "";
+
+    if (assets.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "cmp-muted";
+      empty.textContent = "No assets yet. Upload an image to see it here.";
+      assetsBox.append(empty);
+      return;
+    }
+
+    for (const asset of assets) {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "cmp-asset";
+      item.title = asset.name;
+
+      const img = document.createElement("img");
+      img.src = asset.url;
+      img.alt = "";
+
+      const label = document.createElement("span");
+      label.textContent = asset.name;
+
+      item.append(img, label);
+      item.addEventListener("click", () => insertTemplate(
+        `<img src="${asset.url}" alt="" width="240" style="display:block;max-width:100%;height:auto;">`
+      ));
+      assetsBox.append(item);
+    }
+  }
+
+  uploadButton.addEventListener("click", () => fileInput.click());
+
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files?.[0];
+    fileInput.value = "";
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) return showError("Choose an image file.");
+    if (file.size > 2 * 1024 * 1024) return showError("Images must be 2 MB or smaller.");
+
+    try {
+      const url = await window.bzComposer.uploadAsset(file);
+      assets.push({ name: file.name, url });
+      renderAssets();
+      assetsBox.hidden = false;
+    } catch (err) {
+      showError(err.message || "Upload failed.");
+    }
+  });
+
+  assetsToggle.addEventListener("click", () => {
+    assetsBox.hidden = !assetsBox.hidden;
+  });
+
+  function timeParts() {
+    const [h, m] = (timeInput.value || "09:00").split(":").map(Number);
+    return { h, m };
+  }
+
+  function nextFixedDate(how) {
+    const { h, m } = timeParts();
+    const now = new Date();
+    const isChristmas = how === "christmas";
+    const month = isChristmas ? 11 : 0;
+    const day = isChristmas ? 25 : 1;
+
+    let next = new Date(now.getFullYear(), month, day, h, m);
+    if (next <= now) next = new Date(now.getFullYear() + 1, month, day, h, m);
+    return ymd(next);
+  }
+
+  function syncHow() {
+    const how = howSelect.value;
+    const isNow = how === "now";
+    const isFixed = how === "christmas" || how === "new_year";
+
+    timeInput.disabled = isNow;
+    dateInput.disabled = isNow || isFixed;
+
+    if (isFixed) dateInput.value = nextFixedDate(how);
+  }
+
+  function resetForm() {
+    form.reset();
+    dateInput.min = ymd(new Date());
+    dateInput.value = ymd(new Date(Date.now() + 86400000));
+    syncHow();
+  }
+
+  function fillFromSchedule(schedule) {
+    const config = schedule.config || {};
+    const [datePart, timePart] = String(schedule.scheduled_for || "").split("T");
+
+    nameInput.value = schedule.name || "";
+    recipientsInput.value = (config.recipients || []).join(", ");
+    subjectInput.value = config.subject || "";
+    bodyInput.value = config.body || "";
+    dateInput.value = datePart || "";
+    timeInput.value = timePart ? timePart.slice(0, 5) : "09:00";
+
+    if (schedule.schedule_type === "recurring" && schedule.schedule_rule?.every) {
+      howSelect.value = schedule.schedule_rule.every;
+    } else if (schedule.schedule_type === "one_time") {
+      howSelect.value = "once";
+    } else {
+      howSelect.value = "now";
+    }
+
+    if (!howSelect.value) howSelect.value = "once";
+    syncHow();
+  }
+
+  howSelect.addEventListener("change", syncHow);
+  timeInput.addEventListener("change", syncHow);
+
+  function goHome() {
+    page.classList.remove("composer-open", "editing");
+    home.insertBefore(composer, homeNext && homeNext.parentNode === home ? homeNext : null);
+    if (slot) slot.remove();
+    slot = null;
+    if (editingRow) editingRow.classList.remove("is-editing");
+    editingRow = null;
+    editingId = null;
+    mode = "create";
+    composer.hidden = true;
+    clearError();
+  }
+
+  function openCreate() {
+    goHome();
+    setHeading("New task", "Create task");
+    resetForm();
+    page.classList.add("composer-open");
+    composer.hidden = false;
+    nameInput.focus();
+  }
+
+  function openEdit(row, schedule) {
+    goHome();
+    mode = "edit";
+    editingId = schedule.id;
+    editingRow = row;
+
+    fillFromSchedule(schedule);
+    setHeading("Edit task", "Save changes");
+
+    slot = document.createElement("div");
+    slot.className = "edit-slot";
+    row.after(slot);
+    slot.append(composer);
+
+    row.classList.add("is-editing");
+    page.classList.add("editing");
+    composer.hidden = false;
+    nameInput.focus();
+    slot.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  openButton?.addEventListener("click", openCreate);
+  closeButton.addEventListener("click", goHome);
+  cancelButton.addEventListener("click", goHome);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !composer.hidden) goHome();
+  });
+
+  filterButtons.forEach((button) => button.addEventListener("click", goHome));
+
+  jobRows?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-edit]");
+    if (!button) return;
+    const row = button.closest(".task");
+    if (!row || !row.dataset.schedule) return;
+    openEdit(row, JSON.parse(row.dataset.schedule));
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    clearError();
+
+    const data = new FormData(form);
+    const name = String(data.get("name") || "").trim();
+    const recipients = String(data.get("recipients") || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    const subject = String(data.get("subject") || "").trim();
+    const html = bodyInput.value.trim();
+    const how = howSelect.value;
+
+    if (!name) return showError("Give this task a job name.");
+    if (recipients.length === 0) return showError("Add at least one recipient.");
+    if (!subject) return showError("Add a subject.");
+    if (!html) return showError("Write the message in the editor.");
+
+    const draft = {
+      name,
+      recipients,
+      subject,
+      body: html,
+      sender: SENDER,
+      schedule_type: "immediate",
+      schedule_rule: null,
+      scheduled_for: null,
+    };
+
+    if (how !== "now") {
+      if (!dateInput.value) return showError("Pick a date.");
+
+      draft.scheduled_for = `${dateInput.value}T${timeInput.value || "09:00"}`;
+
+      if (how === "once") {
+        draft.schedule_type = "one_time";
+      } else {
+        draft.schedule_type = "recurring";
+        draft.schedule_rule = { every: how === "christmas" || how === "new_year" ? "yearly" : how };
+      }
+    }
+
+    setBusy(true);
+
+    try {
+      if (mode === "edit") {
+        await window.bzComposer.onUpdate(editingId, draft);
+      } else {
+        await window.bzComposer.onSubmit(draft);
+      }
+      goHome();
+      resetForm();
+      bodyInput.value = "";
+    } catch (err) {
+      showError(err.message || "Could not save the task.");
+    } finally {
+      setBusy(false);
+    }
+  });
+
+  resetForm();
+})();
+</script>
+
+  <!-- Delete Project Confirmation Modal (with blurred background) -->
+  <div class="delete-modal-backdrop" id="delete-project-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 2000; align-items: center; justify-content: center; padding: 16px;">
+    <div class="delete-modal-box" style="background: #ffffff; border-radius: 12px; width: 100%; max-width: 440px; padding: 24px; box-shadow: 0 20px 30px rgba(0,0,0,0.18); display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; gap: 14px; align-items: flex-start;">
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: #fee2e2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+        </div>
+        <div>
+          <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0 0 6px;">Delete Project</h3>
+          <p style="font-size: 14px; color: #4b5563; line-height: 1.5; margin: 0;">
+            Are you sure you want to delete <strong id="delete-modal-project-name">this project</strong>? This will permanently delete the project and all of its associated schedules and dispatches.
+          </p>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px;">
+        <button type="button" id="delete-modal-cancel" style="border-radius: 6px; padding: 9px 16px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; font-size: 14px;">Cancel</button>
+        <button type="button" id="delete-modal-confirm" style="border-radius: 6px; padding: 9px 16px; background: #dc2626; color: white; border: none; font-weight: 500; cursor: pointer; font-size: 14px;">Delete Project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Settings Modal (with blurred background) -->
+  <div class="delete-modal-backdrop" id="project-settings-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 2000; align-items: center; justify-content: center; padding: 16px;">
+    <div class="delete-modal-box" style="background: #ffffff; border-radius: 12px; width: 100%; max-width: 480px; padding: 24px; box-shadow: 0 20px 30px rgba(0,0,0,0.18); display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 12px;">
+        <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Project Settings</h3>
+        <div class="close-btn" id="settings-modal-close" role="button" aria-label="Close" style="cursor: pointer; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #f3f4f6;">
+          <img src="Close.png" style="pointer-events:none; height: 14px;" alt="">
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 14px; font-size: 14px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Active Project</label>
+          <p id="settings-active-name" style="font-size: 16px; font-weight: 600; color: #111827; margin-top: 4px;">-</p>
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Status</label>
+          <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: #dcfce7; color: #166534; margin-top: 4px;">Active</span>
+        </div>
+        <div style="border-top: 1px solid #fee2e2; padding-top: 16px; margin-top: 8px;">
+          <h4 style="font-size: 14px; font-weight: 600; color: #dc2626; margin: 0 0 4px;">Danger Zone</h4>
+          <p style="font-size: 13px; color: #6b7280; margin: 0 0 12px;">Permanently remove this project and its schedules from your Bzade account.</p>
+          <button type="button" id="settings-delete-btn" style="border-radius: 6px; padding: 8px 14px; background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; font-size: 13px; font-weight: 600; cursor: pointer;">
+            Delete Project...
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="schedules.js"></script>
+</body>
+</html>
