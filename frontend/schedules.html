@@ -33,13 +33,33 @@
     }
     .banner-right {
       display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .banner-right div {
+    .banner-right div.avatar-initial {
       height: 30px; width: 30px; border-radius: 20px;
       background-color: red;
       display: flex; align-items: center; justify-content: center; align-self: center;
       color: white; font-weight: 600;
     }
+    .header-action-btn {
+      background: transparent; border: none; width: 32px; height: 32px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      color: #4b5563; cursor: pointer; transition: background 0.15s ease, color 0.15s ease;
+    }
+    .header-action-btn:hover { background: #f3f4f6 !important; color: #111827 !important; }
+    .header-dropdown-menu {
+      display: none; position: absolute; top: 40px; right: 0;
+      background: white; border: 1px solid #e5e7eb; border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12); min-width: 190px; padding: 6px; z-index: 50;
+    }
+    .header-dropdown-menu.show { display: block; }
+    .header-dd-item {
+      display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+      font-size: 13px; color: #374151; text-decoration: none; border-radius: 6px;
+      transition: background 0.12s ease;
+    }
+    .header-dd-item:hover { background: #f3f4f6; color: #111827; }
     .drop-down {
       pointer-events: none;
       position: absolute;
@@ -202,7 +222,8 @@
 
     /* Main Middle Section */
     main {
-      flex: 1;
+      flex: 1 1 auto;
+      min-width: 0;
       width: 100%;
       max-width: 860px;
       margin: 0;
@@ -213,6 +234,12 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
+      transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* When sidebar collapses on desktop, main expands its width to take the left space */
+    .left-sidebar.collapsed ~ main {
+      max-width: none !important;
     }
 
     .col-project-info {
@@ -226,9 +253,12 @@
       gap: 15px;
     }
 
+    /* Right column stays anchored at the right side completely */
     .col-empty-third {
       width: 270px;
+      min-width: 270px;
       flex-shrink: 0;
+      margin-left: auto;
       pointer-events: none;
     }
 
@@ -477,16 +507,72 @@
               <img src="Check.png" style="height: 12px;">
               <p style="font-size: 13px;">Overview</p>
             </div>
+            <div class="taskly-projs" onclick="window.location.href='schedules.html'">
+              <img src="Check.png" style="height: 12px;">
+              <p style="font-size: 13px;">Schedules</p>
+            </div>
             <div class="taskly-projs" onclick="window.location.href='smtp.html'">
               <img src="Check.png" style="height: 12px;">
               <p style="font-size: 13px;">Mail Connections</p>
+            </div>
+            <div class="taskly-projs" id="header-connect-gmail" onclick="window.location.href='schedules.html?connect=gmail'">
+              <img src="gmail-btn.png" style="height: 12px;">
+              <p style="font-size: 13px;">Connect Gmail account</p>
             </div>
           </div>
         </div>
       </div>
     </div>
     <div class="banner-right">
-      <div id="avatar-btn" style="cursor: pointer;">S</div>
+      <!-- Invite button -->
+      <button type="button" class="header-action-btn" id="btn-header-invite" title="Invite team member">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+        </svg>
+      </button>
+
+      <!-- Help / Docs dropdown (?) -->
+      <div style="position: relative;" id="help-menu-container">
+        <button type="button" class="header-action-btn" id="help-dropdown-btn" title="Help & Documentation">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </button>
+        <div class="header-dropdown-menu" id="help-dropdown-menu">
+          <a href="documentation.html" class="header-dd-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span>Bzade Docs</span>
+          </a>
+          <a href="documentation.html#api" class="header-dd-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            <span>API Reference</span>
+          </a>
+          <a href="feedback.html" class="header-dd-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Feedbacks</span>
+          </a>
+          <a href="terms.html" class="header-dd-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>Terms of Service</span>
+          </a>
+          <div style="height: 1px; background: #e5e7eb; margin: 4px 0;"></div>
+          <a href="mailto:support@bzade.app" class="header-dd-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <span>Support</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 9 dots app switcher -->
+      <button type="button" class="header-action-btn" title="Bzade apps">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/>
+          <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+          <circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>
+        </svg>
+      </button>
+
+      <div id="avatar-btn" class="avatar-initial" style="cursor: pointer;">S</div>
     </div>
   </header>
   
@@ -532,7 +618,7 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
                 <span>API keys</span>
               </a>
-              <a href="billing.html" class="nav-item">
+              <a href="account/billing.html" class="nav-item">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                 <span>Billing</span>
               </a>
@@ -565,7 +651,9 @@
           <p style="font-size: 14px; color: grey; text-transform: uppercase; letter-spacing: 0.5px;">MY PROJECTS</p>
           <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
             <h2 id="project-title" style="font-size: 28px; font-weight: 700;">Project</h2>
-            <img src="menu.png" height="20px" alt="Menu" style="cursor: pointer;" onclick="document.querySelector('[data-action=open-settings]')?.click();" />
+            <span class="proj-menu-icon-wrap" style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 6px; background-color: #e0f2fe; cursor: pointer;" title="Project options">
+              <img src="menu.png" height="16px" alt="Menu" style="pointer-events: none;" />
+            </span>
           </div>
           
           <button id="add-schedule">
@@ -580,10 +668,16 @@
         <div class="task-toggle">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
             <h2 style="font-size: 22px;">Tasks</h2>
-            <button id="connect-gmail-btn" class="btn" type="button" style="padding: 4px 10px; background-color: inherit; border: 1px solid lightgray; border-radius: 4px; cursor: pointer; font-weight: normal; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; color: #111;">
-              <img src="gmail-btn.png" style="height: 14px;" alt="Gmail" />
-              <span>Connect Gmail</span>
-            </button>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div id="channel-switcher" class="channel-switcher" style="display: none; align-items: center; background: #f3f4f6; padding: 3px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                <button type="button" class="channel-pill active" data-channel="emails" style="padding: 4px 12px; font-size: 13px; font-weight: 600; border: none; border-radius: 6px; background: #ffffff; color: #111827; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.15s ease;">Emails</button>
+                <button type="button" class="channel-pill" data-channel="payload" style="padding: 4px 12px; font-size: 13px; font-weight: 500; border: none; border-radius: 6px; background: transparent; color: #6b7280; cursor: pointer; transition: all 0.15s ease;">Payload</button>
+              </div>
+              <button id="connect-gmail-btn" class="btn" type="button" style="padding: 4px 10px; background-color: inherit; border: 1px solid lightgray; border-radius: 4px; cursor: pointer; font-weight: normal; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; color: #111;">
+                <img src="gmail-btn.png" style="height: 14px;" alt="Gmail" />
+                <span>Connect Gmail</span>
+              </button>
+            </div>
           </div>
           <div class="toggles">
             <button class="toggle active" data-filter="all" type="button">All (0)</button>
@@ -843,6 +937,10 @@
     function toggleDesktopSidebar() {
       const sidebar = document.querySelector('.left-sidebar');
       const btn = document.getElementById('desktop-collapse-btn');
+      const sidebarContent = document.querySelector('.left-sidebar-content');
+      if (sidebarContent) {
+        sidebarContent.style.flex = '';
+      }
       if (!sidebar || !btn) return;
       const isCollapsed = sidebar.classList.toggle('collapsed');
       if (isCollapsed) {
@@ -864,6 +962,21 @@
       toggleEl.setAttribute('aria-expanded', !isCollapsed);
     }
     window.toggleProjectsNav = toggleProjectsNav;
+
+    /* Help dropdown (?) */
+    const helpBtn = document.getElementById("help-dropdown-btn");
+    const helpMenu = document.getElementById("help-dropdown-menu");
+    if (helpBtn && helpMenu) {
+      helpBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        helpMenu.classList.toggle("show");
+      });
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest("#help-menu-container")) {
+          helpMenu.classList.remove("show");
+        }
+      });
+    }
   </script>
   <script type="module" src="scripts/ui/toast.js"></script>
   <script>

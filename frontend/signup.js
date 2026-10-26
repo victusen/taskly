@@ -1,10 +1,11 @@
-import { signUp, signInWithGoogle, signInWithFacebook } from "./scripts/auth/auth.js";
+import { signUp, signInWithGoogle, signInWithFacebook, signInWithX } from "./scripts/auth/auth.js";
 import { showToast } from "./scripts/ui/toast.js";
 
 const form = document.getElementById("signup-form");
 
 document.getElementById("google")?.addEventListener("click", () => signInWithGoogle().catch((e) => showToast("error", e.message || "Google sign-in failed.")));
 document.getElementById("facebook")?.addEventListener("click", () => signInWithFacebook().catch((e) => showToast("error", e.message || "Facebook sign-in failed.")));
+document.getElementById("X")?.addEventListener("click", () => signInWithX().catch((e) => showToast("error", e.message || "X sign-in failed.")));
 
 // Password visibility eye toggle
 document.querySelectorAll('.eye-toggle').forEach((btn) => {

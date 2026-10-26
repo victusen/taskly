@@ -192,6 +192,16 @@ async function renderDashboardProjects() {
         })
         .join("");
     }
+
+    // Populate synced metrics, replacing skeleton placeholders
+    const mDisp = document.getElementById("metric-dispatched");
+    const mDel = document.getElementById("metric-delivered");
+    const mBnc = document.getElementById("metric-bounced");
+    const mFail = document.getElementById("metric-failed");
+    if (mDisp) mDisp.textContent = "0";
+    if (mDel) mDel.textContent = "0%";
+    if (mBnc) mBnc.textContent = "0%";
+    if (mFail) mFail.textContent = "0%";
   } catch (err) {
     console.error("[LOAD PROJECTS ERROR]", err);
     if (projectListEl) {
@@ -202,6 +212,14 @@ async function renderDashboardProjects() {
         </div>
       `;
     }
+    const mDisp = document.getElementById("metric-dispatched");
+    const mDel = document.getElementById("metric-delivered");
+    const mBnc = document.getElementById("metric-bounced");
+    const mFail = document.getElementById("metric-failed");
+    if (mDisp) mDisp.textContent = "0";
+    if (mDel) mDel.textContent = "0%";
+    if (mBnc) mBnc.textContent = "0%";
+    if (mFail) mFail.textContent = "0%";
   }
 }
 

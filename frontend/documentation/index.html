@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bzade Documentation - API, Email Scheduling & Payload Dispatch</title>
+  <link rel="icon" type="image/png" href="../logo-2.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../scripts/ui/toast.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #111827;
+      background-color: #ffffff;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    header.docs-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #e5e7eb;
+      height: 60px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .docs-brand { display: flex; align-items: center; gap: 12px; }
+    .docs-brand img { height: 28px; width: auto; }
+    .docs-brand span { font-size: 18px; font-weight: 700; color: #111827; }
+    .docs-badge {
+      font-size: 11px;
+      font-weight: 600;
+      background: #f3f4f6;
+      color: #4b5563;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .docs-nav-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .docs-nav-right a { color: #4b5563; transition: color 0.15s ease; }
+    .docs-nav-right a:hover { color: #111827; }
+    .btn-dashboard {
+      background: #111827;
+      color: #ffffff !important;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.15s ease;
+    }
+    .btn-dashboard:hover { background: #262626; }
+
+    .docs-container {
+      display: flex;
+      max-width: 1440px;
+      margin: 0 auto;
+      min-height: calc(100vh - 60px);
+    }
+
+    aside.docs-sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      border-right: 1px solid #e5e7eb;
+      padding: 32px 20px;
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+      background: #fafafa;
+    }
+    .sidebar-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+      margin-bottom: 12px;
+      margin-top: 24px;
+    }
+    .sidebar-label:first-child { margin-top: 0; }
+    .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+    .sidebar-link {
+      display: block;
+      padding: 7px 12px;
+      font-size: 13.5px;
+      color: #4b5563;
+      border-radius: 6px;
+      transition: all 0.12s ease;
+    }
+    .sidebar-link:hover { background: #e5e7eb; color: #111827; }
+    .sidebar-link.active { background: #e6f4ea; color: #166534; font-weight: 600; }
+
+    main.docs-content {
+      flex: 1;
+      min-width: 0;
+      padding: 48px 64px 96px 64px;
+      max-width: 960px;
+    }
+    .docs-breadcrumb { font-size: 13px; color: #6b7280; margin-bottom: 12px; }
+    h1.doc-title {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #111827;
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+    p.doc-lead {
+      font-size: 17px;
+      color: #4b5563;
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+    .doc-section { margin-bottom: 48px; scroll-margin-top: 80px; }
+    .doc-section h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .doc-section h3 { font-size: 17px; font-weight: 600; color: #111827; margin: 20px 0 8px; }
+    .doc-section p { font-size: 15px; color: #374151; margin-bottom: 16px; }
+    .doc-section ul { margin-left: 20px; margin-bottom: 16px; font-size: 15px; color: #374151; }
+    .doc-section li { margin-bottom: 6px; }
+
+    .code-box {
+      background: #111827;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .code-box-header {
+      background: #1f2937;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #9ca3af;
+      font-family: 'Fira Code', monospace;
+    }
+    .code-copy-btn {
+      background: transparent;
+      border: 1px solid #374151;
+      color: #d1d5db;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+    .code-copy-btn:hover { background: #374151; color: #ffffff; }
+    pre.code-content {
+      padding: 18px 20px;
+      font-family: 'Fira Code', monospace;
+      font-size: 13.5px;
+      color: #e5e7eb;
+      overflow-x: auto;
+      line-height: 1.55;
+    }
+
+    .method-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-right: 6px;
+      font-family: 'Fira Code', monospace;
+    }
+    .method-post { background: #dcfce7; color: #166534; }
+
+    table.doc-table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 14px; }
+    table.doc-table th {
+      text-align: left;
+      padding: 10px 14px;
+      background: #f9fafb;
+      border-bottom: 2px solid #e5e7eb;
+      font-weight: 600;
+      color: #111827;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    table.doc-table td { padding: 12px 14px; border-bottom: 1px solid #f3f4f6; color: #374151; vertical-align: top; }
+    table.doc-table code {
+      background: #f3f4f6;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: 'Fira Code', monospace;
+      color: #b91c1c;
+    }
+
+    @media (max-width: 900px) {
+      .docs-container { flex-direction: column; }
+      aside.docs-sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 16px 20px;
+      }
+      main.docs-content { padding: 32px 20px; }
+      header.docs-header { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="docs-header">
+    <div class="docs-brand">
+      <a href="../index.html" style="display: flex; align-items: center; gap: 8px;">
+        <img src="../logo-bz.png" alt="Bzade" />
+        <span>Bzade</span>
+      </a>
+      <span class="docs-badge">Docs</span>
+    </div>
+    <nav class="docs-nav-right">
+      <a href="#overview">Overview</a>
+      <a href="#api">API Reference</a>
+      <a href="#payloads">Payloads</a>
+      <a href="../dashboard.html" class="btn-dashboard">Console</a>
+    </nav>
+  </header>
+
+  <div class="docs-container">
+    <aside class="docs-sidebar">
+      <div class="sidebar-label">On This Page</div>
+      <ul class="sidebar-menu">
+        <li><a href="#overview" class="sidebar-link active">Overview &amp; Concept</a></li>
+        <li><a href="#integration-options" class="sidebar-link">Site Integration</a></li>
+        <li><a href="#api" class="sidebar-link">REST API Reference</a></li>
+        <li><a href="#authentication" class="sidebar-link">Authentication &amp; Keys</a></li>
+        <li><a href="#schedule-api" class="sidebar-link">Scheduling API</a></li>
+        <li><a href="#payloads" class="sidebar-link">Payload &amp; Webhooks</a></li>
+        <li><a href="#google-sheets" class="sidebar-link">Google Sheets Sync</a></li>
+        <li><a href="#sdks" class="sidebar-link">SDK Code Examples</a></li>
+        <li><a href="#errors" class="sidebar-link">Error Codes &amp; Limits</a></li>
+      </ul>
+
+      <div class="sidebar-label">Quick Links</div>
+      <ul class="sidebar-menu">
+        <li><a href="../dashboard.html" class="sidebar-link">Dashboard Overview</a></li>
+        <li><a href="../schedules.html" class="sidebar-link">Task Schedules</a></li>
+        <li><a href="../account/billing.html" class="sidebar-link">Account &amp; Billing</a></li>
+        <li><a href="../terms.html" class="sidebar-link">Terms of Service</a></li>
+      </ul>
+    </aside>
+
+    <main class="docs-content">
+      <div class="docs-breadcrumb">Documentation / Developer Guide</div>
+      <h1 class="doc-title">Bzade Developer Documentation</h1>
+      <p class="doc-lead">
+        Learn how businesses, developers, and personal websites integrate automated email scheduling and webhook payload dispatches into their applications with Bzade.
+      </p>
+
+      <section id="overview" class="doc-section">
+        <h2>Overview &amp; Concept</h2>
+        <p>
+          Bzade is an automation and execution engine designed to manage scheduled email dispatches and outgoing webhook payloads. Rather than maintaining custom cron jobs, Celery workers, or Bull queues on your servers, you can delegate scheduled execution to Bzade with high reliability and zero downtime.
+        </p>
+        <ul>
+          <li><strong>Punctual Scheduling:</strong> Run one-time or recurring tasks (daily, weekly, monthly, yearly, custom timestamps).</li>
+          <li><strong>Dual Channel Delivery:</strong> Transmit formatted HTML emails or forward JSON HTTP payloads to external webhooks.</li>
+          <li><strong>Zero Maintenance Infrastructure:</strong> Securely connected through your verified SMTP or Gmail relays.</li>
+          <li><strong>Automated Fallbacks:</strong> Persistent storage with exponential retries and delivery status telemetry.</li>
+        </ul>
+      </section>
+
+      <section id="integration-options" class="doc-section">
+        <h2>How Businesses &amp; Personal Websites Integrate</h2>
+        <p>
+          Whether you are running an e-commerce platform, SaaS product, newsletter, or a personal website, integrating Bzade requires only a simple HTTP request from your backend or Jamstack static forms.
+        </p>
+        <h3>Common Use Cases</h3>
+        <ul>
+          <li><strong>Drip &amp; Welcome Campaigns:</strong> When a user signs up on your website, trigger a 3-day welcome sequence by scheduling an email for <code>+72 hours</code>.</li>
+          <li><strong>Booking &amp; Appointment Reminders:</strong> Schedule automated appointment reminders 24 hours and 1 hour before an event.</li>
+          <li><strong>Webhook Dispatcher:</strong> Dispatch state payloads to your analytics, CRM, or external partner APIs at precise future intervals.</li>
+          <li><strong>No-Code &amp; Form Submissions:</strong> Connect Google Spreadsheets and web forms directly to Bzade's webhook ingestion engine.</li>
+        </ul>
+      </section>
+
+      <section id="api" class="doc-section">
+        <h2>REST API Reference</h2>
+        <p>
+          The Bzade REST API is organized around standard REST principles. All requests accept JSON payloads and return standard JSON responses with appropriate HTTP status codes.
+        </p>
+
+        <h3 id="authentication">Authentication</h3>
+        <p>Authenticate your API requests by including your API key in the <code>Authorization</code> header:</p>
+        <div class="code-box">
+          <div class="code-box-header">
+            <span>HTTP Header</span>
+            <button class="code-copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre class="code-content">Authorization: Bearer bz_live_your_api_key_here</pre>
+        </div>
+      </section>
+
+      <section id="schedule-api" class="doc-section">
+        <h2>Creating a Schedule</h2>
+        <p><span class="method-badge method-post">POST</span> <code>/api/schedules</code></p>
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>projectId</code></td>
+              <td>String</td>
+              <td>Required. The UUID of the destination project.</td>
+            </tr>
+            <tr>
+              <td><code>name</code></td>
+              <td>String</td>
+              <td>A human-readable label for the job.</td>
+            </tr>
+            <tr>
+              <td><code>channel</code></td>
+              <td>String</td>
+              <td><code>emails</code> for email dispatches or <code>payload</code> for webhook POST.</td>
+            </tr>
+            <tr>
+              <td><code>schedule_type</code></td>
+              <td>String</td>
+              <td><code>once</code> for one-time or <code>recurring</code>.</td>
+            </tr>
+            <tr>
+              <td><code>scheduled_for</code></td>
+              <td>ISO 8601</td>
+              <td>UTC timestamp when the task should first trigger.</td>
+            </tr>
+            <tr>
+              <td><code>config</code></td>
+              <td>Object</td>
+              <td>Delivery configuration.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="code-box">
+          <div class="code-box-header">
+            <span>cURL Example</span>
+            <button class="code-copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre class="code-content">curl -X POST https://api.bzade.app/v1/schedules \
+  -H "Authorization: Bearer bz_live_sec_99a812bc" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "projectId": "proj_8291a92",
+    "name": "Order Followup",
+    "channel": "emails",
+    "schedule_type": "once",
+    "scheduled_for": "2026-10-30T10:00:00Z",
+    "config": {
+      "recipients": ["customer@example.com"],
+      "subject": "How was your recent delivery?",
+      "body": "&lt;p&gt;Hi there, we hope you loved your order!&lt;/p&gt;"
+    }
+  }'</pre>
+        </div>
+      </section>
+
+      <section id="payloads" class="doc-section">
+        <h2>Webhook &amp; Payload Dispatching</h2>
+        <p>When you set <code>channel: "payload"</code>, Bzade dispatches a POST request to your specified target endpoint when the schedule matures.</p>
+        <div class="code-box">
+          <div class="code-box-header">
+            <span>Payload Request Body</span>
+            <button class="code-copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre class="code-content">{
+  "projectId": "proj_8291a92",
+  "name": "Sync Inventory Webhook",
+  "channel": "payload",
+  "schedule_type": "recurring",
+  "cron": "0 0 * * *",
+  "config": {
+    "target_url": "https://api.yourdomain.com/webhooks/inventory",
+    "headers": {
+      "X-Custom-Secret": "sec_custom_token"
+    },
+    "payload": {
+      "action": "recalculate_stock",
+      "timestamp": "2026-10-26T20:00:00Z"
+    }
+  }
+}</pre>
+        </div>
+      </section>
+
+      <section id="google-sheets" class="doc-section">
+        <h2>Google Sheets Form Integration</h2>
+        <p>
+          Bzade allows capturing form submissions (such as career applications or leads) directly into a Google Spreadsheet using lightweight Google Apps Script endpoints.
+        </p>
+        <p>
+          Target Sheet ID: <code>127A2vUkkEuYzgUlHGWRoBngfDpUVO6NrQ7sw9lCkhs0</code><br>
+          Range: <code>Sheet1!B6:G</code> (Columns: Full Name, Email, Phone Number, Interested Role, LinkedIn URL, About Me).
+        </p>
+      </section>
+
+      <section id="sdks" class="doc-section">
+        <h2>Node.js &amp; JavaScript Example</h2>
+        <div class="code-box">
+          <div class="code-box-header">
+            <span>Node.js / Express</span>
+            <button class="code-copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre class="code-content">import fetch from "node-fetch";
+
+export async function scheduleEmailReminder(userEmail, appointmentDate) {
+  const response = await fetch("https://api.bzade.app/v1/schedules", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.BZADE_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      projectId: process.env.BZADE_PROJECT_ID,
+      name: `Appointment Reminder: ${userEmail}`,
+      channel: "emails",
+      schedule_type: "once",
+      scheduled_for: new Date(appointmentDate.getTime() - 86400000).toISOString(),
+      config: {
+        recipients: [userEmail],
+        subject: "Reminder: Your appointment is tomorrow",
+        body: "&lt;p&gt;We look forward to seeing you tomorrow!&lt;/p&gt;"
+      }
+    })
+  });
+
+  return await response.json();
+}</pre>
+        </div>
+      </section>
+
+      <section id="errors" class="doc-section">
+        <h2>Error Codes &amp; Limits</h2>
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Code</th>
+              <th>Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>401</code></td>
+              <td><code>UNAUTHORIZED</code></td>
+              <td>Missing or invalid Bearer API key.</td>
+            </tr>
+            <tr>
+              <td><code>404</code></td>
+              <td><code>PROJECT_NOT_FOUND</code></td>
+              <td>The specified project ID does not exist or belong to your account.</td>
+            </tr>
+            <tr>
+              <td><code>422</code></td>
+              <td><code>VALIDATION_ERROR</code></td>
+              <td>Invalid parameters or recipient email syntax.</td>
+            </tr>
+            <tr>
+              <td><code>429</code></td>
+              <td><code>RATE_LIMIT_EXCEEDED</code></td>
+              <td>You have exceeded your plan's monthly dispatch quota.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="../scripts/ui/toast.js"></script>
+  <script>
+    function copyCode(btn) {
+      const code = btn.closest('.code-box').querySelector('pre').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const orig = btn.innerText;
+        btn.innerText = "Copied!";
+        setTimeout(() => (btn.innerText = orig), 1800);
+      });
+    }
+    window.copyCode = copyCode;
+
+    const links = document.querySelectorAll('.sidebar-link');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      document.querySelectorAll('.doc-section').forEach((sec) => {
+        const top = sec.offsetTop - 120;
+        if (window.scrollY >= top) {
+          current = '#' + sec.getAttribute('id');
+        }
+      });
+      links.forEach((link) => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === current) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

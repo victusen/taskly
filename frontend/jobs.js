@@ -226,6 +226,25 @@ async function updateProjectUI(project) {
   } catch (e) {
     console.error("Could not load sibling projects:", e);
   }
+
+  // If project has an active connected Gmail/mail account, show light channel switcher and hide connect btn
+  try {
+    const connections = (await loadConnections()).filter((c) => c.status === "active");
+    const hasConnection = connections.length > 0;
+    const channelSwitcher = document.getElementById("channel-switcher");
+    const connectGmailBtn = document.getElementById("connect-gmail-btn");
+    if (channelSwitcher && connectGmailBtn) {
+      if (hasConnection) {
+        channelSwitcher.style.display = "inline-flex";
+        connectGmailBtn.style.display = "none";
+      } else {
+        channelSwitcher.style.display = "none";
+        connectGmailBtn.style.display = "inline-flex";
+      }
+    }
+  } catch (connErr) {
+    console.warn("Could not check connections for channel switcher:", connErr);
+  }
 }
 
 // Populate connections in schedule overlay modal
@@ -281,14 +300,14 @@ hamburgerBtn?.addEventListener("click", () => {
   } else {
     // On desktop: always expand (open) the sidebar if it's collapsed
     const sidebar = document.querySelector(".left-sidebar");
-    const sidebarCard = document.querySelector(".left-sidebar-card");
+    const sidebarContent = document.querySelector(".left-sidebar-content");
     if (sidebar) {
       if (sidebar.classList.contains("collapsed")) {
-        // Expand with playful flex-1 animation
+        // Expand with flex-1 on content
         sidebar.classList.remove("collapsed");
-        if (sidebarCard) {
-          sidebarCard.style.flex = "1";
-          sidebarCard.style.transition = "flex 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease";
+        if (sidebarContent) {
+          sidebarContent.style.flex = "1";
+          sidebarContent.style.transition = "flex 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease";
         }
         const btn = document.getElementById("desktop-collapse-btn");
         if (btn) {
@@ -346,6 +365,62 @@ connectGmailBtn?.addEventListener("click", async () => {
     setLoading(false);
   }
 });
+
+// Dropdown "Connect Gmail account" handler
+document.getElementById("header-connect-gmail")?.addEventListener("click", async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  try {
+    await startGoogleConnection();
+  } catch (err) {
+    toastError(err.message || "Could not connect Gmail.");
+  } finally {
+    setLoading(false);
+  }
+});
+
+// Handle ?connect=gmail query param
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get("connect") === "gmail") {
+  urlParams.delete("connect");
+  const cleanUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "") + (window.location.hash || "");
+  window.history.replaceState({}, document.title, cleanUrl);
+  startGoogleConnection().catch((err) => toastError(err.message || "Could not start Gmail connection."));
+}
+
+// Clean tokens / hash fragments from URL
+if (window.location.hash && (window.location.hash.includes("access_token") || window.location.hash.includes("refresh_token") || window.location.hash === "#")) {
+  window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+}
+
+// Channel switcher pills (Emails vs Payload)
+const channelSwitcherEl = document.getElementById("channel-switcher");
+if (channelSwitcherEl) {
+  const pills = channelSwitcherEl.querySelectorAll(".channel-pill");
+  pills.forEach((pill) => {
+    pill.addEventListener("click", () => {
+      pills.forEach((p) => {
+        p.classList.remove("active");
+        p.style.background = "transparent";
+        p.style.color = "#6b7280";
+        p.style.fontWeight = "500";
+        p.style.boxShadow = "none";
+      });
+      pill.classList.add("active");
+      pill.style.background = "#ffffff";
+      pill.style.color = "#111827";
+      pill.style.fontWeight = "600";
+      pill.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08)";
+
+      const channel = pill.dataset.channel || "emails";
+      if (channel === "payload") {
+        showToast("info", "Payload scheduling mode selected.");
+      } else {
+        showToast("info", "Email scheduling mode selected.");
+      }
+    });
+  });
+}
 
 // Schedule form submission (Overlay modal)
 scheduleForm?.addEventListener("submit", async (event) => {

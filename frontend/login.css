@@ -365,7 +365,8 @@ form {
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .back-link {
-    display: none;
+    display: inline-flex;
+    margin-bottom: 12px;
   }
   .auth-header {
     padding: 16px 20px;
@@ -375,11 +376,55 @@ form {
     flex-direction: column;
     align-items: flex-start;
   }
+  .social-login-group {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .social-btn {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    height: 40px !important;
+    padding: 0 6px !important;
+    font-size: 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+  }
   .form-row {
     flex-direction: column;
     gap: 15px;
   }
   .auth-card {
     padding: 24px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .social-login-group {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+  }
+  .social-btn {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    height: 38px !important;
+    padding: 0 4px !important;
+    font-size: 11px !important;
+    gap: 4px !important;
+  }
+  .social-btn img {
+    height: 15px;
+    width: 15px;
+  }
+  .social-icon-x {
+    height: 14px;
+    width: 14px;
   }
 }
