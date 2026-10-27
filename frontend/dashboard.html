@@ -22,7 +22,7 @@
       z-index: 5;
     }
     .banner-left { display: flex; align-items: center; gap: 8px; }
-    .banner-right { display: flex; align-items: center; }
+    .banner-right { display: flex; align-items: center; gap: 6px; }
     .banner-right div {
       height: 30px; width: 30px; border-radius: 20px;
       background-color: red; color: white; font-weight: 600;
@@ -80,9 +80,23 @@
     }
     .mobile-sidebar-overlay.open .mobile-sidebar { transform: translateX(0); }
     .mobile-sidebar-header {
-      padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+      height: 50px;
+      padding: 0 16px;
+      display: flex; align-items: center; justify-content: space-between;
       border-bottom: 1px solid #eee;
+      flex-shrink: 0;
     }
+    /* X close btn — no bg by default, only shows bg on hover */
+    #sidebar-close-btn {
+      background: transparent;
+      border: none;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: #374151;
+      transition: background 0.15s ease;
+    }
+    #sidebar-close-btn:hover { background: #f3f4f6; }
     .mobile-sidebar-body { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 20px; }
 
     /* Laptop sidebar card — full height, sticky, space-between */
@@ -132,13 +146,18 @@
     .skeleton-nav-group .skeleton-line:nth-child(3) { width: 68%; }
 
     /* Header action buttons & dropdowns */
-    .banner-right { display: flex; align-items: center; gap: 8px; }
+    .banner-right { display: flex; align-items: center; gap: 6px; }
     .header-action-btn {
       background: transparent; border: none; width: 32px; height: 32px;
       border-radius: 50%; display: flex; align-items: center; justify-content: center;
       color: #4b5563; cursor: pointer; transition: background 0.15s ease, color 0.15s ease;
     }
     .header-action-btn:hover { background: #f3f4f6 !important; color: #111827 !important; }
+    /* ? button stays highlighted while dropdown is open */
+    #help-menu-container:has(#help-dropdown-menu.show) #help-dropdown-btn {
+      background: #e5e7eb !important;
+      color: #111827 !important;
+    }
     .header-dropdown-menu {
       display: none; position: absolute; top: 40px; right: 0;
       background: white; border: 1px solid #e5e7eb; border-radius: 8px;
@@ -344,7 +363,7 @@
     .col-empty-third { display: none; }
 
     /* Main column */
-    main { display: flex; flex-direction: column; gap: 15px; width: 100%; padding: 12px 15px; }
+    main { display: flex; flex-direction: column; gap: 15px; width: 100%; padding: 12px 15px; overflow-y: auto; }
     .dash-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
     .business-overviews { display: flex; flex-direction: column; gap: 20px; width: 100%; margin-top: 20px; margin-bottom: 30px; }
     .project-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -547,7 +566,7 @@
     @media (min-width: 768px) {
       #hamburger-btn { display: none; }
       .asymmetric-wrapper {
-        display: flex; justify-content: flex-start; align-items: flex-start; gap: 24px;
+        display: flex; justify-content: flex-start; align-items: flex-start; gap: 28px;
         width: calc(100% - 32px); max-width: 1680px;
         margin: 68px 16px 3rem 16px;
       }
@@ -557,12 +576,15 @@
         position: sticky; top: 68px;
         height: calc(100vh - 88px);
         align-self: flex-start;
+        overflow: hidden;
         transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
       main {
         flex: 1; min-width: 0; width: 100%;
-        padding: 2rem;
+        padding: 2rem 2.5rem;
         background: inherit; border-radius: 8px;
+        overflow-y: auto;
+        max-height: calc(100vh - 88px);
       }
       .col-empty-third { display: none !important; }
     }
@@ -571,11 +593,12 @@
     @media (min-width: 1200px) {
       .left-sidebar {
         width: 270px; min-width: 270px;
-        align-self: stretch;
+        align-self: flex-start;
       }
       main {
         flex: 1;
         max-width: none !important;
+        padding: 2rem 3rem;
       }
       .col-empty-third { display: none !important; }
     }
@@ -660,13 +683,13 @@
       </div>
 
       <!-- 9 dots app switcher -->
-      <button type="button" class="header-action-btn" title="Bzade apps">
+      <!-- <button type="button" class="header-action-btn" title="Bzade apps">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
           <circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/>
           <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
           <circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>
         </svg>
-      </button>
+      </button> -->
 
       <div id="header-avatar">S</div>
     </div>
@@ -677,6 +700,12 @@
     <div class="nav-section">
       <h4>Navigation</h4>
       <div class="nav-links-list">
+        <a href="dashboard.html" class="nav-item active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          <span>Dashboard</span>
+        </a>
         <div class="nav-item nav-item-collapsible collapsed" role="button" tabindex="0" aria-expanded="false" data-toggle-projects>
           <div style="display: flex; align-items: center; gap: 10px;">
             <!-- 3 Isometric Cubes Icon -->
@@ -700,13 +729,13 @@
         </div>
         <div class="sub-nav collapsed" data-sub-nav style="display:none;"></div>
 
-        <a href="#" class="nav-item" data-soon aria-disabled="true">
+        <a href="#" class="nav-item" onclick="event.preventDefault(); window.bzShowAudiences && window.bzShowAudiences();">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <span>Audiences</span> <span class="soon">Soon</span>
+          <span>Audiences</span>
         </a>
-        <a href="#" class="nav-item" data-soon aria-disabled="true">
+        <a href="#" class="nav-item" onclick="event.preventDefault(); window.bzShowTeam && window.bzShowTeam();">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6.5 8-6.5s8 2.5 8 6.5"/></svg>
-          <span>Team members</span> <span class="soon">Soon</span>
+          <span>Team members</span>
         </a>
         <a href="#" class="nav-item" data-sidebar-settings>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
@@ -736,10 +765,17 @@
   <div class="mobile-sidebar-overlay" id="mobile-sidebar-overlay">
     <aside class="mobile-sidebar" aria-label="Main navigation">
       <div class="mobile-sidebar-header">
-        <img src="./logo-buZ.png" alt="" style="height: 30px; width: auto;">
-        <p class="brand" style="">Bzade.app</p>
-        <button type="button" class="close-btn" id="sidebar-close-btn" aria-label="Close menu">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+        
+        <!-- Logo on the right (cancel btn old position) -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="./logo-bz.png" alt="" style="height: 28px; width: auto; ">
+          <!-- <span class="brand">Bzade.app</span> -->
+        </div>
+        <!-- <img src="./logo-bz.png" alt="" style="height: 28px; width: auto; padding-right: 20px;"> -->
+        <!-- <div style="width: 32px;"></div>spacer for balance -->
+         <!-- Cancel btn on the left (hamburger position) -->
+        <button type="button" id="sidebar-close-btn" aria-label="Close menu">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
         </button>
       </div>
       <div class="mobile-sidebar-body" id="mobile-nav"></div>

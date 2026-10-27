@@ -4,6 +4,10 @@ import { startPayment } from "./scripts/payments/payment.js";
 import { showToast, error as toastError } from "./scripts/ui/toast.js";
 import { loadConnections, addProject, loadProjects, removeProject } from "./scripts/data/source.js";
 
+// Stub navigations for Audiences and Team members (real pages come later)
+window.bzShowAudiences = () => showToast("info", "Audiences — coming soon. Track subscriber segments here.");
+window.bzShowTeam = () => showToast("info", "Team members — coming soon. Invite collaborators to your projects.");
+
 // Clean any leftover tokens / hash from browser address bar
 if (window.location.hash || window.location.search.includes("code=") || window.location.search.includes("access_token")) {
   window.history.replaceState({}, document.title, window.location.pathname);
@@ -72,155 +76,192 @@ function escapeHtml(str) {
  * Populates left sidebar with user's projects.
  */
 async function renderDashboardProjects() {
+  // Race loadProjects against an 8-second timeout so skeleton never spins forever
+  const SKELETON_TIMEOUT_MS = 8000;
+  let projects;
+  let loadError = null;
+
   try {
-    const projects = await loadProjects();
+    projects = await Promise.race([
+      loadProjects(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Request timed out. Check your connection and refresh.")), SKELETON_TIMEOUT_MS)
+      ),
+    ]);
     activeProjects = Array.isArray(projects) ? projects : [];
-
-    // Fade out and remove skeleton loaders in sidebars
-    document.querySelectorAll("#subnav-skeleton").forEach((el) => {
-      el.style.transition = "opacity 0.25s ease";
-      el.style.opacity = "0";
-      setTimeout(() => el.remove(), 250);
-    });
-
-    // Populate Sidebar Subnav
-    const subNavs = document.querySelectorAll("[data-sub-nav]");
-    const toggleArrows = document.querySelectorAll(".projects-toggle-icon");
-
-    if (activeProjects.length === 0) {
-      // Hide dropdown arrow when there's no project created yet
-      toggleArrows.forEach((arrow) => {
-        arrow.style.display = "none";
-      });
-      subNavs.forEach((nav) => {
-        nav.style.display = "none";
-        nav.innerHTML = "";
-      });
-
-      // Render pre no-result state in project list
-      if (projectListEl) {
-        projectListEl.innerHTML = `
-          <div class="no-projects-box">
-            <div class="no-projects-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.8">
-                <path d="M12 2L16.5 4.6V9.8L12 12.4L7.5 9.8V4.6L12 2Z"/>
-                <path d="M12 12.4V7.2M12 7.2L16.5 4.6M12 7.2L7.5 4.6"/>
-                <path d="M7.5 10.2L12 12.8V18L7.5 20.6L3 18V12.8L7.5 10.2Z"/>
-                <path d="M7.5 20.6V15.4M7.5 15.4L12 12.8M7.5 15.4L3 12.8"/>
-                <path d="M16.5 10.2L21 12.8V18L16.5 20.6L12 18V12.8L16.5 10.2Z"/>
-                <path d="M16.5 20.6V15.4M16.5 15.4L21 12.8M16.5 15.4L12 12.8"/>
-              </svg>
-            </div>
-            <h4 class="no-projects-title">No projects created yet</h4>
-            <p class="no-projects-sub">Create your first Bzade project to configure email automations and scheduled tasks.</p>
-          </div>
-        `;
-      }
-      return;
-    }
-
-    // Projects exist: show dropdown arrow
-    toggleArrows.forEach((arrow) => {
-      arrow.style.display = "";
-    });
-
-    // Populate sidebar project list
-    const sidebarItemsHtml = activeProjects
-      .map(
-        (p) =>
-          `<a href="schedules.html?project=${encodeURIComponent(p.id)}" class="nav-item sub-item">${escapeHtml(
-            p.project_name || p.business_name || "Untitled Project"
-          )}</a>`
-      )
-      .join("");
-
-    subNavs.forEach((nav) => {
-      nav.innerHTML = sidebarItemsHtml;
-      nav.style.display = "";
-      nav.style.opacity = "0";
-      nav.style.transition = "opacity 0.25s ease";
-      requestAnimationFrame(() => {
-        nav.style.opacity = "1";
-      });
-    });
-
-    // Render Dynamic Project Cards with 3-dots top right
-    if (projectListEl) {
-      projectListEl.innerHTML = activeProjects
-        .map((p) => {
-          const pName = p.project_name || p.business_name || "Untitled Project";
-          const count = p.schedule_count ?? 0;
-          return `
-            <div class="proj-card-wrapper" data-project-id="${escapeHtml(p.id)}">
-              <a href="schedules.html?project=${encodeURIComponent(p.id)}" style="text-decoration: none; color: inherit; display: block; height: 100%;">
-                <div class="projs">
-                  <div style="padding-right: 28px;">
-                    <h4 class="title">${escapeHtml(pName)}</h4>
-                    ${p.business_name && p.business_name !== pName ? `<p style="font-size: 13px; color: #6b7280; margin-top: 4px;">${escapeHtml(p.business_name)}</p>` : ""}
-                  </div>
-                  <p class="project-tag">${count} schedule${count === 1 ? "" : "s"} live and running</p>
-                </div>
-              </a>
-
-              <!-- 3 Dots Action with fully rounded lightgrey hover -->
-              <button type="button" class="proj-dots-btn" aria-label="Project options" data-dots-trigger data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(pName)}">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <circle cx="12" cy="5" r="2"></circle>
-                  <circle cx="12" cy="12" r="2"></circle>
-                  <circle cx="12" cy="19" r="2"></circle>
-                </svg>
-              </button>
-
-              <!-- Popover toggle menu -->
-              <div class="proj-menu-dropdown" style="display: none;" data-menu-dropdown>
-                <a href="schedules.html?project=${encodeURIComponent(p.id)}" class="proj-menu-item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                  Open schedules
-                </a>
-                <button type="button" class="proj-menu-item" data-action="settings" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(pName)}">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                  Project settings
-                </button>
-                <div class="proj-menu-divider"></div>
-                <button type="button" class="proj-menu-item delete-item" data-action="delete" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(pName)}">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                  Delete project
-                </button>
-              </div>
-            </div>
-          `;
-        })
-        .join("");
-    }
-
-    // Populate synced metrics, replacing skeleton placeholders
-    const mDisp = document.getElementById("metric-dispatched");
-    const mDel = document.getElementById("metric-delivered");
-    const mBnc = document.getElementById("metric-bounced");
-    const mFail = document.getElementById("metric-failed");
-    if (mDisp) mDisp.textContent = "0";
-    if (mDel) mDel.textContent = "0%";
-    if (mBnc) mBnc.textContent = "0%";
-    if (mFail) mFail.textContent = "0%";
   } catch (err) {
-    console.error("[LOAD PROJECTS ERROR]", err);
+    loadError = err;
+    activeProjects = [];
+  }
+
+  // Always fade out skeleton loaders — errors or success, skeleton must go
+  document.querySelectorAll("#subnav-skeleton").forEach((el) => {
+    el.style.transition = "opacity 0.25s ease";
+    el.style.opacity = "0";
+    setTimeout(() => el.remove(), 250);
+  });
+
+  // If we got a network/timeout error, show toast + clean empty state (not red card)
+  if (loadError) {
+    console.error("[LOAD PROJECTS ERROR]", loadError);
+    showToast("error", loadError.message || "Could not load projects. Please refresh.");
+
+    // Hide toggle arrows since we don't know if there are projects
+    document.querySelectorAll(".projects-toggle-icon").forEach((a) => (a.style.display = "none"));
+    document.querySelectorAll("[data-sub-nav]").forEach((nav) => {
+      nav.innerHTML = "";
+      nav.style.display = "none";
+    });
+
     if (projectListEl) {
       projectListEl.innerHTML = `
-        <div class="no-projects-box" style="border-color: #fca5a5;">
-          <h4 class="no-projects-title" style="color: #b91c1c;">Could not load projects</h4>
-          <p class="no-projects-sub">${escapeHtml(err.message || "Please refresh or try again later.")}</p>
+        <div class="no-projects-box">
+          <div class="no-projects-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.8">
+              <path d="M12 2L16.5 4.6V9.8L12 12.4L7.5 9.8V4.6L12 2Z"/>
+              <path d="M12 12.4V7.2M12 7.2L16.5 4.6M12 7.2L7.5 4.6"/>
+              <path d="M7.5 10.2L12 12.8V18L7.5 20.6L3 18V12.8L7.5 10.2Z"/>
+              <path d="M7.5 20.6V15.4M7.5 15.4L12 12.8M7.5 15.4L3 12.8"/>
+              <path d="M16.5 10.2L21 12.8V18L16.5 20.6L12 18V12.8L16.5 10.2Z"/>
+              <path d="M16.5 20.6V15.4M16.5 15.4L21 12.8M16.5 15.4L12 12.8"/>
+            </svg>
+          </div>
+          <h4 class="no-projects-title">Could not load projects</h4>
+          <p class="no-projects-sub">Check your connection and refresh the page.</p>
         </div>
       `;
     }
-    const mDisp = document.getElementById("metric-dispatched");
-    const mDel = document.getElementById("metric-delivered");
-    const mBnc = document.getElementById("metric-bounced");
-    const mFail = document.getElementById("metric-failed");
-    if (mDisp) mDisp.textContent = "0";
-    if (mDel) mDel.textContent = "0%";
-    if (mBnc) mBnc.textContent = "0%";
-    if (mFail) mFail.textContent = "0%";
+    // Still clear metric skeletons with zeroes
+    ["metric-dispatched", "metric-delivered", "metric-bounced", "metric-failed"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = "—";
+    });
+    return;
   }
+
+  // Populate Sidebar Subnav
+  const subNavs = document.querySelectorAll("[data-sub-nav]");
+  const toggleArrows = document.querySelectorAll(".projects-toggle-icon");
+
+  if (activeProjects.length === 0) {
+    // Hide dropdown arrow when there's no project created yet
+    toggleArrows.forEach((arrow) => {
+      arrow.style.display = "none";
+    });
+    subNavs.forEach((nav) => {
+      nav.style.display = "none";
+      nav.innerHTML = "";
+    });
+
+    // Render pre no-result state in project list
+    if (projectListEl) {
+      projectListEl.innerHTML = `
+        <div class="no-projects-box">
+          <div class="no-projects-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.8">
+              <path d="M12 2L16.5 4.6V9.8L12 12.4L7.5 9.8V4.6L12 2Z"/>
+              <path d="M12 12.4V7.2M12 7.2L16.5 4.6M12 7.2L7.5 4.6"/>
+              <path d="M7.5 10.2L12 12.8V18L7.5 20.6L3 18V12.8L7.5 10.2Z"/>
+              <path d="M7.5 20.6V15.4M7.5 15.4L12 12.8M7.5 15.4L3 12.8"/>
+              <path d="M16.5 10.2L21 12.8V18L16.5 20.6L12 18V12.8L16.5 10.2Z"/>
+              <path d="M16.5 20.6V15.4M16.5 15.4L21 12.8M16.5 15.4L12 12.8"/>
+            </svg>
+          </div>
+          <h4 class="no-projects-title">No projects created yet</h4>
+          <p class="no-projects-sub">Create your first Bzade project to configure email automations and scheduled tasks.</p>
+        </div>
+      `;
+    }
+    ["metric-dispatched", "metric-delivered", "metric-bounced", "metric-failed"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = "0";
+    });
+    return;
+  }
+
+  // Projects exist: show dropdown arrow
+  toggleArrows.forEach((arrow) => {
+    arrow.style.display = "";
+  });
+
+  // Populate sidebar project list
+  const sidebarItemsHtml = activeProjects
+    .map(
+      (p) =>
+        `<a href="schedules.html?project=${encodeURIComponent(p.id)}" class="nav-item sub-item">${escapeHtml(
+          p.project_name || p.business_name || "Untitled Project"
+        )}</a>`
+    )
+    .join("");
+
+  subNavs.forEach((nav) => {
+    nav.innerHTML = sidebarItemsHtml;
+    nav.style.display = "";
+    nav.style.opacity = "0";
+    nav.style.transition = "opacity 0.25s ease";
+    requestAnimationFrame(() => {
+      nav.style.opacity = "1";
+    });
+  });
+
+  // Render Dynamic Project Cards with 3-dots top right
+  if (projectListEl) {
+    projectListEl.innerHTML = activeProjects
+      .map((p) => {
+        const pName = p.project_name || p.business_name || "Untitled Project";
+        const count = p.schedule_count ?? 0;
+        return `
+          <div class="proj-card-wrapper" data-project-id="${escapeHtml(p.id)}">
+            <a href="schedules.html?project=${encodeURIComponent(p.id)}" style="text-decoration: none; color: inherit; display: block; height: 100%;">
+              <div class="projs">
+                <div style="padding-right: 28px;">
+                  <h4 class="title">${escapeHtml(pName)}</h4>
+                  ${p.business_name && p.business_name !== pName ? `<p style="font-size: 13px; color: #6b7280; margin-top: 4px;">${escapeHtml(p.business_name)}</p>` : ""}
+                </div>
+                <p class="project-tag">${count} schedule${count === 1 ? "" : "s"} live and running</p>
+              </div>
+            </a>
+
+            <!-- 3 Dots Action with fully rounded lightgrey hover -->
+            <button type="button" class="proj-dots-btn" aria-label="Project options" data-dots-trigger data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(pName)}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="5" r="2"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+                <circle cx="12" cy="19" r="2"></circle>
+              </svg>
+            </button>
+
+            <!-- Popover toggle menu -->
+            <div class="proj-menu-dropdown" style="display: none;" data-menu-dropdown>
+              <a href="schedules.html?project=${encodeURIComponent(p.id)}" class="proj-menu-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                Open schedules
+              </a>
+              <button type="button" class="proj-menu-item" data-action="settings" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(pName)}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                Project settings
+              </button>
+              <div class="proj-menu-divider"></div>
+              <button type="button" class="proj-menu-item delete-item" data-action="delete" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(pName)}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                Delete project
+              </button>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  // Populate synced metrics, replacing skeleton placeholders
+  const mDisp = document.getElementById("metric-dispatched");
+  const mDel = document.getElementById("metric-delivered");
+  const mBnc = document.getElementById("metric-bounced");
+  const mFail = document.getElementById("metric-failed");
+  if (mDisp) mDisp.textContent = "0";
+  if (mDel) mDel.textContent = "0%";
+  if (mBnc) mBnc.textContent = "0%";
+  if (mFail) mFail.textContent = "0%";
 }
 
 // 3-dots popover toggles

@@ -473,12 +473,14 @@ async function senderFor(draft) {
 }
 
 function payloadFor(draft, sender) {
+  const tzSelect = document.getElementById("cmp-tz");
+  const timezone = tzSelect?.value || draft.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
   const payload = {
     project_id: projectId,
     email_connection_id: sender?.id || null,
     name: draft.name,
     schedule_type: draft.schedule_type,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    timezone,
     config: {
       recipients: draft.recipients,
       subject: draft.subject,
@@ -658,6 +660,46 @@ async function init() {
 
   // Load schedules (runs animated red donut loader before showing empty state or jobs)
   await loadRows();
+
+  // Wire up preview button in the inline composer
+  const previewBtn = document.getElementById("cmp-preview-btn");
+  const previewPanel = document.getElementById("cmp-preview-panel");
+  const previewFrame = document.getElementById("cmp-preview-frame");
+  const cmpBody = document.getElementById("cmp-body");
+
+  if (previewBtn && previewPanel && previewFrame && cmpBody) {
+    previewBtn.addEventListener("click", () => {
+      const html = cmpBody.value.trim();
+      const isVisible = previewPanel.style.display !== "none";
+      if (isVisible) {
+        previewPanel.style.display = "none";
+        previewBtn.textContent = "";
+        previewBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Preview`;
+      } else {
+        previewPanel.style.display = "block";
+        previewBtn.textContent = "Hide preview";
+        const doc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+        doc.open();
+        doc.write(html || "<p style='color:#999;font-size:13px;padding:16px;'>Nothing to preview yet.</p>");
+        doc.close();
+      }
+    });
+  }
+
+  // Wire ? help dropdown on schedules page
+  const helpDropBtn = document.getElementById("help-dropdown-btn");
+  const helpDropMenu = document.getElementById("help-dropdown-menu");
+  if (helpDropBtn && helpDropMenu) {
+    helpDropBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      helpDropMenu.classList.toggle("show");
+    });
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest("#help-menu-container")) {
+        helpDropMenu.classList.remove("show");
+      }
+    });
+  }
 }
 
 await init();

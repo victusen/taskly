@@ -150,7 +150,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #fafafa;
+      background: white;
     }
     .billing-section-title {
       font-size: 16px;
@@ -326,6 +326,12 @@
     <div class="nav-section">
       <h4>Navigation</h4>
       <div class="nav-links-list">
+        <a href="../dashboard.html" class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          <span>Dashboard</span>
+        </a>
         <div class="nav-item nav-item-collapsible" role="button" tabindex="0" aria-expanded="true" data-toggle-projects>
           <div style="display: flex; align-items: center; gap: 10px;">
             <svg class="projects-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -347,17 +353,13 @@
         </div>
         <div class="sub-nav" data-sub-nav style="display:none;"></div>
 
-        <a href="../dashboard.html" class="nav-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          <span>Overview</span>
-        </a>
-        <a href="#" class="nav-item" data-soon aria-disabled="true">
+        <a href="#" class="nav-item" onclick="event.preventDefault(); window.bzShowAudiences && window.bzShowAudiences();">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <span>Audiences</span> <span class="soon">Soon</span>
+          <span>Audiences</span>
         </a>
-        <a href="#" class="nav-item" data-soon aria-disabled="true">
+        <a href="#" class="nav-item" onclick="event.preventDefault(); window.bzShowTeam && window.bzShowTeam();">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6.5 8-6.5s8 2.5 8 6.5"/></svg>
-          <span>Team members</span> <span class="soon">Soon</span>
+          <span>Team members</span>
         </a>
         <a href="../smtp.html" class="nav-item">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>

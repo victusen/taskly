@@ -564,13 +564,13 @@
       </div>
 
       <!-- 9 dots app switcher -->
-      <button type="button" class="header-action-btn" title="Bzade apps">
+      <!-- <button type="button" class="header-action-btn" title="Bzade apps">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
           <circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/>
           <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
           <circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>
         </svg>
-      </button>
+      </button> -->
 
       <div id="avatar-btn" class="avatar-initial" style="cursor: pointer;">S</div>
     </div>
@@ -584,6 +584,12 @@
           <div class="nav-section">
             <h4>Navigation</h4>
             <div class="nav-links-list">
+              <a href="dashboard.html" class="nav-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                <span>Dashboard</span>
+              </a>
               <div class="nav-item nav-item-collapsible" id="desktop-projects-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleProjectsNav(this, document.getElementById('desktop-sibling-projects'))" style="justify-content: space-between; cursor: pointer; user-select: none;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                   <!-- 3 Isometric Cubes Icon -->
@@ -691,8 +697,9 @@
               <h3 id="cmp-title" class="cmp-title">New task</h3>
               <button type="button" id="cmp-close" class="cmp-icon" aria-label="Close new task">&times;</button>
             </header>
-  
+
             <form id="cmp-form" class="cmp-form" novalidate>
+              <!-- Row 1: Job name + Send type -->
               <div class="cmp-row">
                 <label class="cmp-field cmp-grow">
                   <span class="cmp-label">Job name</span>
@@ -706,7 +713,8 @@
                   </select>
                 </label>
               </div>
-  
+
+              <!-- Row 2: Recipients + Subject -->
               <div class="cmp-row">
                 <label class="cmp-field cmp-grow">
                   <span class="cmp-label">To (separate with commas)</span>
@@ -714,14 +722,15 @@
                 </label>
                 <label class="cmp-field cmp-grow">
                   <span class="cmp-label">Subject</span>
-                  <input class="cmp-input" name="subject" maxlength="300" autocomplete="off">
+                  <input class="cmp-input" name="subject" maxlength="300" autocomplete="off" placeholder="Your July update">
                 </label>
               </div>
-  
-              <div class="cmp-row">
+
+              <!-- Row 3: Sender + Date + Time + Frequency + Timezone -->
+              <div class="cmp-row" style="flex-wrap: wrap;">
                 <label class="cmp-field">
                   <span class="cmp-label">Sender</span>
-                  <input id="cmp-sender" class="cmp-input cmp-ellipsis" value="usenvictor40@gmail.com" title="usenvictor40@gmail.com" disabled>
+                  <input id="cmp-sender" class="cmp-input cmp-ellipsis" value="" title="" disabled>
                 </label>
                 <label class="cmp-field">
                   <span class="cmp-label">Date</span>
@@ -734,38 +743,92 @@
                 <label class="cmp-field">
                   <span class="cmp-label">How often</span>
                   <select id="cmp-how" class="cmp-input">
-                    <option value="now">Now</option>
+                    <option value="now">Now (immediately)</option>
                     <option value="once" selected>Once</option>
+                    <option value="hourly">Every hour</option>
                     <option value="daily">Daily</option>
+                    <option value="weekdays">Every weekday (Mon–Fri)</option>
+                    <option value="weekends">Every weekend (Sat–Sun)</option>
                     <option value="weekly">Weekly</option>
+                    <option value="biweekly">Every 2 weeks</option>
                     <option value="monthly">Monthly</option>
+                    <option value="quarterly">Every 3 months</option>
                     <option value="yearly">Yearly</option>
-                    <option value="christmas">Christmas</option>
-                    <option value="new_year">New year</option>
+                    <option value="christmas">Christmas (Dec 25)</option>
+                    <option value="new_year">New Year (Jan 1)</option>
+                  </select>
+                </label>
+                <label class="cmp-field" style="min-width: 180px;">
+                  <span class="cmp-label">Timezone</span>
+                  <select id="cmp-tz" class="cmp-input" name="timezone">
+                    <option value="UTC">UTC</option>
+                    <option value="Africa/Lagos">Africa/Lagos (WAT, UTC+1)</option>
+                    <option value="Africa/Nairobi">Africa/Nairobi (EAT, UTC+3)</option>
+                    <option value="Africa/Johannesburg">Africa/Johannesburg (SAST, UTC+2)</option>
+                    <option value="Africa/Accra">Africa/Accra (GMT, UTC+0)</option>
+                    <option value="America/New_York">America/New_York (EST/EDT)</option>
+                    <option value="America/Chicago">America/Chicago (CST/CDT)</option>
+                    <option value="America/Denver">America/Denver (MST/MDT)</option>
+                    <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
+                    <option value="America/Sao_Paulo">America/Sao_Paulo (BRT)</option>
+                    <option value="America/Toronto">America/Toronto (EST/EDT)</option>
+                    <option value="Europe/London">Europe/London (GMT/BST)</option>
+                    <option value="Europe/Paris">Europe/Paris (CET/CEST)</option>
+                    <option value="Europe/Berlin">Europe/Berlin (CET/CEST)</option>
+                    <option value="Europe/Amsterdam">Europe/Amsterdam (CET/CEST)</option>
+                    <option value="Europe/Madrid">Europe/Madrid (CET/CEST)</option>
+                    <option value="Europe/Rome">Europe/Rome (CET/CEST)</option>
+                    <option value="Europe/Moscow">Europe/Moscow (MSK, UTC+3)</option>
+                    <option value="Asia/Dubai">Asia/Dubai (GST, UTC+4)</option>
+                    <option value="Asia/Kolkata">Asia/Kolkata (IST, UTC+5:30)</option>
+                    <option value="Asia/Dhaka">Asia/Dhaka (BST, UTC+6)</option>
+                    <option value="Asia/Bangkok">Asia/Bangkok (ICT, UTC+7)</option>
+                    <option value="Asia/Singapore">Asia/Singapore (SGT, UTC+8)</option>
+                    <option value="Asia/Shanghai">Asia/Shanghai (CST, UTC+8)</option>
+                    <option value="Asia/Tokyo">Asia/Tokyo (JST, UTC+9)</option>
+                    <option value="Asia/Seoul">Asia/Seoul (KST, UTC+9)</option>
+                    <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
+                    <option value="Pacific/Auckland">Pacific/Auckland (NZST/NZDT)</option>
                   </select>
                 </label>
               </div>
-  
-              <div class="cmp-editor">
-                <div class="cmp-editor-bar">
-                  <span class="cmp-label">Message (HTML)</span>
-                  <div class="cmp-tools" role="toolbar" aria-label="Insert element">
-                    <button type="button" class="cmp-tool" data-insert="h1">H1</button>
-                    <button type="button" class="cmp-tool" data-insert="p">P</button>
-                    <button type="button" class="cmp-tool" data-insert="a">Link</button>
-                    <button type="button" class="cmp-tool" data-insert="button">Button</button>
-                    <button type="button" class="cmp-tool" data-insert="img">Image</button>
-                    <button type="button" class="cmp-tool" data-insert="column">Column</button>
-                    <button type="button" class="cmp-tool" data-insert="row">Row</button>
-                    <button type="button" class="cmp-tool" id="cmp-upload-btn">Upload asset</button>
-                    <button type="button" class="cmp-tool" id="cmp-assets-toggle">Assets (<span id="cmp-asset-count">0</span>)</button>
-                    <input id="cmp-file" type="file" accept="image/*" hidden>
-                  </div>
+
+              <!-- Template section: separate from details rows -->
+              <div style="border-top: 1px solid #d9d9d9; padding-top: 16px; display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span class="cmp-label">Email template (HTML)</span>
+                  <button type="button" id="cmp-preview-btn" class="cmp-tool" style="display:inline-flex; align-items:center; gap:6px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Preview
+                  </button>
                 </div>
-                <textarea id="cmp-body" class="cmp-code" spellcheck="false" placeholder="<p>Write your message here.</p>"></textarea>
-                <div id="cmp-assets" class="cmp-assets" hidden></div>
+
+                <div class="cmp-editor">
+                  <div class="cmp-editor-bar">
+                    <div class="cmp-tools" role="toolbar" aria-label="Insert element">
+                      <button type="button" class="cmp-tool" data-insert="h1">H1</button>
+                      <button type="button" class="cmp-tool" data-insert="p">P</button>
+                      <button type="button" class="cmp-tool" data-insert="a">Link</button>
+                      <button type="button" class="cmp-tool" data-insert="button">Button</button>
+                      <button type="button" class="cmp-tool" data-insert="img">Image</button>
+                      <button type="button" class="cmp-tool" data-insert="column">Column</button>
+                      <button type="button" class="cmp-tool" data-insert="row">Row</button>
+                      <button type="button" class="cmp-tool" id="cmp-upload-btn">Upload asset</button>
+                      <button type="button" class="cmp-tool" id="cmp-assets-toggle">Assets (<span id="cmp-asset-count">0</span>)</button>
+                      <input id="cmp-file" type="file" accept="image/*" hidden>
+                    </div>
+                  </div>
+                  <textarea id="cmp-body" class="cmp-code" spellcheck="false" placeholder="<p>Write your message here.</p>"></textarea>
+                  <div id="cmp-assets" class="cmp-assets" hidden></div>
+                </div>
+
+                <!-- Preview panel (hidden until preview btn clicked) -->
+                <div id="cmp-preview-panel" style="display:none; border:1px solid #d9d9d9; padding:16px; background:#fafafa; min-height:120px;">
+                  <p style="font-size:11px; font-weight:600; text-transform:uppercase; color:#888; letter-spacing:0.06em; margin-bottom:10px;">Preview</p>
+                  <iframe id="cmp-preview-frame" style="width:100%; min-height:300px; border:none; background:white;"></iframe>
+                </div>
               </div>
-  
+
               <div class="cmp-foot">
                 <p id="cmp-error" class="cmp-error" role="alert" hidden></p>
                 <div class="cmp-actions">
