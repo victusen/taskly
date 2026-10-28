@@ -1,6 +1,7 @@
 import { showToast, error as toastError } from "./scripts/ui/toast.js";
-import { requireAuth } from "./scripts/auth/session.js";
+import { requireAuth, resolveUserInitial, applyUserAvatar } from "./scripts/auth/session.js";
 import { initShell, showGoogleResult } from "./scripts/ui/shell.js";
+import { initInviteModal } from "./scripts/ui/inviteModal.js";
 import { startGoogleConnection } from "./scripts/api/emailConnections.js";
 import {
   loadProject,
@@ -545,7 +546,10 @@ async function init() {
       try { initShell(session); } catch (e) { /* ignore layout differences */ }
       try { showGoogleResult(); } catch (e) { /* ignore */ }
 
-      // Populate user profile info in sidebars if available
+      // Populate user profile info in sidebars and headers
+      const initial = resolveUserInitial(session);
+      applyUserAvatar(initial);
+
       const user = session.user || {};
       const meta = user.user_metadata || {};
       const email = user.email || "";
@@ -554,13 +558,9 @@ async function init() {
 
       const nameEl = document.getElementById("sidebar-user-name");
       const emailEl = document.getElementById("sidebar-user-email");
-      const avatarEl = document.getElementById("sidebar-user-avatar");
-      const headerAvatar = document.getElementById("avatar-btn");
 
       if (nameEl) nameEl.textContent = full || name;
       if (emailEl) emailEl.textContent = email;
-      if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
-      if (headerAvatar) headerAvatar.textContent = name.charAt(0).toUpperCase();
     }
   } catch (authErr) {
     console.warn("Auth initialization warning:", authErr);
@@ -700,6 +700,25 @@ async function init() {
       }
     });
   }
+
+  // Wire mobile sidebar drawer
+  hamburgerBtn?.addEventListener("click", () => {
+    sidebarOverlay?.classList.add("open");
+    document.body.style.overflow = "hidden";
+  });
+  sidebarCloseBtn?.addEventListener("click", () => {
+    sidebarOverlay?.classList.remove("open");
+    document.body.style.overflow = "";
+  });
+  sidebarOverlay?.addEventListener("click", (e) => {
+    if (e.target === sidebarOverlay) {
+      sidebarOverlay.classList.remove("open");
+      document.body.style.overflow = "";
+    }
+  });
+
+  // Initialize right-side team member invite drawer modal
+  initInviteModal();
 }
 
 await init();

@@ -66,7 +66,18 @@ form.addEventListener('submit', async (event) => {
   const password = form.querySelector('input[type="password"]').value;
 
   try {
-    await signIn(email, password);
+    const data = await signIn(email, password);
+    const user = data?.user || data?.session?.user;
+    const meta = user?.user_metadata || {};
+    const firstName = meta.first_name || "";
+    const fullName = meta.full_name || meta.name || "";
+    const businessName = meta.business_name || (typeof localStorage !== "undefined" && localStorage.getItem("bzade_user_business")) || "";
+    const chosen = firstName || fullName || businessName || email || "U";
+    const initial = chosen.trim().charAt(0).toUpperCase();
+    try {
+      localStorage.setItem("bzade_user_initial", initial);
+    } catch (_) {}
+
     showToast('success', 'Signed in successfully. Redirecting...');
     setTimeout(() => {
       window.location.href = 'dashboard.html';

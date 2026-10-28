@@ -24,7 +24,7 @@
       position: sticky;
       top: 0;
       z-index: 50;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255);
       backdrop-filter: blur(8px);
       border-bottom: 1px solid #e5e7eb;
       height: 60px;
@@ -255,6 +255,7 @@
         <li><a href="#authentication" class="sidebar-link">Authentication &amp; Keys</a></li>
         <li><a href="#schedule-api" class="sidebar-link">Scheduling API</a></li>
         <li><a href="#payloads" class="sidebar-link">Payload &amp; Webhooks</a></li>
+        <li><a href="#team" class="sidebar-link">Team &amp; Roles</a></li>
         <li><a href="#google-sheets" class="sidebar-link">Google Sheets Sync</a></li>
         <li><a href="#sdks" class="sidebar-link">SDK Code Examples</a></li>
         <li><a href="#errors" class="sidebar-link">Error Codes &amp; Limits</a></li>
@@ -414,6 +415,24 @@
   }
 }</pre>
         </div>
+      </section>
+
+      <!-- Team & Roles -->
+      <section id="team" class="doc-section">
+        <h2>Team Members &amp; Access Roles</h2>
+        <p>
+          Bzade allows inviting team members and external collaborators to help manage email schedules, audit dispatches, and configure relays.
+        </p>
+        <h3>Available Roles</h3>
+        <ul>
+          <li><strong>Admin:</strong> Full permissions across projects, mail connections, member invitations, and workspace settings.</li>
+          <li><strong>Editor:</strong> Can compose, edit, pause, and test email and payload schedules. Cannot delete projects or alter billing.</li>
+          <li><strong>Viewer:</strong> Read-only access to review scheduled tasks, sent logs, and dispatches.</li>
+        </ul>
+        <h3>Access Scopes</h3>
+        <p>
+          You can grant <strong>Account Access</strong> to give members visibility over all current and future projects, or <strong>Project Access</strong> to restrict their access strictly to a chosen project.
+        </p>
       </section>
 
       <section id="google-sheets" class="doc-section">

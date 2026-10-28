@@ -31,15 +31,19 @@ form?.addEventListener("submit", async (event) => {
   button.disabled = true;
   try {
     const businessName = document.getElementById("business")?.value.trim() || "";
-    if (businessName) {
-      try {
+    const firstName = document.getElementById("first")?.value.trim() || "";
+    const emailVal = document.getElementById("email")?.value.trim() || "";
+    const initial = (firstName || businessName || emailVal || "U").charAt(0).toUpperCase();
+    try {
+      localStorage.setItem("bzade_user_initial", initial);
+      if (businessName) {
         localStorage.setItem("bzade_user_business", businessName);
-      } catch (_) {}
-    }
+      }
+    } catch (_) {}
     const result = await signUp(
-      document.getElementById("email").value.trim(),
+      emailVal,
       document.getElementById("password").value,
-      document.getElementById("first").value.trim(),
+      firstName,
       document.getElementById("last").value.trim()
     );
     if (result.session) {

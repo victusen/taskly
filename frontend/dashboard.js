@@ -1,8 +1,9 @@
-import { requireAuth } from "./scripts/auth/session.js";
+import { requireAuth, resolveUserInitial, applyUserAvatar } from "./scripts/auth/session.js";
 import { signOut } from "./scripts/auth/auth.js";
 import { startPayment } from "./scripts/payments/payment.js";
 import { showToast, error as toastError } from "./scripts/ui/toast.js";
 import { loadConnections, addProject, loadProjects, removeProject } from "./scripts/data/source.js";
+import { initInviteModal } from "./scripts/ui/inviteModal.js";
 
 // Stub navigations for Audiences and Team members (real pages come later)
 window.bzShowAudiences = () => showToast("info", "Audiences — coming soon. Track subscriber segments here.");
@@ -32,15 +33,12 @@ let activeProjects = [];
 const session = await requireAuth();
 if (!session) throw new Error("Authentication required.");
 
-// Populate user details in header avatar / sidebar if present
-const user = session.user;
-const meta = user.user_metadata || {};
-const email = user.email || "";
-const full = meta.full_name || meta.name || "";
-const name = meta.first_name || full.split(" ")[0] || email.split("@")[0] || "User";
+// Populate user details in header avatar / sidebar
+const initial = resolveUserInitial(session);
+applyUserAvatar(initial);
 
-const avatarEl = document.getElementById("header-avatar");
-if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
+// Initialize right-side team member invite drawer modal
+initInviteModal();
 
 /* Every Sign out button (laptop sidebar and phone drawer) signs out. */
 document.querySelectorAll("[data-logout]").forEach((button) => {

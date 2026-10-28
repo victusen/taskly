@@ -7,6 +7,19 @@
   <link rel="icon" type="image/png" href="logo-2.png" />
   <link rel="stylesheet" href="scripts/ui/toast.css">
   <link rel="stylesheet" href="scripts/ui/states.css">
+  <script>
+    (function() {
+      try {
+        var initial = localStorage.getItem("bzade_user_initial");
+        if (initial) {
+          document.addEventListener("DOMContentLoaded", function() {
+            var el = document.getElementById("header-avatar");
+            if (el) el.textContent = initial.toUpperCase();
+          });
+        }
+      } catch(e) {}
+    })();
+  </script>
   <style>
     * { margin: 0; box-sizing: border-box; }
     body { margin: 0; line-height: 1.6; background-color: #f4f4f4; font-family: sans-serif; }
@@ -22,11 +35,16 @@
       z-index: 5;
     }
     .banner-left { display: flex; align-items: center; gap: 8px; }
-    .banner-right { display: flex; align-items: center; gap: 6px; }
-    .banner-right div {
+    .banner-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .banner-right div.avatar-initial {
       height: 30px; width: 30px; border-radius: 20px;
-      background-color: red; color: white; font-weight: 600;
-      display: flex; align-items: center; justify-content: center;
+      background-color: red;
+      display: flex; align-items: center; justify-content: center; align-self: center;
+      color: white; font-weight: 600;
     }
     .brand { font-size: 20px; font-weight: 600; color: #111; }
     .drop-wrap { position: relative; display: flex; }
@@ -584,7 +602,7 @@
         padding: 2rem 2.5rem;
         background: inherit; border-radius: 8px;
         overflow-y: auto;
-        max-height: calc(100vh - 88px);
+        max-height: calc(100vh - auto);
       }
       .col-empty-third { display: none !important; }
     }
@@ -598,7 +616,7 @@
       main {
         flex: 1;
         max-width: none !important;
-        padding: 2rem 3rem;
+        padding: 2rem 1rem;
       }
       .col-empty-third { display: none !important; }
     }
@@ -691,7 +709,7 @@
         </svg>
       </button> -->
 
-      <div id="header-avatar">S</div>
+      <div id="header-avatar" class="avatar-initial" style="cursor: pointer;">V</div>
     </div>
   </header>
 
@@ -699,7 +717,7 @@
   <template id="nav-template">
     <div class="nav-section">
       <h4>Navigation</h4>
-      <div class="nav-links-list">
+      <div class="nav-links-list">  
         <a href="dashboard.html" class="nav-item active">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
@@ -737,8 +755,13 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6.5 8-6.5s8 2.5 8 6.5"/></svg>
           <span>Team members</span>
         </a>
+        <a href="#" class="nav-item" id="nav-notifications" onclick="event.preventDefault(); typeof showToast !== 'undefined' && showToast('info', 'No new notifications.');" style="position: relative;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span>Notifications</span>
+          <span id="notif-badge" style="margin-left: auto; min-width: 18px; height: 18px; background: #dc2626; color: white; border-radius: 9999px; font-size: 11px; font-weight: 700; display: none; align-items: center; justify-content: center; padding: 0 5px;">0</span>
+        </a>
         <a href="#" class="nav-item" data-sidebar-settings>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           <span>Settings</span>
         </a>
         <a href="smtp.html" class="nav-item">
@@ -793,11 +816,15 @@
 
     <!-- Main column (middle) -->
     <main>
-      <div class="dash-top">
-        <h2>Overview</h2>
+      <div style="display: flex; justify-content: space-between;">
+      <div style="display: flex; flex-direction: column;">
+        <div class="dash-top">
+          <h2>Overview</h2>
+        </div>
+        <p>The overview of business schedules running on this Bzade profile.</p>
       </div>
-      <p>The overview of business schedules running on this Bzade profile.</p>
-
+      <a style="padding-right: 40px; color:#166534; text-decoration: underline; align-self: center;" href="account/billing.html">Upgrade to paid</a>
+      </div>
       <div class="business-overviews">
         <h3>Businesses</h3>
         <div class="project-list" id="project-list">

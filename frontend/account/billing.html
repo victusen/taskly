@@ -7,6 +7,19 @@
   <link rel="icon" type="image/png" href="../logo-2.png" />
   <link rel="stylesheet" href="../scripts/ui/toast.css">
   <link rel="stylesheet" href="../scripts/ui/states.css">
+  <script>
+    (function() {
+      try {
+        var initial = localStorage.getItem("bzade_user_initial");
+        if (initial) {
+          document.addEventListener("DOMContentLoaded", function() {
+            var el = document.getElementById("header-avatar");
+            if (el) el.textContent = initial.toUpperCase();
+          });
+        }
+      } catch(e) {}
+    })();
+  </script>
   <style>
     * { margin: 0; box-sizing: border-box; }
     body { margin: 0; line-height: 1.6; background-color: #f4f4f4; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
@@ -22,12 +35,35 @@
       z-index: 5;
     }
     .banner-left { display: flex; align-items: center; gap: 8px; }
-    .banner-right { display: flex; align-items: center; }
-    .banner-right div {
-      height: 30px; width: 30px; border-radius: 20px;
-      background-color: red; color: white; font-weight: 600;
-      display: flex; align-items: center; justify-content: center;
+    .banner-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
+    .banner-right div.avatar-initial {
+      height: 30px; width: 30px; border-radius: 20px;
+      background-color: red;
+      display: flex; align-items: center; justify-content: center; align-self: center;
+      color: white; font-weight: 600;
+    }
+    .header-action-btn {
+      background: transparent; border: none; width: 32px; height: 32px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      color: #4b5563; cursor: pointer; transition: background 0.15s ease, color 0.15s ease;
+    }
+    .header-action-btn:hover { background: #f3f4f6 !important; color: #111827 !important; }
+    .header-dropdown-menu {
+      display: none; position: absolute; top: 40px; right: 0;
+      background: white; border: 1px solid #e5e7eb; border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12); min-width: 190px; padding: 6px; z-index: 50;
+    }
+    .header-dropdown-menu.show { display: block; }
+    .header-dd-item {
+      display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+      font-size: 13px; color: #374151; text-decoration: none; border-radius: 6px;
+      transition: background 0.12s ease;
+    }
+    .header-dd-item:hover { background: #f3f4f6; color: #111827; }
     .brand { font-size: 20px; font-weight: 600; color: #111; }
     .drop-wrap { position: relative; display: flex; }
     .drop-arrow { height: 20px; cursor: pointer; }
@@ -318,7 +354,46 @@
       </div>
     </div>
     <div class="banner-right">
-      <div id="header-avatar">B</div>
+      <!-- Invite button -->
+      <button type="button" class="header-action-btn" id="btn-header-invite" title="Invite team member">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+        </svg>
+      </button>
+
+      <!-- Help / Docs dropdown (?) -->
+      <div style="position: relative;" id="help-menu-container">
+        <button type="button" class="header-action-btn" id="help-dropdown-btn" title="Help & Documentation">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </button>
+        <div class="header-dropdown-menu" id="help-dropdown-menu">
+          <a href="../documentation.html" class="header-dd-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span>Bzade Docs</span>
+          </a>
+          <a href="../documentation.html#api" class="header-dd-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            <span>API Reference</span>
+          </a>
+          <a href="../feedback.html" class="header-dd-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Feedbacks</span>
+          </a>
+          <a href="../terms.html" class="header-dd-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>Terms of Service</span>
+          </a>
+          <div style="height: 1px; background: #e5e7eb; margin: 4px 0;"></div>
+          <a href="mailto:support@bzade.app" class="header-dd-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <span>Support</span>
+          </a>
+        </div>
+      </div>
+
+      <div id="header-avatar" class="avatar-initial" style="cursor: pointer;">V</div>
     </div>
   </header>
 
@@ -360,6 +435,11 @@
         <a href="#" class="nav-item" onclick="event.preventDefault(); window.bzShowTeam && window.bzShowTeam();">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6.5 8-6.5s8 2.5 8 6.5"/></svg>
           <span>Team members</span>
+        </a>
+        <a href="#" class="nav-item" id="nav-notifications" onclick="event.preventDefault(); typeof showToast !== 'undefined' && showToast('info', 'No new notifications.');" style="position: relative;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span>Notifications</span>
+          <span id="notif-badge" style="margin-left: auto; min-width: 18px; height: 18px; background: #dc2626; color: white; border-radius: 9999px; font-size: 11px; font-weight: 700; display: none; align-items: center; justify-content: center; padding: 0 5px;">0</span>
         </a>
         <a href="../smtp.html" class="nav-item">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
@@ -595,10 +675,25 @@
       }
       if (event.target.closest("[data-soon]")) event.preventDefault();
     });
+
+    /* Help dropdown (?) */
+    const helpBtn = document.getElementById("help-dropdown-btn");
+    const helpMenu = document.getElementById("help-dropdown-menu");
+    if (helpBtn && helpMenu) {
+      helpBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        helpMenu.classList.toggle("show");
+      });
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest("#help-menu-container")) {
+          helpMenu.classList.remove("show");
+        }
+      });
+    }
   })();
   </script>
   <script src="https://js.paystack.co/v2/inline.js"></script>
   <script type="module" src="../scripts/ui/toast.js"></script>
-  <script type="module" src="../billing.js"></script>
+  <script type="module" src="./billing.js"></script>
 </body>
 </html>

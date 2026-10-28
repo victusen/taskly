@@ -7,6 +7,19 @@
   <link rel="icon" type="image/png" href="logo-2.png" />
   <link rel="stylesheet" href="scripts/ui/toast.css">
   <link rel="stylesheet" href="scripts/ui/states.css">
+  <script>
+    (function() {
+      try {
+        var initial = localStorage.getItem("bzade_user_initial");
+        if (initial) {
+          document.addEventListener("DOMContentLoaded", function() {
+            var el = document.getElementById("avatar-btn");
+            if (el) el.textContent = initial.toUpperCase();
+          });
+        }
+      } catch(e) {}
+    })();
+  </script>
   <style>
     * { margin: 0; box-sizing: border-box; }
     body {
@@ -15,6 +28,37 @@
       background-color: #f4f4f4;
       font-family: sans-serif;
     }
+
+    /* Phone drawer */
+    .mobile-sidebar-overlay { display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); z-index: 3000; }
+    .mobile-sidebar-overlay.open { display: block; }
+    .mobile-sidebar {
+      position: absolute; top: 0; left: 0; bottom: 0;
+      width: 280px; max-width: 85vw;
+      background: white; box-shadow: 4px 0 15px rgba(0,0,0,0.15);
+      display: flex; flex-direction: column;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-sidebar-overlay.open .mobile-sidebar { transform: translateX(0); }
+    .mobile-sidebar-header {
+      height: 50px;
+      padding: 0 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid #eee;
+      flex-shrink: 0;
+    }
+    #sidebar-close-btn {
+      background: transparent;
+      border: none;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: #374151;
+      transition: background 0.15s ease;
+    }
+    #sidebar-close-btn:hover { background: #f3f4f6; }
+    .mobile-sidebar-body { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 20px; }
 
     /* Fixed Top Header */
     header {
@@ -497,8 +541,13 @@
 <body>
   <header>
     <div class="banner-left">
-      <img src="hamburger.png" id="hamburger-btn" style="height: 30px; cursor: pointer;" alt="Menu" />
-      <a href="index.html" style="text-decoration: none; color: #111;"><p style="font-size: 20px; font-weight: 600;">Bzade.app</p></a>
+      <button type="button" class="mobile-hamburger-btn" id="hamburger-btn" aria-label="Open navigation" style="background:none; border:none; padding:4px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#111;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+      <a href="index.html" style="text-decoration: none; color: #111; display: flex; align-items: center; gap: 8px;">
+        <img src="logo-bz.png" alt="" style="height: 30px;">
+        <p style="font-size: 20px; font-weight: 600;">Bzade.app</p>
+      </a>
       <div style="position: relative; display: flex;">
         <img onclick="document.querySelector(`.drop`).classList.toggle(`show`);" src="drop-arrow.png" style="height: 20px; cursor: pointer;"/>
         <div class="drop-down">
@@ -572,10 +621,79 @@
         </svg>
       </button> -->
 
-      <div id="avatar-btn" class="avatar-initial" style="cursor: pointer;">S</div>
+      <div id="avatar-btn" class="avatar-initial" style="cursor: pointer;">.</div>
     </div>
   </header>
   
+  <!-- Phone drawer (matching dashboard sidebar modal) -->
+  <div class="mobile-sidebar-overlay" id="mobile-sidebar-overlay">
+    <aside class="mobile-sidebar" id="mobile-sidebar">
+      <div class="mobile-sidebar-header">
+        <a href="index.html" style="text-decoration: none; color: #111;"><p style="font-size: 20px; font-weight: 600;">Bzade.app</p></a>
+        <button type="button" id="sidebar-close-btn" aria-label="Close navigation">&times;</button>
+      </div>
+      <div class="mobile-sidebar-body" id="mobile-nav">
+        <div class="nav-section">
+          <h4>Navigation</h4>
+          <div class="nav-links-list">
+            <div class="nav-item nav-item-collapsible" id="mobile-projects-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleProjectsNav(this, document.getElementById('mobile-sibling-projects'))" style="justify-content: space-between; cursor: pointer; user-select: none;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <!-- 3 Isometric Cubes Icon -->
+                <svg class="projects-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2L16.5 4.6V9.8L12 12.4L7.5 9.8V4.6L12 2Z"/>
+                  <path d="M12 12.4V7.2M12 7.2L16.5 4.6M12 7.2L7.5 4.6"/>
+                  <path d="M7.5 10.2L12 12.8V18L7.5 20.6L3 18V12.8L7.5 10.2Z"/>
+                  <path d="M7.5 20.6V15.4M7.5 15.4L12 12.8M7.5 15.4L3 12.8"/>
+                  <path d="M16.5 10.2L21 12.8V18L16.5 20.6L12 18V12.8L16.5 10.2Z"/>
+                  <path d="M16.5 20.6V15.4M16.5 15.4L21 12.8M16.5 15.4L12 12.8"/>
+                </svg>
+                <span>Projects</span>
+              </div>
+              <svg class="projects-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="sub-nav" id="mobile-sibling-projects">
+              <!-- Dynamically populated -->
+            </div>
+            <a href="dashboard.html" class="nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+              </svg>
+              <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Audiences view opened');">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Audiences</span>
+            </a>
+            <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Team members view opened');">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+              <span>Team members</span>
+            </a>
+            <a href="#" class="nav-item" data-action="open-settings">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              <span>Project settings</span>
+            </a>
+            <a href="smtp.html" class="nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              <span>API keys</span>
+            </a>
+            <a href="account/billing.html" class="nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              <span>Billing</span>
+            </a>
+          </div>
+        </div>
+        <div class="nav-section" style="margin-top: auto; padding-top: 16px;">
+          <div class="nav-links-list">
+            <a href="index.html" class="nav-item" style="color: #d93838; padding: 6px 0; font-weight: 500;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+              <span>Sign out</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
   <div class="asymmetric-wrapper">
     <!-- Left Side Navigation (Desktop Persistent Sidebar Column) -->
     <aside class="left-sidebar">
@@ -584,12 +702,6 @@
           <div class="nav-section">
             <h4>Navigation</h4>
             <div class="nav-links-list">
-              <a href="dashboard.html" class="nav-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                </svg>
-                <span>Dashboard</span>
-              </a>
               <div class="nav-item nav-item-collapsible" id="desktop-projects-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleProjectsNav(this, document.getElementById('desktop-sibling-projects'))" style="justify-content: space-between; cursor: pointer; user-select: none;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                   <!-- 3 Isometric Cubes Icon -->
@@ -604,10 +716,16 @@
                   <span>Projects</span>
                 </div>
                 <svg class="projects-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.2s ease;"><polyline points="6 9 12 15 18 9"/></svg>
-              </div>
-              <div class="sub-nav" id="desktop-sibling-projects">
+                <div class="sub-nav" id="desktop-sibling-projects">
                 <!-- Dynamically populated -->
               </div>
+              </div>
+              <a href="dashboard.html" class="nav-item active">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                <span>Dashboard</span>
+              </a>
               <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Audiences view opened');">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 <span>Audiences</span>
@@ -680,8 +798,8 @@
                 <button type="button" class="channel-pill" data-channel="payload" style="padding: 4px 12px; font-size: 13px; font-weight: 500; border: none; border-radius: 6px; background: transparent; color: #6b7280; cursor: pointer; transition: all 0.15s ease;">Payload</button>
               </div>
               <button id="connect-gmail-btn" class="btn" type="button" style="padding: 4px 10px; background-color: inherit; border: 1px solid lightgray; border-radius: 4px; cursor: pointer; font-weight: normal; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; color: #111;">
-                <img src="gmail-btn.png" style="height: 14px;" alt="Gmail" />
-                <span>Connect Gmail</span>
+                <!-- <img src="gmail-btn.png" style="height: 14px;" alt="Gmail" /> -->
+                <span>Connect Mailing address</span>
               </button>
             </div>
           </div>

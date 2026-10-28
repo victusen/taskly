@@ -1,8 +1,9 @@
-import { requireAuth } from "./scripts/auth/session.js";
+import { requireAuth, resolveUserInitial, applyUserAvatar } from "./scripts/auth/session.js";
 import { signOut } from "./scripts/auth/auth.js";
 import { startPayment } from "./scripts/payments/payment.js";
 import { showToast } from "./scripts/ui/toast.js";
 import { loadProjects } from "./scripts/data/source.js";
+import { initInviteModal } from "./scripts/ui/inviteModal.js";
 
 // Clean any leftover tokens / hash from browser address bar
 if (window.location.hash || window.location.search.includes("code=") || window.location.search.includes("access_token")) {
@@ -12,14 +13,13 @@ if (window.location.hash || window.location.search.includes("code=") || window.l
 const session = await requireAuth();
 if (!session) throw new Error("Authentication required.");
 
-const user = session.user;
-const meta = user.user_metadata || {};
-const email = user.email || "Victor@bzade.app";
-const full = meta.full_name || meta.name || "";
-const name = meta.first_name || full.split(" ")[0] || email.split("@")[0] || "User";
+const initial = resolveUserInitial(session);
+applyUserAvatar(initial);
 
-const avatarEl = document.getElementById("header-avatar");
-if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
+initInviteModal();
+
+const user = session.user;
+const email = user?.email || "Victor@bzade.app";
 
 const emailEl = document.getElementById("user-billing-email");
 if (emailEl) emailEl.textContent = email;
