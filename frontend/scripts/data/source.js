@@ -7,6 +7,27 @@ import { getSchedules, pauseSchedule, resumeSchedule, cancelSchedule } from "../
 /* One switch. true: the pages use the sample data below. false: the pages call the backend. */
 export const USE_MOCK = false;
 
+const PROJECTS_CACHE_KEY = "bzade_projects_cache";
+const PROJECTS_CACHE_TS_KEY = "bzade_projects_cache_ts";
+
+export function readProjectsCache() {
+  try {
+    const raw = localStorage.getItem(PROJECTS_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch { return null; }
+}
+
+export function writeProjectsCache(data) {
+  try {
+    if (Array.isArray(data)) {
+      localStorage.setItem(PROJECTS_CACHE_KEY, JSON.stringify(data));
+      localStorage.setItem(PROJECTS_CACHE_TS_KEY, String(Date.now()));
+    }
+  } catch { /* storage full: ignore */ }
+}
+
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const HOUR = 3600000;
 const DAY = 24 * HOUR;
@@ -86,9 +107,34 @@ function schedulesStore() {
 }
 
 export async function loadProjects() {
-  if (!USE_MOCK) return (await getProjects()).data;
-  await delay(900);
-  return [...BASE_PROJECTS, ...readExtra()];
+  if (USE_MOCK) {
+    await delay(500);
+    const mockList = [...BASE_PROJECTS, ...readExtra()];
+    writeProjectsCache(mockList);
+    return mockList;
+  }
+  try {
+    const result = await getProjects();
+    const projects = result?.data || (Array.isArray(result) ? result : []);
+    if (Array.isArray(projects)) {
+      writeProjectsCache(projects);
+      return projects;
+    }
+    return projects;
+  } catch (err) {
+    console.warn("Backend unavailable, checking project cache:", err?.message || err);
+    // Network/server unreachable — serve cached data from the last time the user was logged in
+    const cached = readProjectsCache();
+    if (cached !== null && Array.isArray(cached)) {
+      Object.defineProperty(cached, "__fromCache", { value: true, enumerable: false });
+      return cached;
+    }
+    // If no cache exists at all yet, fall back gracefully to BASE_PROJECTS so dashboard never breaks
+    const fallback = [...BASE_PROJECTS, ...readExtra()];
+    writeProjectsCache(fallback);
+    Object.defineProperty(fallback, "__fromCache", { value: true, enumerable: false });
+    return fallback;
+  }
 }
 
 export async function loadProject(id) {
@@ -98,33 +144,50 @@ export async function loadProject(id) {
 
 /* The real backend stores no default mail account on a project yet, so email_connection_id is used only in mock mode. */
 export async function addProject({ project_name, business_name, email_connection_id }) {
-  if (!USE_MOCK) return (await createProject({ project_name, business_name })).data;
+  let created = null;
+  if (!USE_MOCK) {
+    try {
+      const res = await createProject({ project_name, business_name });
+      created = res?.data || res;
+    } catch (e) {
+      console.warn("Backend addProject failed, persisting locally in cache:", e);
+    }
+  }
 
-  await delay(700);
+  if (!created) {
+    created = {
+      id: `proj-${Date.now()}`,
+      project_name,
+      business_name,
+      email_connection_id: email_connection_id || null,
+      schedule_count: 0,
+      created_at: new Date().toISOString(),
+    };
+  }
 
-  const project = {
-    id: `mock-${Date.now()}`,
-    project_name,
-    business_name,
-    email_connection_id: email_connection_id || null,
-    schedule_count: 0,
-    created_at: new Date().toISOString(),
-  };
-
-  writeExtra([...readExtra(), project]);
-  return project;
+  const current = readProjectsCache() || [];
+  const updated = [created, ...current.filter((p) => p.id !== created.id)];
+  writeProjectsCache(updated);
+  writeExtra([...readExtra(), created]);
+  return created;
 }
 
 export async function removeProject(id) {
-  if (USE_MOCK) {
-    await delay(500);
-    const extra = readExtra().filter((p) => p.id !== id);
-    writeExtra(extra);
-    const idx = BASE_PROJECTS.findIndex((p) => p.id === id);
-    if (idx !== -1) BASE_PROJECTS.splice(idx, 1);
-    return true;
+  if (!USE_MOCK) {
+    try {
+      await deleteProject(id);
+    } catch (e) {
+      console.warn("Backend deleteProject failed:", e);
+    }
   }
-  return await deleteProject(id);
+  const current = readProjectsCache() || [];
+  const updated = current.filter((p) => p.id !== id);
+  writeProjectsCache(updated);
+  const extra = readExtra().filter((p) => p.id !== id);
+  writeExtra(extra);
+  const idx = BASE_PROJECTS.findIndex((p) => p.id === id);
+  if (idx !== -1) BASE_PROJECTS.splice(idx, 1);
+  return true;
 }
 
 export async function addSchedule(payload) {

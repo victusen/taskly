@@ -2,7 +2,7 @@ import { requireAuth, resolveUserInitial, applyUserAvatar } from "./scripts/auth
 import { signOut } from "./scripts/auth/auth.js";
 import { startPayment } from "./scripts/payments/payment.js";
 import { showToast, error as toastError } from "./scripts/ui/toast.js";
-import { loadConnections, addProject, loadProjects, removeProject } from "./scripts/data/source.js";
+import { loadConnections, addProject, loadProjects, removeProject, readProjectsCache } from "./scripts/data/source.js";
 import { initInviteModal } from "./scripts/ui/inviteModal.js";
 
 // Stub navigations for Audiences and Team members (real pages come later)
@@ -36,6 +36,16 @@ if (!session) throw new Error("Authentication required.");
 // Populate user details in header avatar / sidebar
 const initial = resolveUserInitial(session);
 applyUserAvatar(initial);
+
+// Conditionally show or hide the "Upgrade to paid" link.
+// A paid user has plan info in user_metadata. If none, assume free.
+(function applyPlanVisibility() {
+  const meta = session?.user?.user_metadata || {};
+  const plan = (meta.plan || meta.subscription_plan || "free").toLowerCase();
+  const isPaid = plan !== "free" && plan !== "starter" && plan !== "";
+  const upgradeLink = document.getElementById("upgrade-to-paid-link");
+  if (upgradeLink) upgradeLink.style.display = isPaid ? "none" : "";
+})();
 
 // Initialize right-side team member invite drawer modal
 initInviteModal();
@@ -87,9 +97,18 @@ async function renderDashboardProjects() {
       ),
     ]);
     activeProjects = Array.isArray(projects) ? projects : [];
+    if (projects && projects.__fromCache) {
+      // Offline mode silent or gentle indicator
+    }
   } catch (err) {
-    loadError = err;
-    activeProjects = [];
+    const cached = readProjectsCache();
+    if (cached && Array.isArray(cached) && cached.length > 0) {
+      activeProjects = cached;
+      loadError = null;
+    } else {
+      loadError = err;
+      activeProjects = [];
+    }
   }
 
   // Always fade out skeleton loaders — errors or success, skeleton must go
@@ -99,10 +118,12 @@ async function renderDashboardProjects() {
     setTimeout(() => el.remove(), 250);
   });
 
-  // If we got a network/timeout error, show toast + clean empty state (not red card)
+  // If we got a network/timeout error, check cache flag first
   if (loadError) {
     console.error("[LOAD PROJECTS ERROR]", loadError);
-    showToast("error", loadError.message || "Could not load projects. Please refresh.");
+    // If __fromCache is set, projects already loaded from cache — don't error-state
+    // (This path only runs if cache also failed)
+    showToast("error", "Could not reach the server. Check your connection.");
 
     // Hide toggle arrows since we don't know if there are projects
     document.querySelectorAll(".projects-toggle-icon").forEach((a) => (a.style.display = "none"));
