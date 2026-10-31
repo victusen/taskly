@@ -538,8 +538,28 @@ window.bzComposer.onUpdate = async (id, draft) => {
   }
 };
 
-// Main Initialization
-async function init() {
+const mailingModal = document.getElementById("mailing-modal");
+document.getElementById("connect-gmail-btn")?.addEventListener("click", () => {
+  mailingModal.style.display = "flex";
+});
+document.getElementById("mailing-modal-close")?.addEventListener("click", () => {
+  mailingModal.style.display = "none";
+});
+document.getElementById("mailing-modal-gmail")?.addEventListener("click", async () => {
+  mailingModal.style.display = "none";
+  setLoading(true);
+  try {
+    await startGoogleConnection();
+  } catch (err) {
+    toastError(err.message || "Could not connect Gmail.");
+  } finally {
+    setLoading(false);
+  }
+});
+mailingModal.addEventListener("click", (event) => {
+  if (event.target === mailingModal) mailingModal.style.display = "none";
+});
+
   try {
     const session = await requireAuth();
     if (session) {
@@ -660,6 +680,29 @@ async function init() {
 
   // Load schedules (runs animated red donut loader before showing empty state or jobs)
   await loadRows();
+
+  // Mailing Connection Modal logic
+  const mailingModal = document.getElementById("mailing-modal");
+  document.getElementById("connect-gmail-btn")?.addEventListener("click", () => {
+    mailingModal.style.display = "flex";
+  });
+  document.getElementById("mailing-modal-close")?.addEventListener("click", () => {
+    mailingModal.style.display = "none";
+  });
+  document.getElementById("mailing-modal-gmail")?.addEventListener("click", async () => {
+    mailingModal.style.display = "none";
+    setLoading(true);
+    try {
+      await startGoogleConnection();
+    } catch (err) {
+      toastError(err.message || "Could not connect Gmail.");
+    } finally {
+      setLoading(false);
+    }
+  });
+  mailingModal.addEventListener("click", (event) => {
+    if (event.target === mailingModal) mailingModal.style.display = "none";
+  });
 
   // Wire up preview button in the inline composer
   const previewBtn = document.getElementById("cmp-preview-btn");

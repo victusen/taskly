@@ -105,10 +105,20 @@
     }
     .header-dd-item:hover { background: #f3f4f6; color: #111827; }
     .drop-down {
-      pointer-events: none;
+      display: none;
       position: absolute;
-      bottom: -95px; left: 0; right: 0; z-index: 12;
+      top: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 220px;
+      white-space: nowrap;
     }
+    .drop-down.show { display: block; }
     .taskly-projs {
       padding: 10px 12px;
       width: 100%;
@@ -549,25 +559,23 @@
         <p style="font-size: 20px; font-weight: 600;">Bzade.app</p>
       </a>
       <div style="position: relative; display: flex;">
-        <img onclick="document.querySelector(`.drop`).classList.toggle(`show`);" src="drop-arrow.png" style="height: 20px; cursor: pointer;"/>
+        <img onclick="document.querySelector('.drop-down').classList.toggle('show');" src="drop-arrow.png" style="height: 20px; cursor: pointer;"/>
         <div class="drop-down">
-          <div class="drop add-hidden" style="width:200px; margin: 0 auto; border-radius: 12px; overflow: hidden; background-color: white; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            <div class="taskly-projs" onclick="window.location.href='dashboard.html'">
-              <img src="Check.png" style="height: 12px;">
-              <p style="font-size: 13px;">Overview</p>
-            </div>
-            <div class="taskly-projs" onclick="window.location.href='schedules.html'">
-              <img src="Check.png" style="height: 12px;">
-              <p style="font-size: 13px;">Schedules</p>
-            </div>
-            <div class="taskly-projs" onclick="window.location.href='smtp.html'">
-              <img src="Check.png" style="height: 12px;">
-              <p style="font-size: 13px;">Mail Connections</p>
-            </div>
-            <div class="taskly-projs" id="header-connect-gmail" onclick="window.location.href='schedules.html?connect=gmail'">
-              <img src="gmail-btn.png" style="height: 12px;">
-              <p style="font-size: 13px;">Connect Gmail account</p>
-            </div>
+          <div class="taskly-projs" onclick="window.location.href='dashboard.html'">
+            <img src="Check.png" style="height: 12px;">
+            <p style="font-size: 13px;">Overview</p>
+          </div>
+          <div class="taskly-projs" onclick="window.location.href='schedules.html'">
+            <img src="Check.png" style="height: 12px;">
+            <p style="font-size: 13px;">Schedules</p>
+          </div>
+          <div class="taskly-projs" onclick="window.location.href='smtp.html'">
+            <img src="Check.png" style="height: 12px;">
+            <p style="font-size: 13px;">Mail Connections</p>
+          </div>
+          <div class="taskly-projs" id="header-connect-gmail" onclick="window.location.href='schedules.html?connect=gmail'">
+            <img src="gmail-btn.png" style="height: 12px;">
+            <p style="font-size: 13px;">Connect Gmail account</p>
           </div>
         </div>
       </div>

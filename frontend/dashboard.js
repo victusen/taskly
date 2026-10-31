@@ -483,3 +483,16 @@ form.addEventListener("submit", async (event) => {
 
 // Initial load
 renderDashboardProjects();
+
+// Add Mailing Connection Modal logic
+const mailingModal = document.getElementById("mailing-modal");
+document.getElementById("connect-mailing-btn")?.addEventListener("click", () => {
+  mailingModal.classList.add("open");
+});
+document.getElementById("mailing-modal-close")?.addEventListener("click", () => {
+  mailingModal.classList.remove("open");
+});
+mailingModal.addEventListener("click", (event) => {
+  if (event.target === mailingModal) mailingModal.classList.remove("open");
+});
+
