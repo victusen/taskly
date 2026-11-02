@@ -49,7 +49,7 @@ async function assertProject(userId, projectId) {
   if (error) throw error;
 
   if (!data) {
-    throw new ValidationError({ project_id: "Project not found." });
+    throw new ServiceError(404, "NOT_FOUND", "Project not found or you do not have permission to access it.");
   }
 }
 

@@ -15,13 +15,21 @@ import {
 } from "./scripts/data/source.js";
 
 const urlParams = new URLSearchParams(window.location.search);
-const projectId = urlParams.get("project") || "mock-1";
+const projectId = urlParams.get("project");
+if (!projectId) {
+  window.location.replace("dashboard.html");
+}
 let currentProject = null;
+let isFetchingSchedules = false;
 
 // DOM references
 const taskList = document.getElementById("task-list");
 const taskLoader = document.getElementById("task-loader");
 const noJobState = document.getElementById("no-job-state");
+const projectNotFoundState = document.getElementById("project-not-found-state");
+const requestErrorState = document.getElementById("request-error-state");
+const requestErrorMessage = document.getElementById("request-error-message");
+const retryBtn = document.getElementById("btn-retry-schedules");
 const addTaskCta = document.getElementById("add-task-cta");
 const jobRows = document.getElementById("job-rows");
 const projectTitleEl = document.getElementById("project-title");
@@ -67,28 +75,50 @@ function statusBadge(status) {
   return `<span class="badge ${b.cls}">${esc(b.label)}</span>`;
 }
 
-/**
- * Manages the smooth animated donut loader state inside the task list.
- * While loading, the donut spinner uses the whole space, and add button + states are hidden.
- */
+function hideAllStates() {
+  if (taskLoader) {
+    taskLoader.hidden = true;
+    taskLoader.style.display = "none";
+  }
+  if (jobRows) {
+    jobRows.hidden = true;
+    jobRows.style.display = "none";
+  }
+  if (noJobState) noJobState.hidden = true;
+  if (projectNotFoundState) projectNotFoundState.hidden = true;
+  if (requestErrorState) requestErrorState.hidden = true;
+  if (addTaskCta) addTaskCta.hidden = true;
+}
+
 function setLoading(isLoading) {
   if (isLoading) {
+    hideAllStates();
     if (taskLoader) {
       taskLoader.hidden = false;
       taskLoader.style.display = "flex";
-    }
-    if (noJobState) noJobState.hidden = true;
-    if (addTaskCta) addTaskCta.hidden = false;
-    if (jobRows) {
-      jobRows.hidden = true;
-      jobRows.style.display = "none";
     }
   } else {
     if (taskLoader) {
       taskLoader.hidden = true;
       taskLoader.style.display = "none";
     }
-    if (addTaskCta) addTaskCta.hidden = true;
+  }
+}
+
+function showProjectNotFound() {
+  hideAllStates();
+  if (projectNotFoundState) {
+    projectNotFoundState.hidden = false;
+  }
+}
+
+function showRequestError(msg) {
+  hideAllStates();
+  if (requestErrorMessage) {
+    requestErrorMessage.textContent = msg || "Could not retrieve schedules. Please check your connection.";
+  }
+  if (requestErrorState) {
+    requestErrorState.hidden = false;
   }
 }
 
@@ -122,19 +152,16 @@ function renderRows(filter = currentFilter) {
   }
 
   if (filtered.length === 0) {
-    if (jobRows) {
-      jobRows.innerHTML = "";
-      jobRows.hidden = true;
-    }
+    hideAllStates();
     if (noJobState) noJobState.hidden = false;
     if (addTaskCta) addTaskCta.hidden = false;
     return;
   }
 
-  if (noJobState) noJobState.hidden = true;
-  if (addTaskCta) addTaskCta.hidden = true;
+  hideAllStates();
   if (jobRows) {
     jobRows.hidden = false;
+    jobRows.style.display = "flex";
     jobRows.innerHTML = filtered
       .map((row) => {
         const recipients = row.config?.recipients || [];
@@ -169,23 +196,49 @@ function renderRows(filter = currentFilter) {
 }
 
 /**
- * Loads schedules from data source with smooth animated red donut loader.
- * Runs for 2 seconds before empty state is shown with unreal/mock data,
- * and will run until fetch succeeds with real data.
+ * Loads schedules from data source once per page load.
+ * Guarded against concurrent runs with an 8-second request timeout,
+ * and guaranteed to end loading in a finally block.
  */
 async function loadRows(filter = currentFilter) {
+  if (isFetchingSchedules) return;
+  isFetchingSchedules = true;
   setLoading(true);
+
+  const REQUEST_TIMEOUT_MS = 8000;
+  let fetchError = null;
+
   try {
-    schedules = await loadSchedules(projectId);
+    const result = await Promise.race([
+      loadSchedules(projectId),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Request timed out. Please check your connection.")), REQUEST_TIMEOUT_MS)
+      ),
+    ]);
+    schedules = Array.isArray(result) ? result : [];
   } catch (err) {
     console.error("Failed to load schedules:", err);
-    showToast("error", err.message || "Failed to load schedules.");
+    fetchError = err;
     schedules = [];
   } finally {
     setLoading(false);
-    renderRows(filter);
+    isFetchingSchedules = false;
+
+    if (fetchError) {
+      if (fetchError.status === 404 || fetchError.code === "NOT_FOUND" || fetchError.message?.includes("Project not found")) {
+        showProjectNotFound();
+      } else {
+        showRequestError(fetchError.message || "Failed to load schedules. Please check your connection.");
+      }
+    } else {
+      renderRows(filter);
+    }
   }
 }
+
+retryBtn?.addEventListener("click", () => {
+  loadRows(currentFilter);
+});
 
 // Wire up global hook for composer
 window.loadRows = loadRows;

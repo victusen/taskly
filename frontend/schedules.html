@@ -489,8 +489,8 @@
     .cmp[hidden] { display: none; }
     .cmp-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #e5e7eb; }
     .cmp-title { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: #111; }
-    .cmp-icon { width: 32px; height: 32px; display: grid; place-items: center; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 50%; color: #374151; font: inherit; font-size: 18px; line-height: 1; cursor: pointer; transition: background 0.15s ease; }
-    .cmp-icon:hover { background: #e5e7eb; }
+    .cmp-icon { width: 35px; height: 35px; padding: 4px; border-radius: 50px; background-color: lightgray; display: flex; align-items: center; justify-content: center; border: 0; color: #111; font: inherit; font-size: 20px; line-height: 1; cursor: pointer; margin-left: auto; align-self: center; transition: background 0.15s ease; }
+    .cmp-icon:hover { background-color: #c7c7c7; }
     .cmp-form { display: flex; flex-direction: column; gap: 16px; }
     .cmp-grid-2x2 { display: grid; grid-template-columns: repeat(2, 1minmax(0, 1fr)); gap: 16px; }
     .cmp-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
@@ -828,68 +828,41 @@
             </header>
 
             <form id="cmp-form" class="cmp-form" novalidate>
-              <!-- Row 1: Job name + Send type -->
-              <div class="cmp-row">
-                <label class="cmp-field cmp-grow">
+              <!-- Schedule details: 2-row grid container -->
+              <div class="cmp-details-grid" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;">
+                <!-- Row 1: Job name, Sender, Send type, To -->
+                <label class="cmp-field" style="min-width: 0;">
                   <span class="cmp-label">Job name</span>
-                  <input id="cmp-name" class="cmp-input" name="name" maxlength="120" autocomplete="off" placeholder="Welcome series">
+                  <input id="cmp-name" class="cmp-input" name="name" maxlength="120" autocomplete="off" placeholder="Welcome series" style="width: 100%;">
                 </label>
-                <label class="cmp-field">
+                <label class="cmp-field" style="min-width: 0;">
+                  <span class="cmp-label">Sender</span>
+                  <input id="cmp-sender" class="cmp-input cmp-ellipsis" value="" title="" disabled style="width: 100%;">
+                </label>
+                <label class="cmp-field" style="min-width: 0;">
                   <span class="cmp-label">Send type</span>
-                  <select class="cmp-input" name="channel">
+                  <select class="cmp-input" name="channel" style="width: 100%;">
                     <option value="emails" selected>Emails</option>
                     <option value="payload" disabled>Payload (coming soon)</option>
                   </select>
                 </label>
-              </div>
+                <label class="cmp-field" style="min-width: 0;">
+                  <span class="cmp-label">To (recipients)</span>
+                  <input class="cmp-input" name="recipients" autocomplete="off" placeholder="ada@example.com" style="width: 100%;">
+                </label>
 
-              <!-- Row 2: Recipients + Subject -->
-              <div class="cmp-row">
-                <label class="cmp-field cmp-grow">
-                  <span class="cmp-label">To (separate with commas)</span>
-                  <input class="cmp-input" name="recipients" autocomplete="off" placeholder="ada@example.com, tunde@example.com">
-                </label>
-                <label class="cmp-field cmp-grow">
-                  <span class="cmp-label">Subject</span>
-                  <input class="cmp-input" name="subject" maxlength="300" autocomplete="off" placeholder="Your July update">
-                </label>
-              </div>
-
-              <!-- Row 3: Sender + Date + Time + Frequency + Timezone -->
-              <div class="cmp-row" style="flex-wrap: wrap;">
-                <label class="cmp-field">
-                  <span class="cmp-label">Sender</span>
-                  <input id="cmp-sender" class="cmp-input cmp-ellipsis" value="" title="" disabled>
-                </label>
-                <label class="cmp-field">
+                <!-- Row 2: Date, Time, Time zone, How often -->
+                <label class="cmp-field" style="min-width: 0;">
                   <span class="cmp-label">Date</span>
-                  <input id="cmp-date" class="cmp-input" type="date">
+                  <input id="cmp-date" class="cmp-input" type="date" style="width: 100%;">
                 </label>
-                <label class="cmp-field">
+                <label class="cmp-field" style="min-width: 0;">
                   <span class="cmp-label">Time</span>
-                  <input id="cmp-time" class="cmp-input" type="time" value="09:00">
+                  <input id="cmp-time" class="cmp-input" type="time" value="09:00" style="width: 100%;">
                 </label>
-                <label class="cmp-field">
-                  <span class="cmp-label">How often</span>
-                  <select id="cmp-how" class="cmp-input">
-                    <option value="now">Now (immediately)</option>
-                    <option value="once" selected>Once</option>
-                    <option value="hourly">Every hour</option>
-                    <option value="daily">Daily</option>
-                    <option value="weekdays">Every weekday (Mon–Fri)</option>
-                    <option value="weekends">Every weekend (Sat–Sun)</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="biweekly">Every 2 weeks</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Every 3 months</option>
-                    <option value="yearly">Yearly</option>
-                    <option value="christmas">Christmas (Dec 25)</option>
-                    <option value="new_year">New Year (Jan 1)</option>
-                  </select>
-                </label>
-                <label class="cmp-field" style="min-width: 180px;">
-                  <span class="cmp-label">Timezone</span>
-                  <select id="cmp-tz" class="cmp-input" name="timezone">
+                <label class="cmp-field" style="min-width: 0;">
+                  <span class="cmp-label">Time zone</span>
+                  <select id="cmp-tz" class="cmp-input" name="timezone" style="width: 100%;">
                     <option value="UTC">UTC</option>
                     <option value="Africa/Lagos">Africa/Lagos (WAT, UTC+1)</option>
                     <option value="Africa/Nairobi">Africa/Nairobi (EAT, UTC+3)</option>
@@ -919,6 +892,32 @@
                     <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
                     <option value="Pacific/Auckland">Pacific/Auckland (NZST/NZDT)</option>
                   </select>
+                </label>
+                <label class="cmp-field" style="min-width: 0;">
+                  <span class="cmp-label">How often</span>
+                  <select id="cmp-how" class="cmp-input" style="width: 100%;">
+                    <option value="now">Now (immediately)</option>
+                    <option value="once" selected>Once</option>
+                    <option value="hourly">Every hour</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekdays">Every weekday (Mon–Fri)</option>
+                    <option value="weekends">Every weekend (Sat–Sun)</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="biweekly">Every 2 weeks</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Every 3 months</option>
+                    <option value="yearly">Yearly</option>
+                    <option value="christmas">Christmas (Dec 25)</option>
+                    <option value="new_year">New Year (Jan 1)</option>
+                  </select>
+                </label>
+              </div>
+
+              <!-- Subject Line -->
+              <div class="cmp-row" style="margin-top: 2px;">
+                <label class="cmp-field cmp-grow" style="min-width: 0;">
+                  <span class="cmp-label">Subject</span>
+                  <input class="cmp-input" name="subject" maxlength="300" autocomplete="off" placeholder="Your July update" style="width: 100%;">
                 </label>
               </div>
 
@@ -970,15 +969,17 @@
 
           <!-- Tasks appear here -->
           <div class="task-list" id="task-list">
-            <!-- Full space Donut Loader Spinner -->
-            <div class="task-loader" id="task-loader" style="min-height: 280px; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
-              <svg class="bz-donut-spinner" viewBox="0 0 44 44" width="40" height="40" aria-hidden="true">
-                <circle class="bz-spinner-track" cx="22" cy="22" r="17" fill="none" stroke-width="3"></circle>
-                <circle class="bz-spinner-arc" cx="22" cy="22" r="17" fill="none" stroke-width="3" stroke-linecap="round" stroke-dasharray="106.8" stroke-dashoffset="78"></circle>
-              </svg>
-              <p class="bz-loader-text" style="font-size: 13px; color: #6b7280; font-weight: 500;">Loading schedules...</p>
+            <!-- Skeleton Loader State -->
+            <div class="task-loader" id="task-loader" style="width: 100%; display: flex; flex-direction: column; gap: 12px; padding: 12px 0;">
+              <div class="skeleton-line" style="height: 58px; border-radius: 8px; width: 100%;"></div>
+              <div class="skeleton-line" style="height: 58px; border-radius: 8px; width: 100%;"></div>
+              <div class="skeleton-line" style="height: 58px; border-radius: 8px; width: 100%;"></div>
             </div>
+
+            <!-- Schedules Render Container -->
             <div class="job-rows" id="job-rows" hidden style="display: none;"></div>
+
+            <!-- Empty State: No schedules found -->
             <div class="no-job" id="no-job-state" hidden>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -988,6 +989,36 @@
               <h3>No results found</h3>
               <p>There are no jobs or tasks available matching your filter at the moment.</p>
             </div>
+
+            <!-- State: Project not found or not owned by user -->
+            <div class="no-job" id="project-not-found-state" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <h3>Project not found</h3>
+              <p style="margin-bottom: 16px;">This project does not exist or you do not have permission to view it.</p>
+              <a href="dashboard.html" class="btn btn-dark" style="background-color: #111; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 14px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                &larr; Back to Dashboard
+              </a>
+            </div>
+
+            <!-- State: Request failed with Retry button -->
+            <div class="no-job" id="request-error-state" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+              <h3>Unable to load schedules</h3>
+              <p id="request-error-message" style="margin-bottom: 16px;">Something went wrong while communicating with the server.</p>
+              <button type="button" id="btn-retry-schedules" class="btn btn-dark" style="background-color: #111; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                <span>Retry</span>
+              </button>
+            </div>
+
             <button id="add-task-cta" class="btn btn-dark" type="button" style="margin: 4px auto 0; background-color: #111; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
               <span>Add a new task</span>
