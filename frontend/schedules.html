@@ -485,42 +485,44 @@
     }
 
     /* Composer panel */
-    .cmp { margin-top: 8px; border: 1px solid #d9d9d9; background: #ffffff; padding: 20px; display: flex; flex-direction: column; gap: 20px; font-family: "DM Sans", system-ui, sans-serif; color: #111111; }
+    .cmp { margin-top: 8px; border: 1px solid #e5e7eb; border-radius: 12px; background: #ffffff; padding: 24px; display: flex; flex-direction: column; gap: 20px; font-family: "DM Sans", system-ui, sans-serif; color: #111111; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
     .cmp[hidden] { display: none; }
-    .cmp-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #d9d9d9; }
-    .cmp-title { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
-    .cmp-icon { width: 32px; height: 32px; display: grid; place-items: center; background: transparent; border: 1px solid #3a3a3a; border-radius: 0; color: #111111; font: inherit; font-size: 20px; line-height: 1; cursor: pointer; }
-    .cmp-form { display: flex; flex-direction: column; gap: 18px; }
+    .cmp-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #e5e7eb; }
+    .cmp-title { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: #111; }
+    .cmp-icon { width: 32px; height: 32px; display: grid; place-items: center; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 50%; color: #374151; font: inherit; font-size: 18px; line-height: 1; cursor: pointer; transition: background 0.15s ease; }
+    .cmp-icon:hover { background: #e5e7eb; }
+    .cmp-form { display: flex; flex-direction: column; gap: 16px; }
+    .cmp-grid-2x2 { display: grid; grid-template-columns: repeat(2, 1minmax(0, 1fr)); gap: 16px; }
     .cmp-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
-    .cmp-field { display: flex; flex-direction: column; gap: 6px; min-width: 160px; }
+    .cmp-field { display: flex; flex-direction: column; gap: 6px; min-width: 160px; flex: 1; }
     .cmp-grow { flex: 1 1 260px; }
-    .cmp-label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6b6b6b; }
-    .cmp-input { width: 100%; min-width: 0; box-sizing: border-box; padding: 10px 12px; font: inherit; font-size: 14px; color: #111111; background: #ffffff; border: 1px solid #3a3a3a; border-radius: 0; }
-    .cmp-input:focus { outline: 2px solid #111111; outline-offset: 0; }
-    .cmp-input:disabled { background: #f5f5f5; color: #6b6b6b; cursor: not-allowed; }
-    .cmp-ellipsis { width: 240px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cmp-label { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #4b5563; }
+    .cmp-input { width: 100%; min-width: 0; box-sizing: border-box; padding: 10px 14px; font: inherit; font-size: 14px; color: #111111; background: #ffffff; border: 1px solid #d1d5db; border-radius: 8px; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+    .cmp-input:focus { outline: none; border-color: #111111; box-shadow: 0 0 0 3px rgba(17,24,39,0.08); }
+    .cmp-input:disabled { background: #f9fafb; color: #6b7280; cursor: not-allowed; }
+    .cmp-ellipsis { width: 100%; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    .cmp-editor { display: flex; flex-direction: column; border: 1px solid #3a3a3a; }
-    .cmp-editor-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; background: #f5f5f5; border-bottom: 1px solid #d9d9d9; }
+    .cmp-editor { display: flex; flex-direction: column; border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden; }
+    .cmp-editor-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; background: #f9fafb; border-bottom: 1px solid #d1d5db; }
     .cmp-tools { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
-    .cmp-tool { padding: 6px 10px; font: inherit; font-size: 13px; color: #111111; background: #ffffff; border: 1px solid #3a3a3a; border-radius: 0; cursor: pointer; }
-    .cmp-tool:hover { background: #111111; color: #ffffff; }
+    .cmp-tool { padding: 6px 12px; font: inherit; font-size: 13px; color: #374151; background: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+    .cmp-tool:hover { background: #111111; color: #ffffff; border-color: #111111; }
     .cmp-tool:focus-visible { outline: 2px solid #111111; outline-offset: 2px; }
-    .cmp-code { display: block; width: 100%; min-height: 360px; box-sizing: border-box; padding: 16px; border: 0; border-radius: 0; resize: vertical; background: #ffffff; color: #111111; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; line-height: 1.6; white-space: pre; tab-size: 2; }
+    .cmp-code { display: block; width: 100%; min-height: 320px; box-sizing: border-box; padding: 16px; border: 0; border-radius: 0; resize: vertical; background: #ffffff; color: #111111; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; line-height: 1.6; white-space: pre; tab-size: 2; }
     .cmp-code:focus { outline: none; }
     .cmp-assets { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; padding: 12px; border-top: 1px solid #d9d9d9; }
     .cmp-assets[hidden] { display: none; }
-    .cmp-asset { display: flex; flex-direction: column; gap: 6px; padding: 6px; font: inherit; font-size: 12px; color: #111111; text-align: left; background: #ffffff; border: 1px solid #d9d9d9; border-radius: 0; cursor: pointer; }
+    .cmp-asset { display: flex; flex-direction: column; gap: 6px; padding: 6px; font: inherit; font-size: 12px; color: #111111; text-align: left; background: #ffffff; border: 1px solid #d9d9d9; border-radius: 6px; cursor: pointer; }
     .cmp-asset:hover { border-color: #111111; }
-    .cmp-asset img { width: 100%; height: 90px; object-fit: contain; background: #f5f5f5; }
+    .cmp-asset img { width: 100%; height: 90px; object-fit: contain; background: #f5f5f5; border-radius: 4px; }
     .cmp-asset span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .cmp-muted { font-size: 13px; color: #6b6b6b; }
+    .cmp-muted { font-size: 13px; color: #6b7280; }
 
     .cmp-foot { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
-    .cmp-error { align-self: stretch; font-size: 13px; color: #7a1f1f; }
+    .cmp-error { align-self: stretch; font-size: 13px; color: #dc2626; }
     .cmp-error[hidden] { display: none; }
-    .cmp-create { padding: 12px 22px; font: inherit; font-size: 14px; font-weight: 600; color: #111111; background: inherit; border: 1px solid #3a3a3a; border-radius: 0; cursor: pointer; }
-    .cmp-create:hover:not(:disabled) { background: #111111; color: #ffffff; }
+    .cmp-create { padding: 10px 20px; font: inherit; font-size: 14px; font-weight: 600; color: #ffffff; background: #111111; border: 1px solid #111111; border-radius: 8px; cursor: pointer; transition: background 0.15s ease; }
+    .cmp-create:hover:not(:disabled) { background: #374151; }
     .cmp-create:disabled { opacity: 0.5; cursor: wait; }
 
     body.composer-open #schedule-empty,
@@ -529,11 +531,12 @@
 
     #job-rows .task.is-editing { border: 1px solid #b42318; border-radius: 12px; padding: 16px; }
     .edit-slot { margin: 12px 0 24px; }
-    .task-edit { padding: 6px 12px; font: inherit; font-size: 13px; color: #111111; background: #ffffff; border: 1px solid #3a3a3a; border-radius: 0; cursor: pointer; }
-    .task-edit:hover { background: #111111; color: #ffffff; }
+    .task-edit { padding: 6px 12px; font: inherit; font-size: 13px; color: #111111; background: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; }
+    .task-edit:hover { background: #111111; color: #ffffff; border-color: #111111; }
 
     .cmp-actions { display: flex; gap: 10px; justify-content: flex-end; }
-    .cmp-cancel { padding: 12px 22px; font: inherit; font-size: 14px; color: #6b6b6b; background: transparent; border: 1px solid #d9d9d9; border-radius: 0; cursor: pointer; }
+    .cmp-cancel { padding: 10px 20px; font: inherit; font-size: 14px; color: #4b5563; background: transparent; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; transition: background 0.15s ease; }
+    .cmp-cancel:hover { background: #f3f4f6; color: #111; }
 
     #job-rows { display: flex; flex-direction: column; }
     #job-rows .task { display: flex; flex-direction: column; gap: 6px; padding: 16px 0; border-bottom: 1px solid #d9d9d9; }
@@ -985,7 +988,7 @@
               <h3>No results found</h3>
               <p>There are no jobs or tasks available matching your filter at the moment.</p>
             </div>
-            <button id="add-task-cta" class="btn btn-dark" type="button" hidden style="margin: 4px auto 0; background-color: #111; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+            <button id="add-task-cta" class="btn btn-dark" type="button" style="margin: 4px auto 0; background-color: #111; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
               <span>Add a new task</span>
             </button>

@@ -78,8 +78,7 @@ function setLoading(isLoading) {
       taskLoader.style.display = "flex";
     }
     if (noJobState) noJobState.hidden = true;
-    if (addTaskCta) addTaskCta.hidden = true;
-    if (addScheduleBtn) addScheduleBtn.style.visibility = "hidden";
+    if (addTaskCta) addTaskCta.hidden = false;
     if (jobRows) {
       jobRows.hidden = true;
       jobRows.style.display = "none";
@@ -89,7 +88,7 @@ function setLoading(isLoading) {
       taskLoader.hidden = true;
       taskLoader.style.display = "none";
     }
-    if (addScheduleBtn) addScheduleBtn.style.visibility = "visible";
+    if (addTaskCta) addTaskCta.hidden = true;
   }
 }
 

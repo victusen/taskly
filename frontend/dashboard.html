@@ -383,6 +383,13 @@
     /* Main column */
     main { display: flex; flex-direction: column; gap: 15px; width: 100%; padding: 12px 15px; overflow-y: auto; }
     .dash-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+    .dash-header-strip { display: flex; justify-content: space-between; padding: 0 12px; }
+    @media (max-width: 639px) {
+      .dash-header-strip { padding: 0 6px; }
+      #upgrade-to-paid-link { padding-right: 12px !important; }
+      .business-overviews { padding: 0 4px; }
+      .dashboard-panel { margin-left: -15px; margin-right: -15px; width: calc(100% + 30px); border-radius: 0; border-left: none; border-right: none; }
+    }
     .business-overviews { display: flex; flex-direction: column; gap: 20px; width: 100%; margin-top: 20px; margin-bottom: 30px; }
     .project-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
     .project-list > a { display: block; width: 100%; min-width: 0; }
@@ -643,11 +650,11 @@
         <div class="drop" id="drop">
           <div class="taskly-projs" onclick="window.location.href='dashboard.html'">
             <img src="Check.png" style="height: 12px;" alt="">
-            <p>Overview</p>
+            <p>Open project</p>
           </div>
           <div class="taskly-projs" onclick="window.location.href='smtp.html'">
             <img src="Check.png" style="height: 12px;" alt="">
-            <p>Mail Connections</p>
+            <p>Connect Mail</p>
           </div>
           <div class="taskly-projs" onclick="window.location.href='schedules.html'">
             <img src="Check.png" style="height: 12px;" alt="">
@@ -816,7 +823,7 @@
 
     <!-- Main column (middle) -->
     <main>
-      <div style="display: flex; justify-content: space-between;">
+      <div class="dash-header-strip">
       <div style="display: flex; flex-direction: column;">
         <div class="dash-top">
           <h2>Overview</h2>
@@ -847,27 +854,19 @@
         <div class="dp-metrics-bar">
           <div class="dp-metric">
             <div class="dp-metric-label"><span class="dot"></span> TOTAL DISPATCHED</div>
-            <div class="dp-metric-value" id="metric-dispatched">
-              <div class="skeleton-line" style="height: 24px; width: 48px; border-radius: 4px;"></div>
-            </div>
+            <div class="dp-metric-value" id="metric-dispatched">0</div>
           </div>
           <div class="dp-metric">
             <div class="dp-metric-label"><span class="dot green"></span> DELIVERED</div>
-            <div class="dp-metric-value" id="metric-delivered">
-              <div class="skeleton-line" style="height: 24px; width: 48px; border-radius: 4px;"></div>
-            </div>
+            <div class="dp-metric-value" id="metric-delivered">0%</div>
           </div>
           <div class="dp-metric">
             <div class="dp-metric-label"><span class="dot orange"></span> BOUNCED</div>
-            <div class="dp-metric-value" id="metric-bounced">
-              <div class="skeleton-line" style="height: 24px; width: 48px; border-radius: 4px;"></div>
-            </div>
+            <div class="dp-metric-value" id="metric-bounced">0%</div>
           </div>
           <div class="dp-metric">
             <div class="dp-metric-label"><span class="dot red"></span> FAILED</div>
-            <div class="dp-metric-value" id="metric-failed">
-              <div class="skeleton-line" style="height: 24px; width: 48px; border-radius: 4px;"></div>
-            </div>
+            <div class="dp-metric-value" id="metric-failed">0%</div>
           </div>
           <!-- Time-range pills -->
           <div class="dp-time-pills" role="group" aria-label="Timeframe">
@@ -945,6 +944,29 @@
 
     <!-- Third column: kept empty for the asymmetric balance. Fill it later. -->
     <aside class="col-empty-third" aria-hidden="true"></aside>
+  </div>
+
+  <!-- Mailing Connection Modal -->
+  <div class="modal-backdrop" id="mailing-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 style="font-size: 20px;">Connect <span style="color:green;">Mailing Address</span></h3>
+        <div class="close-btn" id="mailing-modal-close" role="button" aria-label="Close">
+          <img src="Close.png" style="pointer-events:none; height: 14px;" alt="">
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+        <p style="font-size: 14px; color: #4b5563;">Choose how you want to connect your mailing service to start dispatching emails.</p>
+        <a href="smtp.html?setup=custom" style="padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: #111; font-weight: 500;">
+          <img src="smtp-icon.png" style="height: 20px;" alt="">
+          Connect custom domain
+        </a>
+        <a href="schedules.html?connect=gmail" style="padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: #111; font-weight: 500;">
+          <img src="gmail-btn.png" style="height: 20px;" alt="">
+          Connect Gmail
+        </a>
+      </div>
+    </div>
   </div>
 
   <!-- Business Creation Modal (unchanged markup, so dashboard.js still works) -->

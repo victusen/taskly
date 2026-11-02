@@ -69,6 +69,11 @@ export function initInviteModal(options = {}) {
       margin: 0;
       line-height: 1.3;
     }
+    @media (max-width: 640px) {
+      .invite-drawer-title {
+        font-size: 22px;
+      }
+    }
     .invite-drawer-sub {
       font-size: 13px;
       color: #6b7280;
@@ -110,7 +115,7 @@ export function initInviteModal(options = {}) {
     .invite-label {
       font-size: 13px;
       font-weight: 600;
-      color: #374151;
+      color: #4b5563;
     }
     .invite-hint {
       font-size: 12px;
@@ -164,8 +169,7 @@ export function initInviteModal(options = {}) {
     }
     .invite-drawer-footer {
       padding: 15px 28px;
-      // height: 50px
-      border-top: 1px solid #f3f4f6;
+      border-top: 1px solid #e5e7eb;
       display: flex;
       justify-content: space-between;
       align-items: center;
