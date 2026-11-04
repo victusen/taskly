@@ -3,6 +3,8 @@ import { requireAuth, resolveUserInitial, applyUserAvatar } from "./scripts/auth
 import { initShell, showGoogleResult } from "./scripts/ui/shell.js";
 import { initInviteModal } from "./scripts/ui/inviteModal.js";
 import { startGoogleConnection } from "./scripts/api/emailConnections.js";
+import { openConnectModal } from "./scripts/ui/connectModal.js";
+import { sendNow } from "./scripts/api/schedules.js"
 import {
   loadProject,
   loadProjects,
@@ -13,12 +15,18 @@ import {
   addSchedule,
   removeProject,
 } from "./scripts/data/source.js";
+import { saveDraft, readDrafts } from "./scripts/data/drafts.js";
 
+const PROJECT_ID_PATTERN = /^[A-Za-z0-9-]{1,64}$/;
 const urlParams = new URLSearchParams(window.location.search);
-const projectId = urlParams.get("project");
+const rawProjectId = urlParams.get("project");
+const projectId = rawProjectId && PROJECT_ID_PATTERN.test(rawProjectId) ? rawProjectId : null;
+
 if (!projectId) {
   window.location.replace("dashboard.html");
+  throw new Error("Missing or invalid project id.");
 }
+
 let currentProject = null;
 let isFetchingSchedules = false;
 
@@ -200,36 +208,39 @@ function renderRows(filter = currentFilter) {
  * Guarded against concurrent runs with an 8-second request timeout,
  * and guaranteed to end loading in a finally block.
  */
+
 async function loadRows(filter = currentFilter) {
   if (isFetchingSchedules) return;
   isFetchingSchedules = true;
   setLoading(true);
 
-  const REQUEST_TIMEOUT_MS = 8000;
+  const TIMEOUT_MS = 6000;
   let fetchError = null;
+  let timer = null;
 
   try {
     const result = await Promise.race([
       loadSchedules(projectId),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Request timed out. Please check your connection.")), REQUEST_TIMEOUT_MS)
-      ),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error("timeout")), TIMEOUT_MS);
+      }),
     ]);
     schedules = Array.isArray(result) ? result : [];
   } catch (err) {
-    console.error("Failed to load schedules:", err);
     fetchError = err;
     schedules = [];
   } finally {
+    clearTimeout(timer);
     setLoading(false);
     isFetchingSchedules = false;
 
-    if (fetchError) {
-      if (fetchError.status === 404 || fetchError.code === "NOT_FOUND" || fetchError.message?.includes("Project not found")) {
-        showProjectNotFound();
-      } else {
-        showRequestError(fetchError.message || "Failed to load schedules. Please check your connection.");
-      }
+    if (fetchError && fetchError.status === 404) {
+      showProjectNotFound();
+    } else if (fetchError) {
+      // Timeout or other failure: show the empty state, as you asked.
+      hideAllStates();
+      if (noJobState) noJobState.hidden = false;
+      if (addTaskCta) addTaskCta.hidden = false;
     } else {
       renderRows(filter);
     }
@@ -298,6 +309,10 @@ async function updateProjectUI(project) {
   } catch (connErr) {
     console.warn("Could not check connections for channel switcher:", connErr);
   }
+}
+
+function isImmediate(draft) {
+  return draft.schedule_type === "immediate";
 }
 
 // Populate connections in schedule overlay modal
@@ -408,38 +423,6 @@ scheduleOverlay?.addEventListener("click", (e) => {
   if (e.target === scheduleOverlay) closeScheduleModal();
 });
 
-connectGmailBtn?.addEventListener("click", async () => {
-  setLoading(true);
-  try {
-    await startGoogleConnection();
-  } catch (err) {
-    toastError(err.message || "Could not connect Gmail.");
-  } finally {
-    setLoading(false);
-  }
-});
-
-// Dropdown "Connect Gmail account" handler
-document.getElementById("header-connect-gmail")?.addEventListener("click", async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  try {
-    await startGoogleConnection();
-  } catch (err) {
-    toastError(err.message || "Could not connect Gmail.");
-  } finally {
-    setLoading(false);
-  }
-});
-
-// Handle ?connect=gmail query param
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get("connect") === "gmail") {
-  urlParams.delete("connect");
-  const cleanUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams.toString() : "") + (window.location.hash || "");
-  window.history.replaceState({}, document.title, cleanUrl);
-  startGoogleConnection().catch((err) => toastError(err.message || "Could not start Gmail connection."));
-}
 
 // Clean tokens / hash fragments from URL
 if (window.location.hash && (window.location.hash.includes("access_token") || window.location.hash.includes("refresh_token") || window.location.hash === "#")) {
@@ -515,6 +498,7 @@ scheduleForm?.addEventListener("submit", async (event) => {
   }
 });
 
+
 // Composer submission hooks (Inline composer in Column 2)
 async function senderFor(draft) {
   const connections = (await loadConnections()).filter((item) => item.status === "active");
@@ -555,7 +539,12 @@ window.bzComposer.onSubmit = async (draft) => {
   let saved = false;
   try {
     const sender = await senderFor(draft);
-    await addSchedule(payloadFor(draft, sender));
+    const payload = payloadFor(draft, sender);
+    if (isImmediate(draft)) {
+      await sendNow(payload);
+    } else {
+      await addSchedule(payload);
+    }
     saved = true;
   } catch (err) {
     // DB rejected: re-throw so composer shows error inline
@@ -590,54 +579,7 @@ window.bzComposer.onUpdate = async (id, draft) => {
   }
 };
 
-const mailingModal = document.getElementById("mailing-modal");
-document.getElementById("connect-gmail-btn")?.addEventListener("click", () => {
-  mailingModal.style.display = "flex";
-});
-document.getElementById("mailing-modal-close")?.addEventListener("click", () => {
-  mailingModal.style.display = "none";
-});
-document.getElementById("mailing-modal-gmail")?.addEventListener("click", async () => {
-  mailingModal.style.display = "none";
-  setLoading(true);
-  try {
-    await startGoogleConnection();
-  } catch (err) {
-    toastError(err.message || "Could not connect Gmail.");
-  } finally {
-    setLoading(false);
-  }
-});
-mailingModal.addEventListener("click", (event) => {
-  if (event.target === mailingModal) mailingModal.style.display = "none";
-});
-
-  try {
-    const session = await requireAuth();
-    if (session) {
-      try { initShell(session); } catch (e) { /* ignore layout differences */ }
-      try { showGoogleResult(); } catch (e) { /* ignore */ }
-
-      // Populate user profile info in sidebars and headers
-      const initial = resolveUserInitial(session);
-      applyUserAvatar(initial);
-
-      const user = session.user || {};
-      const meta = user.user_metadata || {};
-      const email = user.email || "";
-      const full = meta.full_name || meta.name || "";
-      const name = meta.first_name || full.split(" ")[0] || email.split("@")[0] || "User";
-
-      const nameEl = document.getElementById("sidebar-user-name");
-      const emailEl = document.getElementById("sidebar-user-email");
-
-      if (nameEl) nameEl.textContent = full || name;
-      if (emailEl) emailEl.textContent = email;
-    }
-  } catch (authErr) {
-    console.warn("Auth initialization warning:", authErr);
-  }
-
+async function init() {
   // Load project info
   try {
     const project = await loadProject(projectId);
@@ -733,29 +675,6 @@ mailingModal.addEventListener("click", (event) => {
   // Load schedules (runs animated red donut loader before showing empty state or jobs)
   await loadRows();
 
-  // Mailing Connection Modal logic
-  const mailingModal = document.getElementById("mailing-modal");
-  document.getElementById("connect-gmail-btn")?.addEventListener("click", () => {
-    mailingModal.style.display = "flex";
-  });
-  document.getElementById("mailing-modal-close")?.addEventListener("click", () => {
-    mailingModal.style.display = "none";
-  });
-  document.getElementById("mailing-modal-gmail")?.addEventListener("click", async () => {
-    mailingModal.style.display = "none";
-    setLoading(true);
-    try {
-      await startGoogleConnection();
-    } catch (err) {
-      toastError(err.message || "Could not connect Gmail.");
-    } finally {
-      setLoading(false);
-    }
-  });
-  mailingModal.addEventListener("click", (event) => {
-    if (event.target === mailingModal) mailingModal.style.display = "none";
-  });
-
   // Wire up preview button in the inline composer
   const previewBtn = document.getElementById("cmp-preview-btn");
   const previewPanel = document.getElementById("cmp-preview-panel");
@@ -811,9 +730,37 @@ mailingModal.addEventListener("click", (event) => {
       document.body.style.overflow = "";
     }
   });
-
-  // Initialize right-side team member invite drawer modal
-  initInviteModal();
 }
 
 await init();
+
+function wireHeader() {
+  const hamburger = document.getElementById("hamburger-btn");
+  const overlay = document.getElementById("mobile-sidebar-overlay");
+  const closeSidebar = document.getElementById("sidebar-close-btn");
+
+  const setDrawer = (open) => {
+    overlay?.classList.toggle("open", open);
+    document.body.style.overflow = open ? "hidden" : "";
+  };
+
+  hamburger?.addEventListener("click", () => setDrawer(true));
+  closeSidebar?.addEventListener("click", () => setDrawer(false));
+  overlay?.addEventListener("click", (e) => {
+    if (e.target === overlay) setDrawer(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setDrawer(false);
+  });
+
+  const helpBtn = document.getElementById("help-dropdown-btn");
+  const helpMenu = document.getElementById("help-dropdown-menu");
+  helpBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    helpMenu?.classList.toggle("show");
+  });
+
+  initInviteModal();
+}
+
+wireHeader();

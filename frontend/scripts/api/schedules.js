@@ -23,3 +23,10 @@ export function resumeSchedule(id) {
 export function cancelSchedule(id) {
   return authenticatedFetch(`/api/schedules/${id}`, { method: "DELETE" });
 }
+
+export function sendNow(payload) {
+  return authenticatedFetch("/api/send-now", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}

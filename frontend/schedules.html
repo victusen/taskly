@@ -489,8 +489,24 @@
     .cmp[hidden] { display: none; }
     .cmp-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #e5e7eb; }
     .cmp-title { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: #111; }
-    .cmp-icon { width: 35px; height: 35px; padding: 4px; border-radius: 50px; background-color: lightgray; display: flex; align-items: center; justify-content: center; border: 0; color: #111; font: inherit; font-size: 20px; line-height: 1; cursor: pointer; margin-left: auto; align-self: center; transition: background 0.15s ease; }
-    .cmp-icon:hover { background-color: #c7c7c7; }
+    .cmp-icon {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 0;
+      border-radius: 50%;
+      color: #4b5563;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .cmp-icon:hover {
+      background: #f3f4f6;
+      color: #111827;
+    }
+    .cmp-icon svg { width: 22px; height: 22px; }
     .cmp-form { display: flex; flex-direction: column; gap: 16px; }
     .cmp-grid-2x2 { display: grid; grid-template-columns: repeat(2, 1minmax(0, 1fr)); gap: 16px; }
     .cmp-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
@@ -534,6 +550,14 @@
     .task-edit { padding: 6px 12px; font: inherit; font-size: 13px; color: #111111; background: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; }
     .task-edit:hover { background: #111111; color: #ffffff; border-color: #111111; }
 
+    .tpl-backdrop { position: fixed; inset: 0; background: rgba(17,24,39,0.7); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 3500; }
+    .tpl-backdrop.open { display: flex; }
+    .tpl-shell { width: 100%; max-width: 900px; background: transparent; display: flex; flex-direction: column; gap: 16px; }
+    .tpl-head { display: flex; align-items: center; justify-content: space-between; color: #fff; }
+    .tpl-track { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; }
+    .tpl-card { flex: 0 0 min(320px, 80vw); scroll-snap-align: start; background: #fff; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .tpl-card h4 { font-size: 16px; margin: 0; }
+    .tpl-card p { font-size: 13px; color: #6b7280; margin: 0; }
     .cmp-actions { display: flex; gap: 10px; justify-content: flex-end; }
     .cmp-cancel { padding: 10px 20px; font: inherit; font-size: 14px; color: #4b5563; background: transparent; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; transition: background 0.15s ease; }
     .cmp-cancel:hover { background: #f3f4f6; color: #111; }
@@ -541,6 +565,15 @@
     #job-rows { display: flex; flex-direction: column; }
     #job-rows .task { display: flex; flex-direction: column; gap: 6px; padding: 16px 0; border-bottom: 1px solid #d9d9d9; }
 
+    .cmp-details-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+    @media (max-width: 768px) {
+      .cmp-details-grid { grid-template-columns: 1fr !important;}
+    }
+    
     @media (max-width: 600px) {
       .cmp { padding: 16px; }
       .cmp-field { min-width: 100%; }
@@ -575,10 +608,6 @@
           <div class="taskly-projs" onclick="window.location.href='smtp.html'">
             <img src="Check.png" style="height: 12px;">
             <p style="font-size: 13px;">Mail Connections</p>
-          </div>
-          <div class="taskly-projs" id="header-connect-gmail" onclick="window.location.href='schedules.html?connect=gmail'">
-            <img src="gmail-btn.png" style="height: 12px;">
-            <p style="font-size: 13px;">Connect Gmail account</p>
           </div>
         </div>
       </div>
@@ -675,6 +704,10 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               <span>Audiences</span>
             </a>
+            <a href="#" class="nav-item" id="nav-templates">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+              <span>Templates</span>
+            </a>
             <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Team members view opened');">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
               <span>Team members</span>
@@ -740,6 +773,10 @@
               <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Audiences view opened');">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 <span>Audiences</span>
+              </a>
+              <a href="#" class="nav-item" id="nav-templates">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+                <span>Templates</span>
               </a>
               <a href="#" class="nav-item" onclick="event.preventDefault(); showToast('info', 'Team members view opened');">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
@@ -810,7 +847,7 @@
               </div>
               <button id="connect-gmail-btn" class="btn" type="button" style="padding: 4px 10px; background-color: inherit; border: 1px solid lightgray; border-radius: 4px; cursor: pointer; font-weight: normal; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; color: #111;">
                 <!-- <img src="gmail-btn.png" style="height: 14px;" alt="Gmail" /> -->
-                <span>Connect Mailing address</span>
+                <span>Connect mail account</span>
               </button>
             </div>
           </div>
@@ -824,7 +861,9 @@
           <section id="job-composer" class="cmp" hidden aria-labelledby="cmp-title">
             <header class="cmp-head">
               <h3 id="cmp-title" class="cmp-title">New task</h3>
-              <button type="button" id="cmp-close" class="cmp-icon" aria-label="Close new task">&times;</button>
+              <button type="button" id="cmp-close" class="cmp-icon" aria-label="Close new task">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+              </button>
             </header>
 
             <form id="cmp-form" class="cmp-form" novalidate>
@@ -961,6 +1000,7 @@
                 <p id="cmp-error" class="cmp-error" role="alert" hidden></p>
                 <div class="cmp-actions">
                   <button type="button" id="cmp-cancel" class="cmp-cancel">Cancel</button>
+                  <button type="button" id="cmp-save-draft" class="cmp-cancel">Save draft</button>
                   <button type="submit" id="cmp-create" class="cmp-create">Create task</button>
                 </div>
               </div>
@@ -1615,6 +1655,18 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="tpl-backdrop" id="tpl-backdrop" role="dialog" aria-modal="true" aria-labelledby="tpl-title">
+  <div class="tpl-shell">
+    <div class="tpl-head">
+      <h3 id="tpl-title">Templates</h3>
+      <button type="button" id="tpl-close" class="cmp-icon" aria-label="Close templates">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="tpl-track" id="tpl-track"></div>
+  </div>
   </div>
 
   <script type="module" src="schedules.js"></script>

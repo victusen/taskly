@@ -2,129 +2,33 @@ import { supabase } from "../auth/auth.js";
 import { authenticatedFetch } from "../auth/api.js";
 import { BACKEND_URL } from "../config.js";
 
-export async function addEmailConnection({
-  emailAddress,
-  host,
-  port,
-  secure,
-  username,
-  password,
-}) {
-  const {
-    data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession();
+const PROJECT_ID_PATTERN = /^[A-Za-z0-9-]{1,64}$/;
 
-  if (sessionError) {
-    throw new Error(
-      "Unable to verify your session."
-    );
+export async function addEmailConnection({ projectId, emailAddress, host, port, secure, username, password }) {
+  if (!PROJECT_ID_PATTERN.test(String(projectId ?? ""))) {
+    throw new Error("This mail account must be connected from a project.");
   }
 
-  if (!session?.access_token) {
-    throw new Error(
-      "You must be signed in."
-    );
-  }
-
-  const response = await fetch(
-    `${BACKEND_URL}/api/email-connections`,
-    {
-      method: "POST",
-
-      headers: {
-        "Authorization":
-          `Bearer ${session.access_token}`,
-
-        "Content-Type":
-          "application/json",
-      },
-
-      body: JSON.stringify({
-        emailAddress,
-        host,
-        port,
-        secure,
-        username,
-        password,
-      }),
-    }
-  );
-
-  let data;
-
-  try {
-    data = await response.json();
-  } catch {
-    throw new Error(
-      "Invalid response from server."
-    );
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      data.message ||
-      "Failed to add email connection."
-    );
-  }
-
-  return data;
+  return authenticatedFetch("/api/email-connections", {
+    method: "POST",
+    body: JSON.stringify({ projectId, emailAddress, host, port, secure, username, password }),
+  });
 }
 
-export async function startGoogleConnection() {
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession();
-
-  if (error) {
-    throw new Error(
-      "Unable to verify your session."
-    );
+export async function startGoogleConnection(projectId) {
+  if (!PROJECT_ID_PATTERN.test(String(projectId ?? ""))) {
+    throw new Error("This mail account must be connected from a project.");
   }
 
-  if (!session?.access_token) {
-    window.location.href = "login.html";
-    return;
-  }
-
-  const response = await fetch(
-    `${BACKEND_URL}/api/email-connections/google/start`,
-    {
-      method: "GET",
-
-      headers: {
-        Authorization:
-          `Bearer ${session.access_token}`,
-      },
-    }
+  const body = await authenticatedFetch(
+    `/api/email-connections/google/start?project_id=${encodeURIComponent(projectId)}`,
+    { method: "GET" }
   );
 
-  let data = {};
-
-  try {
-    data = await response.json();
-  } catch {
-    throw new Error(
-      "Invalid server response."
-    );
+  if (!body.authorizationUrl) {
+    throw new Error("Google authorization URL was not returned.");
   }
-
-  if (!response.ok) {
-    throw new Error(
-      data.message ||
-      "Unable to start Google connection."
-    );
-  }
-
-  if (!data.authorizationUrl) {
-    throw new Error(
-      "Google authorization URL was not returned."
-    );
-  }
-
-  window.location.href =
-    data.authorizationUrl;
+  window.location.href = body.authorizationUrl;
 }
 
 export async function listEmailConnections() {

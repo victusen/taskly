@@ -23,17 +23,6 @@ export async function startPayment() {
       );
     }
 
-    let browserIp = null;
-    try {
-      const ipRes = await fetch("https://api.ipify.org?format=json");
-      if (ipRes.ok) {
-        const ipData = await ipRes.json();
-        browserIp = ipData.ip || null;
-      }
-    } catch {
-      // Non-blocking. If the lookup fails we still proceed with payment.
-    }
-
     console.log("starting edge function invocation");
     const response = await fetch(`${supabase.supabaseUrl}/functions/v1/initialize-payment`, {
       method: "POST",
@@ -42,7 +31,6 @@ export async function startPayment() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        browser_ip: browserIp,
         user_id: session.user.id,
         user_email: session.user.email,
       }),

@@ -4,6 +4,8 @@ import { startPayment } from "./scripts/payments/payment.js";
 import { showToast, error as toastError } from "./scripts/ui/toast.js";
 import { loadConnections, addProject, loadProjects, removeProject, readProjectsCache } from "./scripts/data/source.js";
 import { initInviteModal } from "./scripts/ui/inviteModal.js";
+import { openConnectModal } from "./scripts/ui/connectModal.js";
+import { showGoogleResult } from "./scripts/ui/shell.js";
 
 // Stub navigations for Audiences and Team members (real pages come later)
 window.bzShowAudiences = () => showToast("info", "Audiences — coming soon. Track subscriber segments here.");
@@ -32,6 +34,8 @@ let activeProjects = [];
 
 const session = await requireAuth();
 if (!session) throw new Error("Authentication required.");
+
+showGoogleResult();
 
 // Populate user details in header avatar / sidebar
 const initial = resolveUserInitial(session);
@@ -256,10 +260,10 @@ async function renderDashboardProjects() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                 Open project
               </a>
-              <a href="schedules.html?connect=gmail" class="proj-menu-item">
+              <button type="button" class="proj-menu-item" data-action="connect" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(pName)}">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                Connect Gmail
-              </a>
+                Connect mail account
+              </button>
               <button type="button" class="proj-menu-item" data-action="settings" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(pName)}">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                 Project settings
@@ -319,6 +323,11 @@ document.addEventListener("click", (e) => {
     allDropdowns.forEach((d) => (d.style.display = "none"));
     document.querySelectorAll("[data-dots-trigger]").forEach((b) => b.classList.remove("active"));
 
+    if (action === "connect") {
+      openConnectModal({ projectId, projectName });
+      return;
+    }
+    
     if (action === "delete") {
       openDeleteModal(projectId, projectName);
       return;
@@ -487,16 +496,3 @@ form.addEventListener("submit", async (event) => {
 
 // Initial load
 renderDashboardProjects();
-
-// Add Mailing Connection Modal logic
-const mailingModal = document.getElementById("mailing-modal");
-document.getElementById("connect-mailing-btn")?.addEventListener("click", () => {
-  mailingModal.classList.add("open");
-});
-document.getElementById("mailing-modal-close")?.addEventListener("click", () => {
-  mailingModal.classList.remove("open");
-});
-mailingModal.addEventListener("click", (event) => {
-  if (event.target === mailingModal) mailingModal.classList.remove("open");
-});
-
