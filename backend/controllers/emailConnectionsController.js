@@ -124,7 +124,7 @@ export async function createEmailConnection(req, res) {
       error
     );
 
-    return res.status(500).json({ success: false, code: "SERVER_ERROR", message: "Unable to load email connections." });
+    return res.status(500).json({ success: false, code: "SERVER_ERROR", message: "Unable to add the email connection." });
   }
 }
 

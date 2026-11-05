@@ -297,14 +297,21 @@
     .no-job p { font-size: 14px; max-width: 320px; }
 
     .close-btn {
-      background-color: lightgray; 
-      width: 35px; height: 35px; 
-      padding: 4px;
-      border-radius:50px;
+      background: transparent;
+      border: none;
+      width: 32px; height: 32px;
+      padding: 0;
+      border-radius: 50%;
       display: flex;
       align-items: center; justify-content: center;
       cursor: pointer;
+      color: #4b5563;
+      transition: background 0.15s ease, color 0.15s ease;
+      flex-shrink: 0;
+      margin-left: 12px;
     }
+    .close-btn:hover { background: #f3f4f6; color: #111827; }
+    .close-btn svg { width: 18px; height: 18px; }
     .schedule-overlay {
       display: none;
       align-items: center;
@@ -418,13 +425,16 @@
     .cmp[hidden] { display: none; }
     .cmp-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #d9d9d9; }
     .cmp-title { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
-    .cmp-icon { width: 32px; height: 32px; display: grid; place-items: center; background: transparent; border: 1px solid #3a3a3a; border-radius: 0; color: #111111; font: inherit; font-size: 20px; line-height: 1; cursor: pointer; }
+    .cmp-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 0; border-radius: 50%; color: #4b5563; font: inherit; line-height: 1; cursor: pointer; transition: background 0.15s ease, color 0.15s ease; }
+    .cmp-icon:hover { background: #f3f4f6; color: #111827; }
+    .cmp-icon svg { width: 18px; height: 18px; }
     .cmp-form { display: flex; flex-direction: column; gap: 18px; }
     .cmp-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
     .cmp-field { display: flex; flex-direction: column; gap: 6px; min-width: 160px; }
     .cmp-grow { flex: 1 1 260px; }
     .cmp-label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6b6b6b; }
     .cmp-input { width: 100%; min-width: 0; box-sizing: border-box; padding: 10px 12px; font: inherit; font-size: 14px; color: #111111; background: #ffffff; border: 1px solid #3a3a3a; border-radius: 0; }
+    .cmp-input::placeholder, .cmp-code::placeholder { color: #c4c8d0; font-weight: 300 !important; opacity: 1; }
     .cmp-input:focus { outline: 2px solid #111111; outline-offset: 0; }
     .cmp-input:disabled { background: #f5f5f5; color: #6b6b6b; cursor: not-allowed; }
     .cmp-ellipsis { width: 240px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -620,7 +630,9 @@
           <section id="job-composer" class="cmp" hidden aria-labelledby="cmp-title">
             <header class="cmp-head">
               <h3 id="cmp-title" class="cmp-title">New task</h3>
-              <button type="button" id="cmp-close" class="cmp-icon" aria-label="Close new task">&times;</button>
+              <button type="button" id="cmp-close" class="cmp-icon" aria-label="Close new task">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+              </button>
             </header>
   
             <form id="cmp-form" class="cmp-form" novalidate>
@@ -683,6 +695,7 @@
                   <div class="cmp-tools" role="toolbar" aria-label="Insert element">
                     <button type="button" class="cmp-tool" data-insert="h1">H1</button>
                     <button type="button" class="cmp-tool" data-insert="p">P</button>
+                    <button type="button" class="cmp-tool" data-insert="personalize">Personalize</button>
                     <button type="button" class="cmp-tool" data-insert="a">Link</button>
                     <button type="button" class="cmp-tool" data-insert="button">Button</button>
                     <button type="button" class="cmp-tool" data-insert="img">Image</button>
@@ -747,7 +760,7 @@
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
         <h3 style="line-height:1.2; font-size:20px;">Create a new <br><span style="color:green;">Schedule</span></h3>
         <div class="close-btn" id="close-btn" role="button" aria-label="Close">
-          <img src="Close.png" style="pointer-events:none;" height="100%" alt="">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </div>
       </div>
 
@@ -805,8 +818,8 @@
           <img src="logo-2.png" style="height: 24px;" alt="Logo">
           <span style="font-weight: 600; font-size: 18px;">Bzade.app</span>
         </div>
-        <div class="close-btn" id="sidebar-close-btn" role="button" aria-label="Close Sidebar" style="width: 30px; height: 30px;">
-          <img src="Close.png" style="pointer-events:none; height: 14px;" alt="">
+        <div class="close-btn" id="sidebar-close-btn" role="button" aria-label="Close Sidebar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </div>
       </div>
       <div class="mobile-sidebar-body">
@@ -944,6 +957,7 @@
   const SNIPPETS = {
     h1: "<h1>|</h1>",
     p: "<p>|</p>",
+    personalize: "<div>Hi {customerName}, how are you doing today|</div>",
     a: '<a href="https://|" target="_blank" rel="noopener noreferrer">Link text</a>',
     button: '<a href="https://|" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:12px 22px;background-color:#111111;color:#ffffff;text-decoration:none;">Button text</a>',
     img: '<img src="|" alt="" width="240" style="display:block;max-width:100%;height:auto;">',
@@ -1293,8 +1307,8 @@
     <div class="delete-modal-box" style="background: #ffffff; border-radius: 12px; width: 100%; max-width: 480px; padding: 24px; box-shadow: 0 20px 30px rgba(0,0,0,0.18); display: flex; flex-direction: column; gap: 16px;">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 12px;">
         <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Project Settings</h3>
-        <div class="close-btn" id="settings-modal-close" role="button" aria-label="Close" style="cursor: pointer; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #f3f4f6;">
-          <img src="Close.png" style="pointer-events:none; height: 14px;" alt="">
+        <div class="close-btn" id="settings-modal-close" role="button" aria-label="Close" style="cursor: pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </div>
       </div>
       <div style="display: flex; flex-direction: column; gap: 14px; font-size: 14px;">

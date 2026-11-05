@@ -106,10 +106,16 @@ function schedulesStore() {
   return mockSchedules;
 }
 
+/* The demo projects used when the backend cannot be reached. Exported so the
+   dashboard can reuse the same fallback if its own request times out. */
+export function mockProjects() {
+  return [...BASE_PROJECTS, ...readExtra()];
+}
+
 export async function loadProjects() {
   if (USE_MOCK) {
     await delay(500);
-    const mockList = [...BASE_PROJECTS, ...readExtra()];
+    const mockList = mockProjects();
     writeProjectsCache(mockList);
     return mockList;
   }
@@ -122,15 +128,14 @@ export async function loadProjects() {
     }
     return projects;
   } catch (err) {
-    console.warn("Backend unavailable, checking project cache:", err?.message || err);
-    // Network/server unreachable — serve cached data from the last time the user was logged in
-    const cached = readProjectsCache();
-    if (cached !== null && Array.isArray(cached)) {
-      Object.defineProperty(cached, "__fromCache", { value: true, enumerable: false });
-      return cached;
-    }
-    // If no cache exists at all yet, fall back gracefully to BASE_PROJECTS so dashboard never breaks
-    const fallback = [...BASE_PROJECTS, ...readExtra()];
+    // Backend unreachable for any reason (server down, CORS, timeout): show the
+    // demo projects immediately instead of an empty dashboard.
+    const fallback = mockProjects();
+    console.log(
+      `[projects] Backend unavailable (${err?.message || err}). Falling back to mock projects: ${fallback
+        .map((p) => p.id)
+        .join(", ")}.`
+    );
     writeProjectsCache(fallback);
     Object.defineProperty(fallback, "__fromCache", { value: true, enumerable: false });
     return fallback;

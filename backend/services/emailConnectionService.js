@@ -30,6 +30,7 @@ export async function createCustomSmtpConnection({
       connection_type: "smtp",
       email_address: emailAddress,
       credentials: encryptedPassword,
+      status: "active",
     })
     .select(
       "id, provider, connection_type, email_address, status, created_at"

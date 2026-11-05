@@ -2,8 +2,9 @@ import { requireAuth, resolveUserInitial, applyUserAvatar } from "./scripts/auth
 import { signOut } from "./scripts/auth/auth.js";
 import { startPayment } from "./scripts/payments/payment.js";
 import { showToast, error as toastError } from "./scripts/ui/toast.js";
-import { loadConnections, addProject, loadProjects, removeProject, readProjectsCache } from "./scripts/data/source.js";
+import { loadConnections, addProject, loadProjects, removeProject, mockProjects } from "./scripts/data/source.js";
 import { initInviteModal } from "./scripts/ui/inviteModal.js";
+import { initAccountMenu } from "./scripts/ui/accountMenu.js";
 import { openConnectModal } from "./scripts/ui/connectModal.js";
 import { showGoogleResult } from "./scripts/ui/shell.js";
 
@@ -52,7 +53,12 @@ applyUserAvatar(initial);
 })();
 
 // Initialize right-side team member invite drawer modal
-initInviteModal();
+const inviteModal = initInviteModal();
+initAccountMenu({
+  triggerId: "header-avatar",
+  session,
+  onInvite: () => inviteModal.open(),
+});
 
 /* Every Sign out button (laptop sidebar and phone drawer) signs out. */
 document.querySelectorAll("[data-logout]").forEach((button) => {
@@ -105,14 +111,16 @@ async function renderDashboardProjects() {
       // Offline mode silent or gentle indicator
     }
   } catch (err) {
-    const cached = readProjectsCache();
-    if (cached && Array.isArray(cached) && cached.length > 0) {
-      activeProjects = cached;
-      loadError = null;
-    } else {
-      loadError = err;
-      activeProjects = [];
-    }
+    // The request failed or hit the 8s timeout. Never leave the dashboard empty:
+    // fall back to the demo projects (mock-1, mock-2, mock-3) so the UI stays usable.
+    const fallback = mockProjects();
+    activeProjects = fallback;
+    loadError = null;
+    console.log(
+      `[projects] Could not load projects (${err?.message || err}). Falling back to mock projects: ${fallback
+        .map((p) => p.id)
+        .join(", ")}.`
+    );
   }
 
   // Always fade out skeleton loaders — errors or success, skeleton must go

@@ -26,3 +26,12 @@ export function saveDraft({ name, subject, body }) {
   }
   return clean;
 }
+
+export function deleteDraft(id) {
+  const next = readDrafts().filter((draft) => draft.id !== id);
+  try {
+    localStorage.setItem(DRAFTS_KEY, JSON.stringify(next));
+  } catch {
+    throw new Error("Could not update saved drafts on this device.");
+  }
+}

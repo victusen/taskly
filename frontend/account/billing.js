@@ -25,13 +25,24 @@ const email = user?.email || "Victor@bzade.app";
 const emailEl = document.getElementById("user-billing-email");
 if (emailEl) emailEl.textContent = email;
 
-// Detect paid vs free plan
-const userPlan = (meta.plan || meta.subscription_plan || "hobby").toLowerCase();
-const isPaid = userPlan !== "hobby" && userPlan !== "free" && userPlan !== "starter" && userPlan !== "";
+// Keep the displayed status aligned with the user's account plan.
+const userPlan = String(meta.plan || meta.subscription_plan || "free").trim().toLowerCase().replace(/[_-]+/g, " ");
+const normalizedPlan = userPlan === "custom organization" ? "custom organisation" : userPlan;
+const planLabels = {
+  free: "Free",
+  starter: "Free",
+  hobby: "Free",
+  paid: "Paid",
+  pro: "Paid",
+  business: "Business",
+  "custom organisation": "Custom Organisation",
+};
+const planLabel = planLabels[normalizedPlan] || userPlan.replace(/\b\w/g, (letter) => letter.toUpperCase());
+const isPaid = !["free", "starter", "hobby", ""].includes(userPlan);
 
 const planDisplayEl = document.getElementById("plan-title-display");
 if (planDisplayEl) {
-  planDisplayEl.textContent = isPaid ? "Bzade Pro" : "Hobby";
+  planDisplayEl.textContent = planLabel;
 }
 
 const pmStatusEl = document.getElementById("pm-status-text");

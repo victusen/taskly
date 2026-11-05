@@ -20,7 +20,10 @@ const STATE_EXPIRY_MINUTES = 10;
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || "https://bzade.app").replace(/\/+$/, "");
 const GMAIL_SEND_SCOPE = "https://www.googleapis.com/auth/gmail.send";
+const GOOGLE_SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
 const back = (result) => `${FRONTEND_URL}/dashboard.html?google=${result}`;
+const databaseBack = (result, projectId) =>
+  `${FRONTEND_URL}/schedules.html?project=${encodeURIComponent(projectId)}&google=${result}`;
 
 export async function startGoogleOAuth(
   req,
@@ -28,9 +31,20 @@ export async function startGoogleOAuth(
 ) {
   try {
     const userId = req.user.id;
+    const purpose = req.query.purpose === "database" ? "database" : "mail";
+    const projectId = req.query.project_id;
+    if (
+      purpose === "database" &&
+      (typeof projectId !== "string" || !/^[A-Za-z0-9-]{1,64}$/.test(projectId))
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "A valid project is required to connect a database.",
+      });
+    }
 
-    const state =
-      crypto.randomBytes(32).toString("hex");
+    const nonce = crypto.randomBytes(32).toString("hex");
+    const state = purpose === "database" ? `${nonce}.database.${projectId}` : nonce;
 
     const stateHash =
       hashState(state);
@@ -56,7 +70,7 @@ export async function startGoogleOAuth(
     }
 
     const authorizationUrl =
-      createGoogleAuthorizationUrl(state);
+      createGoogleAuthorizationUrl(state, { includeSheets: purpose === "database" });
 
     return res.status(200).json({
       success: true,
@@ -78,12 +92,20 @@ export async function startGoogleOAuth(
 }
 
 export async function googleOAuthCallback(req, res) {
+  let databaseProjectId = null;
+  const resultUrl = (result) =>
+    databaseProjectId ? databaseBack(result, databaseProjectId) : back(result);
+
   try {
     const { code, state, error: oauthError } = req.query;
 
-    if (typeof state !== "string" || !state || state.length > 200) {
+    const stateMatch = typeof state === "string"
+      ? state.match(/^([a-f0-9]{64})(?:\.database\.([A-Za-z0-9-]{1,64}))?$/)
+      : null;
+    if (!stateMatch) {
       return res.status(400).send("Invalid OAuth state.");
     }
+    databaseProjectId = stateMatch[2] || null;
 
     // Finds the state and marks it used in one statement, so it works only once.
     const now = new Date().toISOString();
@@ -103,18 +125,24 @@ export async function googleOAuthCallback(req, res) {
     }
 
     if (oauthError) {
-      return res.redirect(back("cancelled"));
+      return res.redirect(resultUrl(databaseProjectId ? "database_cancelled" : "cancelled"));
     }
 
     if (typeof code !== "string" || !code) {
-      return res.redirect(back("failed"));
+      return res.redirect(resultUrl(databaseProjectId ? "database_failed" : "failed"));
     }
 
     const { client, tokens } = await exchangeGoogleCode(code);
 
     // Google lets users untick permissions. Without this one, sending never works.
     if (!String(tokens.scope || "").split(" ").includes(GMAIL_SEND_SCOPE)) {
-      return res.redirect(back("missing_scope"));
+      return res.redirect(resultUrl(databaseProjectId ? "database_missing_scope" : "missing_scope"));
+    }
+    if (
+      databaseProjectId &&
+      !String(tokens.scope || "").split(" ").includes(GOOGLE_SHEETS_SCOPE)
+    ) {
+      return res.redirect(resultUrl("missing_sheets_scope"));
     }
 
     client.setCredentials(tokens);
@@ -131,9 +159,9 @@ export async function googleOAuthCallback(req, res) {
       connectionId: connection.id,
     });
 
-    return res.redirect(back("connected"));
+    return res.redirect(resultUrl(databaseProjectId ? "database_connected" : "connected"));
   } catch (error) {
     console.error("[GOOGLE OAUTH CALLBACK]", error);
-    return res.redirect(back("failed"));
+    return res.redirect(resultUrl(databaseProjectId ? "database_failed" : "failed"));
   }
 }

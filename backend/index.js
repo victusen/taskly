@@ -19,6 +19,10 @@ const PORT = process.env.PORT || 3000;
 const isProduction =
   process.env.NODE_ENV === "production" || Boolean(process.env.RENDER);
 
+/* Any localhost / 127.0.0.1 port is allowed outside production, so Live Server,
+   Vite, or a manual `python -m http.server` on any port can reach the API. */
+const LOCAL_ORIGIN_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+
 const allowedOrigins = new Set([
   "https://bzade.app",
   "https://www.bzade.app",
@@ -29,13 +33,19 @@ const allowedOrigins = new Set([
         "http://127.0.0.1:8158",
         "http://localhost:5500",
         "http://127.0.0.1:5500",
+        "http://localhost:5501",
+        "http://127.0.0.1:5501",
       ]),
 ]);
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.has(origin)) {
+      if (
+        !origin ||
+        allowedOrigins.has(origin) ||
+        (!isProduction && LOCAL_ORIGIN_PATTERN.test(origin))
+      ) {
         return callback(null, true);
       }
       return callback(null, false);

@@ -15,14 +15,18 @@ function getOAuthClient() {
   );
 }
 
-export function createGoogleAuthorizationUrl(state) {
+export function createGoogleAuthorizationUrl(state, { includeSheets = false } = {}) {
   const client = getOAuthClient();
+  const scopes = [...GOOGLE_SCOPES];
+  if (includeSheets) {
+    scopes.push("https://www.googleapis.com/auth/spreadsheets.readonly");
+  }
 
   return client.generateAuthUrl({
     access_type: "offline",
     prompt: "consent",
     include_granted_scopes: true,
-    scope: GOOGLE_SCOPES,
+    scope: scopes,
     state,
   });
 }

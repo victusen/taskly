@@ -4,8 +4,13 @@ import { showToast } from "./toast.js";
 
 const GOOGLE_RESULTS = {
   connected: ["success", "Gmail connected."],
+  database_connected: ["success", "Google Sheets database connected."],
+  database_cancelled: ["warning", "Google Sheets connection cancelled."],
+  database_failed: ["error", "Could not connect Google Sheets. Try again."],
+  database_missing_scope: ["warning", "Google Sheets connection also needs Gmail send access. Approve both permissions to continue."],
   cancelled: ["warning", "Gmail connection cancelled."],
   missing_scope: ["warning", "Gmail needs the send permission. Connect again and keep it ticked."],
+  missing_sheets_scope: ["warning", "Google Sheets access is needed. Connect again and approve the Sheets permission."],
   failed: ["error", "Could not connect Gmail. Try again."],
 };
 

@@ -130,8 +130,14 @@ export function initInviteModal(options = {}) {
       color: #111827;
       background: #ffffff;
       font-family: inherit;
+      font-weight: 400;
       box-sizing: border-box;
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .invite-input::placeholder, .invite-textarea::placeholder {
+      font-weight: 300 !important;
+      color: #c4c8d0;
+      opacity: 1;
     }
     .invite-input:focus, .invite-select:focus, .invite-textarea:focus {
       outline: none;
@@ -266,11 +272,11 @@ export function initInviteModal(options = {}) {
         <div class="invite-field">
           <label class="invite-label">Access scope</label>
           <div class="invite-scope-toggle">
-            <div class="invite-scope-pill active" id="scope-account" role="button" tabindex="0">
+            <div class="invite-scope-pill" id="scope-account" role="button" tabindex="0">
               <span class="invite-scope-title">Account access</span>
               <span class="invite-scope-desc">All current & future projects</span>
             </div>
-            <div class="invite-scope-pill" id="scope-project" role="button" tabindex="0">
+            <div class="invite-scope-pill active" id="scope-project" role="button" tabindex="0">
               <span class="invite-scope-title">Project access</span>
               <span class="invite-scope-desc">Specific project only</span>
             </div>
@@ -278,7 +284,7 @@ export function initInviteModal(options = {}) {
         </div>
 
         <!-- Project selection (shows when Project access is picked) -->
-        <div class="invite-field" id="invite-project-group" style="display: none;">
+        <div class="invite-field" id="invite-project-group" style="display: flex;">
           <label class="invite-label" for="invite-project-select">Project to invite them to</label>
           <select class="invite-select" id="invite-project-select">
             <option value="">Loading projects...</option>
@@ -323,7 +329,7 @@ export function initInviteModal(options = {}) {
   const noteInput = document.getElementById("invite-note-input");
   const submitBtn = document.getElementById("btn-submit-invite");
 
-  let activeScope = "account";
+  let activeScope = "project";
 
   // Toggle Access Scope
   scopeAccount.addEventListener("click", () => {
