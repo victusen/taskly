@@ -38,17 +38,17 @@ const summarize = (failures) =>
 
 // Called by the queue when an occurrence fires.
 export function runOccurrence(schedule, runFor) {
-  return attempt({ scheduleId: schedule.id, userId: schedule.user_id, runFor, number: 1 });
+  return attempt({ scheduleId: schedule.id, projectId: schedule.project_id, runFor, number: 1 });
 }
 
-async function attempt({ scheduleId, userId, runFor, number }) {
+async function attempt({ scheduleId, projectId, runFor, number }) {
   const key = occurrenceKey(scheduleId, runFor);
 
   try {
-    const current = await getScheduleStatus(scheduleId, userId);
+    const current = await getScheduleStatus(scheduleId, projectId);
     if (!current) return release(key);
 
-    const runId = await openAttempt({ scheduleId, userId, runFor, attempt: number });
+    const runId = await openAttempt({ scheduleId, runFor, attempt: number });
     if (!runId) return await resolveExisting({ current, runFor, key });
 
     const stillDue = sameInstant(current.next_run_at, runFor);
@@ -71,7 +71,7 @@ async function send({ current, runFor, key, runId, number }) {
   let emailSent = false;
 
   try {
-    const connection = await getActiveConnection(current.email_connection_id, current.user_id);
+    const connection = await getActiveConnection(current.email_connection_id, current.project_id);
     if (!connection || connection.status !== "active") {
       throw permanent("The mail account is missing or needs to be reconnected.");
     }
@@ -99,7 +99,7 @@ async function send({ current, runFor, key, runId, number }) {
     await closeAttempt(runId, { status: "failed", error: message });
 
     if (err?.code === "GMAIL_REVOKED") {
-      await markConnectionNeedsReconnect(current.email_connection_id, current.user_id);
+      await markConnectionNeedsReconnect(current.email_connection_id, current.project_id);
     }
 
     if (!err?.permanent && number <= MAX_RETRIES) {
@@ -109,7 +109,7 @@ async function send({ current, runFor, key, runId, number }) {
       );
       // The key stays in the Map during retries so the planner cannot arm a duplicate.
       setTimeout(() => {
-        attempt({ scheduleId: current.id, userId: current.user_id, runFor, number: number + 1 });
+        attempt({ scheduleId: current.id, projectId: current.project_id, runFor, number: number + 1 });
       }, delay);
       return;
     }
@@ -129,7 +129,7 @@ async function resolveExisting({ current, runFor, key }) {
   if (latest.status === "failed" && latest.attempt <= MAX_RETRIES) {
     return attempt({
       scheduleId: current.id,
-      userId: current.user_id,
+      projectId: current.project_id,
       runFor,
       number: latest.attempt + 1,
     });
@@ -167,7 +167,7 @@ async function finishOccurrence(current, outcome, failureReason, attemptsUsed) {
   const isRecurring = current.schedule_type === "recurring";
   const next = isRecurring ? computeNextRun(current, now) : null;
 
-  await updateScheduleAfterOccurrence(current.id, current.user_id, {
+  await updateScheduleAfterOccurrence(current.id, current.project_id, {
     last_run_at: now.toISOString(),
     last_failure_reason: failureReason ? String(failureReason).slice(0, 500) : null,
     retry_count: Math.max(0, attemptsUsed - 1),

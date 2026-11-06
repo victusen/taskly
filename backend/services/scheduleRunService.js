@@ -9,27 +9,26 @@ const supabase = createClient(
   process.env.SUPABASE_SECRET_KEY
 );
 
-// Read the current state of a schedule.
-// Returns null if the row does not exist or belongs to a different user.
-export async function getScheduleStatus(scheduleId, userId) {
+// Read the current state of a schedule scoped to its owning project.
+export async function getScheduleStatus(scheduleId, projectId) {
   const { data, error } = await supabase
     .from("schedules")
     .select("*")
     .eq("id", scheduleId)
-    .eq("user_id", userId)
+    .eq("project_id", projectId)
     .maybeSingle();
   if (error) throw error;
   return data;
 }
 
 // Read the email account the schedule sends through.
-// Returns null if deleted or belongs to a different user.
-export async function getActiveConnection(connectionId, userId) {
+// Returns null if deleted or does not belong to the schedule's project.
+export async function getActiveConnection(connectionId, projectId) {
   const { data, error } = await supabase
     .from("email_connections")
     .select("*")
     .eq("id", connectionId)
-    .eq("user_id", userId)
+    .eq("project_id", projectId)
     .maybeSingle();
   if (error) throw error;
   return data;
@@ -39,12 +38,11 @@ export async function getActiveConnection(connectionId, userId) {
 // Returns null (without throwing) when the row already exists.
 // That happens when two planDay calls race, or when the server restarts
 // and re-arms an occurrence that was already queued.
-export async function openAttempt({ scheduleId, userId, runFor, attempt }) {
+export async function openAttempt({ scheduleId, runFor, attempt }) {
   const { data, error } = await supabase
     .from("schedule_runs")
     .insert({
       schedule_id: scheduleId,
-      user_id: userId,
       run_for: new Date(runFor).toISOString(),
       attempt,
       status: "running",
@@ -92,23 +90,23 @@ export async function getLatestAttempt(scheduleId, runFor) {
 
 // Move the schedule forward after an occurrence ends.
 // patch contains: last_run_at, last_failure_reason, retry_count, run_count, next_run_at, status.
-export async function updateScheduleAfterOccurrence(scheduleId, userId, patch) {
+export async function updateScheduleAfterOccurrence(scheduleId, projectId, patch) {
   const { error } = await supabase
     .from("schedules")
     .update(patch)
     .eq("id", scheduleId)
-    .eq("user_id", userId);
+    .eq("project_id", projectId);
   if (error) throw error;
 }
 
 // Flag the email account as expired when Gmail revokes access mid-send.
 // 'expired' is what the live email_connections status constraint allows.
 // The dashboard can then prompt the user to reconnect.
-export async function markConnectionNeedsReconnect(connectionId, userId) {
+export async function markConnectionNeedsReconnect(connectionId, projectId) {
   const { error } = await supabase
     .from("email_connections")
     .update({ status: "expired" })
     .eq("id", connectionId)
-    .eq("user_id", userId);
+    .eq("project_id", projectId);
   if (error) throw error;
 }

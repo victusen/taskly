@@ -79,7 +79,7 @@ export async function planDay() {
 
 // Called from scheduleService.js when a schedule is created, edited, paused or cancelled.
 // Arms the new time, or cancels the old alarm if the schedule is no longer active.
-export function syncSchedule(userId, schedule) {
+export function syncSchedule(schedule) {
   if (schedule.status !== "active" || !schedule.next_run_at) {
     disarmSchedule(schedule.id);
     return;

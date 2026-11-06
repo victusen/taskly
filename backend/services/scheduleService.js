@@ -53,20 +53,31 @@ async function assertProject(userId, projectId) {
   }
 }
 
-/* The mail account must belong to this user and be usable. */
-async function assertConnection(userId, connectionId) {
+async function getOwnedProjectIds(userId) {
+  const { data, error } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "active");
+  if (error) throw error;
+  return (data || []).map((project) => project.id);
+}
+
+/* The mail account must belong to this user's project and be usable. */
+async function assertConnection(userId, projectId, connectionId) {
   const { data, error } = await supabase
     .from("email_connections")
-    .select("id, status")
+    .select("id, project_id, status")
     .eq("id", connectionId)
-    .eq("user_id", userId)
     .maybeSingle();
 
   if (error) throw error;
 
-  if (!data) {
+  if (!data || data.project_id !== projectId) {
     throw new ValidationError({ email_connection_id: "Choose one of your connected mail accounts." });
   }
+
+  await assertProject(userId, projectId);
 
   if (data.status !== "active") {
     throw new ValidationError({ email_connection_id: "This mail account needs to be reconnected." });
@@ -84,10 +95,13 @@ async function assertUnderPlanLimit(userId) {
 
   const limits = PLAN_LIMITS[profile?.plan_tier] ?? PLAN_LIMITS.free;
 
+  const projectIds = await getOwnedProjectIds(userId);
+  if (projectIds.length === 0) return;
+
   const { count, error } = await supabase
     .from("schedules")
     .select("id", { count: "exact", head: true })
-    .eq("user_id", userId)
+    .in("project_id", projectIds)
     .in("status", ["active", "paused"]);
 
   if (error) throw error;
@@ -102,17 +116,25 @@ async function assertUnderPlanLimit(userId) {
 }
 
 /*
- * One atomic status change: the row changes only if it belongs to the user AND is still in
- * one of the `from` statuses. Two quick clicks cannot both succeed.
+ * The schedule has no user_id column; ownership is enforced through its project.
  */
 async function changeStatus(userId, id, from, patch) {
   assertUuid(id, "id");
+
+  const { data: row, error: rowError } = await supabase
+    .from("schedules")
+    .select("id, project_id, status")
+    .eq("id", id)
+    .maybeSingle();
+  if (rowError) throw rowError;
+  if (!row) throw notFound();
+  await assertProject(userId, row.project_id);
 
   const { data, error } = await supabase
     .from("schedules")
     .update(patch)
     .eq("id", id)
-    .eq("user_id", userId)
+    .eq("project_id", row.project_id)
     .in("status", from)
     .select(COLUMNS)
     .maybeSingle();
@@ -122,13 +144,12 @@ async function changeStatus(userId, id, from, patch) {
   if (!data) {
     const { data: exists, error: existsError } = await supabase
       .from("schedules")
-      .select("id, status")
+      .select("id, project_id, status")
       .eq("id", id)
-      .eq("user_id", userId)
       .maybeSingle();
 
     if (existsError) throw existsError;
-    if (!exists) throw notFound();
+    if (!exists || exists.project_id !== row.project_id) throw notFound();
 
     throw new ServiceError(409, "INVALID_STATE", `This schedule is ${exists.status} and cannot be changed that way.`);
   }
@@ -137,22 +158,52 @@ async function changeStatus(userId, id, from, patch) {
 }
 
 export const scheduleService = {
-  async getSchedules(userId, projectId) {
+  async getSchedules(userId, projectId, options = {}) {
     assertUuid(projectId, "project_id");
     await assertProject(userId, projectId);
 
-    const { data, error } = await supabase
+    const page = Number(options.page || 1);
+    const pageSize = Number(options.pageSize || 5);
+    const filter = String(options.filter || "all");
+    const jobType = String(options.jobType || "email");
+    if (!Number.isInteger(page) || page < 1) {
+      throw new ValidationError({ page: "Page must be a positive integer." });
+    }
+    if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 50) {
+      throw new ValidationError({ page_size: "Page size must be between 1 and 50." });
+    }
+    if (!["all", "running", "new", "paused"].includes(filter)) {
+      throw new ValidationError({ filter: "Invalid schedule filter." });
+    }
+    if (!["email", "payload"].includes(jobType)) {
+      throw new ValidationError({ job_type: "Invalid schedule type." });
+    }
+
+    let query = supabase
       .from("schedules")
-      .select(COLUMNS)
-      .eq("user_id", userId)
+      .select(COLUMNS, { count: "exact" })
       .eq("project_id", projectId)
       .neq("status", "cancelled")
+      .eq("job_type", jobType)
       .order("next_run_at", { ascending: true, nullsFirst: false })
-      .limit(200);
+      .order("created_at", { ascending: false });
 
+    if (filter === "running") query = query.eq("status", "active");
+    if (filter === "paused") query = query.eq("status", "paused");
+    if (filter === "new") query = query.eq("run_count", 0);
+
+    const offset = (page - 1) * pageSize;
+    const { data, error, count } = await query.range(offset, offset + pageSize - 1);
     if (error) throw error;
 
-    return data;
+    const total = count || 0;
+    return {
+      items: data || [],
+      page,
+      pageSize,
+      total,
+      hasMore: offset + (data || []).length < total,
+    };
   },
 
   async createSchedule(userId, input) {
@@ -160,14 +211,13 @@ export const scheduleService = {
     const value = validateScheduleInput(input);
 
     await assertProject(userId, value.project_id);
-    await assertConnection(userId, value.email_connection_id);
+    await assertConnection(userId, value.project_id, value.email_connection_id);
     await assertUnderPlanLimit(userId);
 
-    /* Only fields the backend chose. The browser never sets user_id, status, run_count or next_run_at. */
+    /* The browser never sets status, run_count or next_run_at. */
     const { data, error } = await supabase
       .from("schedules")
       .insert({
-        user_id: userId,
         project_id: value.project_id,
         status: "active",
         name: value.name,
@@ -186,7 +236,7 @@ export const scheduleService = {
     if (error) throw error;
 
     if (process.env.ENABLE_SCHEDULER === "true") {
-      syncSchedule(userId, data);
+      syncSchedule(data);
     }
 
     return data;
@@ -205,11 +255,11 @@ export const scheduleService = {
       .from("schedules")
       .select(COLUMNS)
       .eq("id", id)
-      .eq("user_id", userId)
       .maybeSingle();
 
     if (error) throw error;
     if (!row) throw notFound();
+    await assertProject(userId, row.project_id);
 
     const timingKeys = ["schedule_type", "scheduled_for", "timezone", "schedule_rule"];
     const changesTiming = timingKeys.some((key) => patch[key] !== undefined);
@@ -230,7 +280,7 @@ export const scheduleService = {
 
     const value = validateScheduleInput(merged);
 
-    await assertConnection(userId, value.email_connection_id);
+    await assertConnection(userId, row.project_id, value.email_connection_id);
 
     const changes = {
       name: value.name,
@@ -257,7 +307,7 @@ export const scheduleService = {
     const updated = await changeStatus(userId, id, ["active", "paused", "failed"], changes);
 
     if (process.env.ENABLE_SCHEDULER === "true") {
-      syncSchedule(userId, updated);
+      syncSchedule(updated);
     }
     return updated;
   },
@@ -266,7 +316,7 @@ export const scheduleService = {
     const updated = await changeStatus(userId, id, ["active"], { status: "paused" });
   
     if (process.env.ENABLE_SCHEDULER === "true") {
-      syncSchedule(userId, updated);
+      syncSchedule(updated);
     }
   
     return updated;
@@ -277,13 +327,13 @@ export const scheduleService = {
 
     const { data: row, error } = await supabase
       .from("schedules")
-      .select("schedule_type, scheduled_for, schedule_rule, timezone")
+      .select("project_id, schedule_type, scheduled_for, schedule_rule, timezone")
       .eq("id", id)
-      .eq("user_id", userId)
       .maybeSingle();
 
     if (error) throw error;
     if (!row) throw notFound();
+    await assertProject(userId, row.project_id);
 
     /* Time kept passing while it was paused. Skip missed runs and find the next real one. */
     const nextRunAt = computeNextRun(row, new Date());
@@ -295,7 +345,7 @@ export const scheduleService = {
     const updated = await changeStatus(userId, id, ["paused"], { status: "active", next_run_at: nextRunAt });
 
     if (process.env.ENABLE_SCHEDULER === "true") {
-      syncSchedule(userId, updated);
+      syncSchedule(updated);
     }
   
     return updated;
@@ -309,7 +359,7 @@ export const scheduleService = {
     });
   
     if (process.env.ENABLE_SCHEDULER === "true") {
-      syncSchedule(userId, updated);
+      syncSchedule(updated);
     }
   
     return updated;

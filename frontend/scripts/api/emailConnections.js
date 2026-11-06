@@ -1,8 +1,6 @@
-import { supabase } from "../auth/auth.js";
 import { authenticatedFetch } from "../auth/api.js";
-import { BACKEND_URL } from "../config.js";
 
-const PROJECT_ID_PATTERN = /^[A-Za-z0-9-]{1,64}$/;
+const PROJECT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function addEmailConnection({ projectId, emailAddress, host, port, secure, username, password }) {
   if (!PROJECT_ID_PATTERN.test(String(projectId ?? ""))) {
@@ -40,4 +38,15 @@ export async function listEmailConnections() {
   });
 
   return Array.isArray(body.data) ? body.data : [];
+}
+
+export async function getProjectEmailConnection(projectId) {
+  if (!PROJECT_ID_PATTERN.test(String(projectId ?? ""))) {
+    throw new Error("A valid project is required to load its mail account.");
+  }
+  const body = await authenticatedFetch(
+    `/api/email-connections/project/${encodeURIComponent(projectId)}`,
+    { method: "GET" }
+  );
+  return body.data || null;
 }

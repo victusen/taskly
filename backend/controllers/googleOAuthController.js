@@ -10,6 +10,8 @@ import {
 
 import {
   createGoogleConnection,
+  assertProjectCanConnect,
+  assertOwnedProject,
 } from "../services/emailConnectionService.js";
 
 import {
@@ -21,8 +23,7 @@ const STATE_EXPIRY_MINUTES = 10;
 const FRONTEND_URL = (process.env.FRONTEND_URL || "https://bzade.app").replace(/\/+$/, "");
 const GMAIL_SEND_SCOPE = "https://www.googleapis.com/auth/gmail.send";
 const GOOGLE_SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
-const back = (result) => `${FRONTEND_URL}/dashboard.html?google=${result}`;
-const databaseBack = (result, projectId) =>
+const projectBack = (result, projectId) =>
   `${FRONTEND_URL}/schedules.html?project=${encodeURIComponent(projectId)}&google=${result}`;
 
 export async function startGoogleOAuth(
@@ -33,18 +34,18 @@ export async function startGoogleOAuth(
     const userId = req.user.id;
     const purpose = req.query.purpose === "database" ? "database" : "mail";
     const projectId = req.query.project_id;
-    if (
-      purpose === "database" &&
-      (typeof projectId !== "string" || !/^[A-Za-z0-9-]{1,64}$/.test(projectId))
-    ) {
+    if (typeof projectId !== "string") {
       return res.status(400).json({
         success: false,
-        message: "A valid project is required to connect a database.",
+        message: "A valid project is required to connect mail.",
       });
     }
+    await assertProjectCanConnect(userId, projectId, {
+      allowExistingGoogle: purpose === "database",
+    });
 
     const nonce = crypto.randomBytes(32).toString("hex");
-    const state = purpose === "database" ? `${nonce}.database.${projectId}` : nonce;
+    const state = `${nonce}.project.${projectId}${purpose === "database" ? ".database" : ""}`;
 
     const stateHash =
       hashState(state);
@@ -78,6 +79,13 @@ export async function startGoogleOAuth(
     });
 
   } catch (error) {
+    if (error?.status && error?.code) {
+      return res.status(error.status).json({
+        success: false,
+        code: error.code,
+        message: error.message,
+      });
+    }
     console.error(
       "[GOOGLE OAUTH START]",
       error
@@ -93,19 +101,23 @@ export async function startGoogleOAuth(
 
 export async function googleOAuthCallback(req, res) {
   let databaseProjectId = null;
+  const projectIdFromState = { value: null };
   const resultUrl = (result) =>
-    databaseProjectId ? databaseBack(result, databaseProjectId) : back(result);
+    projectIdFromState.value
+      ? projectBack(result, projectIdFromState.value)
+      : `${FRONTEND_URL}/dashboard.html?google=${result}`;
 
   try {
     const { code, state, error: oauthError } = req.query;
 
     const stateMatch = typeof state === "string"
-      ? state.match(/^([a-f0-9]{64})(?:\.database\.([A-Za-z0-9-]{1,64}))?$/)
+      ? state.match(/^([a-f0-9]{64})\.project\.([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(\.database)?$/i)
       : null;
     if (!stateMatch) {
       return res.status(400).send("Invalid OAuth state.");
     }
-    databaseProjectId = stateMatch[2] || null;
+    projectIdFromState.value = stateMatch[2];
+    databaseProjectId = stateMatch[3] ? stateMatch[2] : null;
 
     // Finds the state and marks it used in one statement, so it works only once.
     const now = new Date().toISOString();
@@ -123,6 +135,8 @@ export async function googleOAuthCallback(req, res) {
     if (error || !oauthState) {
       return res.status(400).send("Invalid, used or expired OAuth request.");
     }
+
+    await assertOwnedProject(oauthState.user_id, projectIdFromState.value);
 
     if (oauthError) {
       return res.redirect(resultUrl(databaseProjectId ? "database_cancelled" : "cancelled"));
@@ -148,8 +162,11 @@ export async function googleOAuthCallback(req, res) {
     client.setCredentials(tokens);
     const account = await getGoogleAccount(client);
 
+    await assertProjectCanConnect(oauthState.user_id, projectIdFromState.value, {
+      allowExistingGoogle: databaseProjectId !== null,
+    });
     const connection = await createGoogleConnection({
-      userId: oauthState.user_id,
+      projectId: projectIdFromState.value,
       email: account.email,
       tokens,
     });

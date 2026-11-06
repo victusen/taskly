@@ -41,10 +41,11 @@
       gap: 8px;
     }
     .banner-right div.avatar-initial {
-      height: 30px; width: 30px; border-radius: 20px;
+      height: 30px; width: 30px; border-radius: 50%;
       background-color: red;
       display: flex; align-items: center; justify-content: center; align-self: center;
       color: white; font-weight: 600;
+      font-size: 12px;
     }
     .brand { font-size: 20px; font-weight: 600; color: #111; }
     .drop-wrap { position: relative; display: flex; }
@@ -167,7 +168,7 @@
     .banner-right { display: flex; align-items: center; gap: 12px; }
     .banner-right > .avatar-initial { margin-left: 8px; }
     .header-action-btn {
-      background: transparent; border: none; width: 32px; height: 32px;
+      background: transparent; border: none; width: 38px; height: 38px;
       border-radius: 50%; display: flex; align-items: center; justify-content: center;
       color: #4b5563; cursor: pointer; transition: background 0.15s ease, color 0.15s ease;
     }
@@ -433,6 +434,12 @@
       align-items: center; justify-content: center; padding: 16px;
     }
     .modal-backdrop.open { display: flex; }
+    #business-modal.is-loading .modal-box { display: none; }
+    .business-loading {
+      width: 42px; height: 42px; border: 4px solid rgba(255,255,255,.35);
+      border-top-color: #fff; border-radius: 50%; animation: business-spin .75s linear infinite;
+    }
+    .business-loading[hidden] { display: none; }
     .modal-box {
       background: white; border-radius: 8px; width: 100%; max-width: 480px; padding: 24px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.15);
@@ -444,8 +451,26 @@
     #business-modal .business-field-label { display: block; margin-top: 16px; color: #1f2937; font-size: 13px; font-weight: 700; }
     #business-modal .business-field-input { width: 100%; padding: 11px 12px; margin-top: 7px; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; color: #111827; font: inherit; font-size: 14px; }
     #business-modal .business-field-input::placeholder { color: #c4c8d0; font-weight: 300; opacity: 1; }
-    #business-modal #business-form > button { border: 0; border-radius: 8px; background: #15803d; color: #fff; width: 100%; margin-top: 20px; padding: 12px; font-weight: 650; cursor: pointer; transition: background .15s ease, transform .15s ease; }
-    #business-modal #business-form > button:hover { background: #166534; transform: translateY(-1px); }
+    #business-modal .business-mail-note { margin-top: 16px; padding: 11px 12px; border-radius: 8px; background: #f9fafb; color: #6b7280; font-size: 13px; line-height: 1.5; }
+    #business-modal #business-form > button {
+      border: 0; border-radius: 8px; background: #111827;
+      color: #fff; width: 100%; margin-top: 20px; padding: 12px 16px; font-weight: 700; letter-spacing: 0.01em;
+      cursor: pointer; transition: background .15s ease;
+      box-shadow: none;
+    }
+    #business-modal #business-form > button:hover { background: #1f2937; }
+    #business-modal #business-form[hidden], #business-create-state[hidden] { display: none !important; }
+    #business-create-state { min-height: 190px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; }
+    #business-create-state strong { color: #111827; font-size: 15px; }
+    #business-create-message { max-width: 360px; color: #6b7280; font-size: 13px; line-height: 1.5; }
+    .business-progress-spinner { width: 28px; height: 28px; border: 3px solid #e5e7eb; border-top-color: #111827; border-radius: 50%; animation: business-spin .75s linear infinite; }
+    #business-create-state[data-state="error"] .business-progress-spinner { display: none; }
+    .business-progress-close { position: absolute; top: 0; right: 0; width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #9ca3af; cursor: pointer; }
+    .business-progress-close:hover { background: #f3f4f6; color: #4b5563; }
+    .business-progress-actions { display: flex; gap: 8px; margin-top: 4px; }
+    .business-progress-actions button { padding: 7px 12px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #374151; font: inherit; font-size: 13px; cursor: pointer; }
+    .business-progress-actions #business-create-retry { background: #111827; border-color: #111827; color: #fff; }
+    @keyframes business-spin { to { transform: rotate(360deg); } }
 
     .add-hidden { display: none; }
 
@@ -688,7 +713,7 @@
     <div class="banner-right">
       <!-- Invite button -->
       <button type="button" class="header-action-btn" id="btn-header-invite" title="Invite team member">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
         </svg>
       </button>
@@ -696,7 +721,7 @@
       <!-- Help / Docs dropdown (?) -->
       <div style="position: relative;" id="help-menu-container">
         <button type="button" class="header-action-btn" id="help-dropdown-btn" title="Help & Documentation">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
         </button>
@@ -989,28 +1014,37 @@
 
   <!-- Business Creation Modal (unchanged markup, so dashboard.js still works) -->
   <div class="modal-backdrop" id="business-modal">
-    <div class="modal-box">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="business-modal-title">
       <div class="modal-header">
-        <h3>Create a new <span style="color:green;">Business</span></h3>
+        <h3 id="business-modal-title">Create a new <span style="color:green;">Business</span></h3>
         <div class="close-btn" id="modal-close" role="button" aria-label="Close">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </div>
       </div>
-      <form id="business-form" novalidate>
-        <label class="business-field-label">Business Name
-          <input class="business-field-input" type="text" name="business_name" required placeholder="e.g. Acme Corporation" autocomplete="off">
+      <form id="business-form">
+        <label class="business-field-label">Business Name <span style="font-weight: 400; color: #6b7280;">(optional)</span>
+          <input class="business-field-input" type="text" name="business_name" placeholder="e.g. Acme Corporation" autocomplete="off">
         </label>
-        <label class="business-field-label">Project Name
-          <input class="business-field-input" type="text" name="project_name" required placeholder="e.g. Customer Welcome Campaign" autocomplete="off">
+        <label class="business-field-label">Project Name <span style="font-weight: 400; color: #6b7280;">(optional)</span>
+          <input class="business-field-input" type="text" name="project_name" placeholder="e.g. Customer Welcome Campaign" autocomplete="off">
         </label>
-        <label class="business-field-label">Primary Mail Connection
-          <select class="business-field-input" name="email_connection_id" id="conn-select" required>
-            <option value="">Loading accounts...</option>
-          </select>
-        </label>
-        <button type="submit">Save Business</button>
+        <p style="font-size: 13px; margin-top: 16px;">Enter a business name, a project name, or both. Each project has its own mail account.</p>
+        <button type="submit">Create business</button>
       </form>
+      <div id="business-create-state" data-state="loading" role="status" aria-live="polite" hidden>
+        <button type="button" class="business-progress-close" id="business-create-close" aria-label="Close creation status">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg>
+        </button>
+        <span class="business-progress-spinner" aria-hidden="true"></span>
+        <strong id="business-create-title">Creating your business</strong>
+        <p id="business-create-message"></p>
+        <div class="business-progress-actions">
+          <button type="button" id="business-create-edit" hidden>Back to form</button>
+          <button type="button" id="business-create-retry" hidden>Retry</button>
+        </div>
+      </div>
     </div>
+    <div id="business-loading" class="business-loading" role="status" aria-label="Creating your business" hidden></div>
   </div>
 
   <!-- Delete Project Confirmation Modal (with blurred background) -->

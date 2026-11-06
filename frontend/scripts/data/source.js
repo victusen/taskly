@@ -1,7 +1,8 @@
 import { authenticatedFetch } from "../auth/api.js";
+import { getCurrentSession } from "../auth/session.js";
 import { BACKEND_URL } from "../config.js";
 import { getProjects, createProject, deleteProject } from "../api/projects.js";
-import { listEmailConnections } from "../api/emailConnections.js";
+import { getProjectEmailConnection, listEmailConnections } from "../api/emailConnections.js";
 import { getSchedules, pauseSchedule, resumeSchedule, cancelSchedule } from "../api/schedules.js";
 
 /* One switch. true: the pages use the sample data below. false: the pages call the backend. */
@@ -9,21 +10,62 @@ export const USE_MOCK = false;
 
 const PROJECTS_CACHE_KEY = "bzade_projects_cache";
 const PROJECTS_CACHE_TS_KEY = "bzade_projects_cache_ts";
+const PROJECT_CONNECTIONS_CACHE_KEY = "bzade_project_connections_cache";
 
-export function readProjectsCache() {
+const userCacheKey = (key, userId) => userId ? `${key}:${userId}` : key;
+
+function readProjectConnectionsCache(userId) {
+  if (!userId) return null;
   try {
-    const raw = localStorage.getItem(PROJECTS_CACHE_KEY);
+    const raw = localStorage.getItem(userCacheKey(PROJECT_CONNECTIONS_CACHE_KEY, userId));
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (Array.isArray(parsed)) return { projectIds: [], connections: parsed };
+    if (parsed && Array.isArray(parsed.connections) && Array.isArray(parsed.projectIds)) return parsed;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function cacheProjectConnections(connections, projectIds, userId) {
+  if (!userId) return;
+  const safeConnections = (Array.isArray(connections) ? connections : []).map((connection) => ({
+    id: connection.id,
+    project_id: connection.project_id,
+    provider: connection.provider,
+    connection_type: connection.connection_type,
+    email_address: connection.email_address,
+    status: connection.status,
+    last_used_at: connection.last_used_at || null,
+    created_at: connection.created_at || null,
+    updated_at: connection.updated_at || null,
+  }));
+  try {
+    localStorage.setItem(userCacheKey(PROJECT_CONNECTIONS_CACHE_KEY, userId), JSON.stringify({
+      projectIds: Array.isArray(projectIds) ? projectIds : [],
+      connections: safeConnections,
+    }));
+  } catch (error) {
+    console.warn("Could not cache project mail account details:", error);
+  }
+}
+
+export function readProjectsCache(userId) {
+  if (!userId) return null;
+  try {
+    const raw = localStorage.getItem(userCacheKey(PROJECTS_CACHE_KEY, userId));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : null;
   } catch { return null; }
 }
 
-export function writeProjectsCache(data) {
+export function writeProjectsCache(data, userId) {
+  if (!userId) return;
   try {
     if (Array.isArray(data)) {
-      localStorage.setItem(PROJECTS_CACHE_KEY, JSON.stringify(data));
-      localStorage.setItem(PROJECTS_CACHE_TS_KEY, String(Date.now()));
+      localStorage.setItem(userCacheKey(PROJECTS_CACHE_KEY, userId), JSON.stringify(data));
+      localStorage.setItem(userCacheKey(PROJECTS_CACHE_TS_KEY, userId), String(Date.now()));
     }
   } catch { /* storage full: ignore */ }
 }
@@ -43,7 +85,7 @@ const BASE_PROJECTS = [
 ];
 
 const MOCK_CONNECTIONS = [
-  { id: "mock-c1", provider: "google", connection_type: "oauth2", email_address: "zade@example.com", status: "active" },
+  { id: "mock-c1", project_id: "mock-1", provider: "google", connection_type: "oauth2", email_address: "zade@example.com", status: "active" },
   { id: "mock-c2", provider: "custom", connection_type: "smtp", email_address: "hello@saja.example", status: "active" },
   { id: "mock-c3", provider: "google", connection_type: "oauth2", email_address: "usenvictor40@gmail.com", status: "active" },
 ];
@@ -106,39 +148,35 @@ function schedulesStore() {
   return mockSchedules;
 }
 
-/* The demo projects used when the backend cannot be reached. Exported so the
-   dashboard can reuse the same fallback if its own request times out. */
+/* Sample projects for explicit mock mode. */
 export function mockProjects() {
   return [...BASE_PROJECTS, ...readExtra()];
 }
 
 export async function loadProjects() {
+  const session = await getCurrentSession();
+  const userId = session?.user?.id;
   if (USE_MOCK) {
     await delay(500);
     const mockList = mockProjects();
-    writeProjectsCache(mockList);
+    writeProjectsCache(mockList, userId);
     return mockList;
   }
   try {
     const result = await getProjects();
     const projects = result?.data || (Array.isArray(result) ? result : []);
     if (Array.isArray(projects)) {
-      writeProjectsCache(projects);
+      writeProjectsCache(projects, userId);
       return projects;
     }
     return projects;
-  } catch (err) {
-    // Backend unreachable for any reason (server down, CORS, timeout): show the
-    // demo projects immediately instead of an empty dashboard.
-    const fallback = mockProjects();
-    console.log(
-      `[projects] Backend unavailable (${err?.message || err}). Falling back to mock projects: ${fallback
-        .map((p) => p.id)
-        .join(", ")}.`
-    );
-    writeProjectsCache(fallback);
-    Object.defineProperty(fallback, "__fromCache", { value: true, enumerable: false });
-    return fallback;
+  } catch (error) {
+    const cachedProjects = readProjectsCache(userId);
+    if (cachedProjects) {
+      Object.defineProperty(cachedProjects, "__fromCache", { value: true, enumerable: false });
+      return cachedProjects;
+    }
+    throw error;
   }
 }
 
@@ -151,12 +189,9 @@ export async function loadProject(id) {
 export async function addProject({ project_name, business_name, email_connection_id }) {
   let created = null;
   if (!USE_MOCK) {
-    try {
-      const res = await createProject({ project_name, business_name });
-      created = res?.data || res;
-    } catch (e) {
-      console.warn("Backend addProject failed, persisting locally in cache:", e);
-    }
+    const res = await createProject({ project_name, business_name });
+    created = res?.data || res;
+    if (!created?.id) throw new Error("The project was created without a valid ID.");
   }
 
   if (!created) {
@@ -170,24 +205,22 @@ export async function addProject({ project_name, business_name, email_connection
     };
   }
 
-  const current = readProjectsCache() || [];
+  const session = await getCurrentSession();
+  const userId = session?.user?.id;
+  const current = readProjectsCache(userId) || [];
   const updated = [created, ...current.filter((p) => p.id !== created.id)];
-  writeProjectsCache(updated);
-  writeExtra([...readExtra(), created]);
+  writeProjectsCache(updated, userId);
+  if (USE_MOCK) writeExtra([...readExtra(), created]);
   return created;
 }
 
 export async function removeProject(id) {
-  if (!USE_MOCK) {
-    try {
-      await deleteProject(id);
-    } catch (e) {
-      console.warn("Backend deleteProject failed:", e);
-    }
-  }
-  const current = readProjectsCache() || [];
+  if (!USE_MOCK) await deleteProject(id);
+  const session = await getCurrentSession();
+  const userId = session?.user?.id;
+  const current = readProjectsCache(userId) || [];
   const updated = current.filter((p) => p.id !== id);
-  writeProjectsCache(updated);
+  writeProjectsCache(updated, userId);
   const extra = readExtra().filter((p) => p.id !== id);
   writeExtra(extra);
   const idx = BASE_PROJECTS.findIndex((p) => p.id === id);
@@ -241,16 +274,69 @@ export async function updateSchedule(id, payload) {
 }
 
 export async function loadConnections() {
-  if (!USE_MOCK) return listEmailConnections();
+  const session = await getCurrentSession();
+  const userId = session?.user?.id;
+  if (!USE_MOCK) {
+    const cached = readProjectConnectionsCache(userId);
+    try {
+      const connections = await listEmailConnections();
+      const projects = readProjectsCache(userId) || [];
+      cacheProjectConnections(connections, projects.map((project) => project.id), userId);
+      return connections;
+    } catch (error) {
+      if (!cached) throw error;
+      console.warn("Could not refresh mail accounts; using the last authenticated project snapshot.", error);
+      return cached.connections;
+    }
+  }
   await delay(500);
+  cacheProjectConnections(MOCK_CONNECTIONS, mockProjects().map((project) => project.id), userId);
   return MOCK_CONNECTIONS;
 }
 
-export async function loadSchedules(projectId) {
-  if (!USE_MOCK) return (await getSchedules(projectId)).data;
+export async function loadProjectConnection(projectId, { refresh = false } = {}) {
+  const session = await getCurrentSession();
+  const userId = session?.user?.id;
+  const cached = readProjectConnectionsCache(userId);
+  if (!refresh && cached?.projectIds.includes(projectId)) {
+    return cached.connections.find((connection) => connection.project_id === projectId) || null;
+  }
+  if (!USE_MOCK) {
+    const connection = await getProjectEmailConnection(projectId);
+    const connections = (cached?.connections || []).filter((item) => item.project_id !== projectId);
+    if (connection) connections.push(connection);
+    const projectIds = [...new Set([...(cached?.projectIds || []), projectId])];
+    cacheProjectConnections(connections, projectIds, userId);
+    return connection;
+  }
+  await delay(250);
+  const project = BASE_PROJECTS.find((item) => item.id === projectId);
+  if (!project?.email_connection_id) return null;
+  return MOCK_CONNECTIONS.find((item) => item.id === project.email_connection_id) || null;
+}
+
+export async function loadSchedules(projectId, options = {}) {
+  if (!USE_MOCK) return (await getSchedules(projectId, options)).data;
   await delay(2200); // 2.2 seconds delay for loading empty state / jobs
   const store = schedulesStore();
-  return JSON.parse(JSON.stringify(store[projectId] || []));
+  let all = store[projectId] || [];
+  const filter = options.filter || "all";
+  const jobType = options.jobType || "email";
+  all = all.filter((schedule) => String(schedule.job_type || "email").toLowerCase() === jobType);
+  if (filter === "running") all = all.filter((schedule) => schedule.status === "active");
+  if (filter === "new") all = all.filter((schedule) => schedule.run_count === 0);
+  if (filter === "paused") all = all.filter((schedule) => schedule.status === "paused");
+  const page = Number(options.page || 1);
+  const pageSize = Number(options.pageSize || 5);
+  const start = (page - 1) * pageSize;
+  const items = JSON.parse(JSON.stringify(all.slice(start, start + pageSize)));
+  return {
+    items,
+    page,
+    pageSize,
+    total: all.length,
+    hasMore: start + items.length < all.length,
+  };
 }
 
 /* action: "pause", "resume" or "remove". Returns how many of the ids failed. */

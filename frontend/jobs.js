@@ -9,7 +9,7 @@ import { sendNow } from "./scripts/api/schedules.js"
 import {
   loadProject,
   loadProjects,
-  loadConnections,
+  loadProjectConnection,
   loadSchedules,
   changeStatus,
   updateSchedule,
@@ -18,7 +18,7 @@ import {
 } from "./scripts/data/source.js";
 import { saveDraft, readDrafts, deleteDraft } from "./scripts/data/drafts.js";
 
-const PROJECT_ID_PATTERN = /^[A-Za-z0-9-]{1,64}$/;
+const PROJECT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const urlParams = new URLSearchParams(window.location.search);
 const rawProjectId = urlParams.get("project");
 const projectId = rawProjectId && PROJECT_ID_PATTERN.test(rawProjectId) ? rawProjectId : null;
@@ -39,12 +39,12 @@ const projectNotFoundState = document.getElementById("project-not-found-state");
 const requestErrorState = document.getElementById("request-error-state");
 const requestErrorMessage = document.getElementById("request-error-message");
 const retryBtn = document.getElementById("btn-retry-schedules");
-const addTaskCta = document.getElementById("add-task-cta");
 const jobRows = document.getElementById("job-rows");
 const taskPagination = document.getElementById("task-pagination");
 const projectTitleEl = document.getElementById("project-title");
 const filterButtons = document.querySelectorAll(".toggles .toggle");
 const connectGmailBtn = document.getElementById("connect-gmail-btn");
+const mailAccountBtn = document.getElementById("cmp-mail-account");
 const connectDatabaseBtn = document.getElementById("cmp-connect-database");
 const addScheduleBtn = document.getElementById("add-schedule");
 const closeScheduleBtn = document.getElementById("close-btn");
@@ -56,9 +56,14 @@ let currentFilter = "all";
 let currentChannel = "emails";
 let schedules = [];
 let currentPage = 1;
-let pageSize = 4;
-let isFittingRows = false;
+const pageSize = 5;
+let totalSchedules = 0;
+let hasMoreSchedules = false;
 let inviteModal = null;
+let currentProjectConnection = null;
+let projectConnectionKnown = false;
+if (connectGmailBtn) connectGmailBtn.disabled = true;
+if (mailAccountBtn) mailAccountBtn.disabled = true;
 
 // Helper functions
 const esc = (value) =>
@@ -98,7 +103,6 @@ function hideAllStates() {
   if (noJobState) noJobState.hidden = true;
   if (projectNotFoundState) projectNotFoundState.hidden = true;
   if (requestErrorState) requestErrorState.hidden = true;
-  if (addTaskCta) addTaskCta.hidden = true;
   if (taskPagination) {
     taskPagination.hidden = true;
     taskPagination.style.display = "none";
@@ -106,6 +110,8 @@ function hideAllStates() {
 }
 
 function setLoading(isLoading) {
+  filterButtons.forEach((button) => { button.disabled = isLoading; });
+  document.querySelectorAll(".channel-pill").forEach((button) => { button.disabled = isLoading; });
   if (isLoading) {
     hideAllStates();
     if (taskLoader) {
@@ -137,29 +143,10 @@ function showRequestError(msg) {
   }
 }
 
-function filteredSchedules(filter = currentFilter) {
-  const channelSchedules = schedules.filter((schedule) => {
-    const type = String(schedule.job_type || schedule.channel || "email").toLowerCase();
-    return currentChannel === "payload"
-      ? type.includes("payload")
-      : !type.includes("payload");
-  });
-
-  if (filter === "running") {
-    return channelSchedules.filter((s) => s.status === "active" || s.status === "running");
-  }
-  if (filter === "new") {
-    return channelSchedules.filter((s) => s.status === "new" || s.status === "pending");
-  }
-  if (filter === "paused") {
-    return channelSchedules.filter((s) => s.status === "paused");
-  }
-  return channelSchedules;
-}
-
-function renderPagination(totalPages) {
+function renderPagination() {
   if (!taskPagination) return;
 
+  const totalPages = Math.max(1, Math.ceil(totalSchedules / pageSize));
   if (totalPages <= 1) {
     taskPagination.hidden = true;
     taskPagination.style.display = "none";
@@ -167,130 +154,113 @@ function renderPagination(totalPages) {
     return;
   }
 
-  const windowSize = 5;
-  let start = Math.max(1, currentPage - Math.floor(windowSize / 2));
-  let end = Math.min(totalPages, start + windowSize - 1);
-  start = Math.max(1, end - windowSize + 1);
-
-  const parts = [];
-  if (start > 1) parts.push('<span class="page-ellipsis">…</span>');
-
-  for (let page = start; page <= end; page += 1) {
-    const active = page === currentPage;
-    parts.push(
-      `<button type="button" class="page-btn${active ? " active" : ""}" data-page="${page}" aria-label="Page ${page}"${active ? ' aria-current="page"' : ""}>${page}</button>`
-    );
-  }
-
-  if (end < totalPages) parts.push('<span class="page-ellipsis">…</span>');
-
-  taskPagination.innerHTML = parts.join("");
+  const firstItem = (currentPage - 1) * pageSize + 1;
+  const lastItem = Math.min(currentPage * pageSize, totalSchedules);
+  taskPagination.innerHTML = `
+    <span class="page-summary">Showing ${firstItem}–${lastItem} of ${totalSchedules}</span>
+    <div class="page-controls">
+      <button type="button" class="page-btn" data-page="${currentPage - 1}" ${currentPage <= 1 ? "disabled" : ""} aria-label="Previous page">‹</button>
+      <span class="page-current">Page ${currentPage} of ${totalPages}</span>
+      <button type="button" class="page-btn" data-page="${currentPage + 1}" ${!hasMoreSchedules ? "disabled" : ""} aria-label="Next page">›</button>
+    </div>`;
   taskPagination.hidden = false;
   taskPagination.style.display = "flex";
 }
 
 /**
- * If the current page is taller than the laptop list area, shrink the page size
- * until every visible row fits without the page itself scrolling.
- */
-function fitPageToViewport(filter = currentFilter) {
-  if (isFittingRows || !jobRows || jobRows.hidden || window.innerWidth < 768) return;
-
-  const firstRow = jobRows.querySelector(".task");
-  if (!firstRow) return;
-
-  const rowHeight = firstRow.getBoundingClientRect().height;
-  const available = jobRows.clientHeight;
-  if (!rowHeight || !available) return;
-
-  const fit = Math.max(1, Math.floor(available / rowHeight));
-  const total = filteredSchedules(filter).length;
-
-  if (fit < pageSize && total > fit) {
-    isFittingRows = true;
-    pageSize = fit;
-    currentPage = Math.min(currentPage, Math.max(1, Math.ceil(total / pageSize)));
-    renderRows(filter, true);
-    isFittingRows = false;
-  }
-}
-
-/**
  * Renders the current page of schedule rows and the pager.
  */
-function renderRows(filter = currentFilter, skipFit = false) {
-  // Update toggle counts
-  const channelSchedules = filteredSchedules("all");
-  const allCount = channelSchedules.length;
-  const runningCount = channelSchedules.filter((s) => s.status === "active" || s.status === "running").length;
-  const newCount = channelSchedules.filter((s) => s.status === "new" || s.status === "pending").length;
-  const pausedCount = channelSchedules.filter((s) => s.status === "paused").length;
-
+function renderRows() {
   const btnAll = document.querySelector('[data-filter="all"]');
   const btnRunning = document.querySelector('[data-filter="running"]');
   const btnNew = document.querySelector('[data-filter="new"]');
   const btnPaused = document.querySelector('[data-filter="paused"]');
 
-  if (btnAll) btnAll.textContent = `All (${allCount})`;
-  if (btnRunning) btnRunning.textContent = `Running (${runningCount})`;
-  if (btnNew) btnNew.textContent = `New (${newCount})`;
-  if (btnPaused) btnPaused.textContent = `Paused (${pausedCount})`;
+  if (btnAll) btnAll.textContent = "All";
+  if (btnRunning) btnRunning.textContent = "Running";
+  if (btnNew) btnNew.textContent = "New";
+  if (btnPaused) btnPaused.textContent = "Paused";
 
-  const filtered = filteredSchedules(filter);
-
-  if (filtered.length === 0) {
+  if (schedules.length === 0) {
     hideAllStates();
     if (noJobState) noJobState.hidden = false;
-    if (addTaskCta) addTaskCta.hidden = false;
     return;
   }
 
   hideAllStates();
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  currentPage = Math.min(Math.max(1, currentPage), totalPages);
-  const start = (currentPage - 1) * pageSize;
-  const pageRows = filtered.slice(start, start + pageSize);
-
   if (jobRows) {
     jobRows.hidden = false;
-    jobRows.style.display = "flex";
-    jobRows.innerHTML = pageRows
+    jobRows.style.display = "block";
+    jobRows.innerHTML = `
+      <div class="schedule-table-scroll">
+        <table class="schedule-table">
+          <thead><tr>
+            <th class="schedule-select-cell"><input type="checkbox" aria-label="Select all schedules on this page" data-select-page></th>
+            <th>Name</th><th>Type</th><th>Frequency</th><th>Date</th><th>Time</th><th>Time zone</th>
+            <th>Last run</th><th>Recipients</th><th>Next run</th><th>Recipient list</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody>
+      ${schedules
       .map((row) => {
-        const recipients = row.config?.recipients || [];
+        const recipients = Array.isArray(row.config?.recipients) ? row.config.recipients : [];
         const joined = recipients.join(", ");
         const name = row.name || row.config?.subject || "Untitled task";
-        const schedTime = formatDateTime(row.scheduled_for || row.next_run_at);
+        const scheduledAt = row.scheduled_for || row.next_run_at;
+        const date = scheduledAt ? new Date(scheduledAt) : null;
+        const frequency = row.schedule_type === "recurring"
+          ? (row.schedule_rule?.every || "Repeating").replace(/\b\w/g, (letter) => letter.toUpperCase())
+          : "One time";
+        const formatInTimezone = (value, options) => {
+          if (!value) return "—";
+          try {
+            return new Intl.DateTimeFormat(undefined, { ...options, timeZone: row.timezone || "UTC" })
+              .format(new Date(value));
+          } catch {
+            return new Date(value).toLocaleString();
+          }
+        };
+        const lastRun = row.last_run_at
+          ? formatInTimezone(row.last_run_at, { dateStyle: "medium", timeStyle: "short" })
+          : "—";
+        const nextRun = row.next_run_at
+          ? formatInTimezone(row.next_run_at, { dateStyle: "medium", timeStyle: "short" })
+          : "—";
+        const statusAction = row.status === "active"
+          ? `<button class="task-row-action" type="button" data-schedule-action="pause" data-id="${esc(row.id)}">Pause</button>`
+          : row.status === "paused"
+            ? `<button class="task-row-action" type="button" data-schedule-action="resume" data-id="${esc(row.id)}">Resume</button>`
+            : "";
 
         return `
-          <article class="task" data-id="${esc(row.id)}" data-schedule='${esc(JSON.stringify(row))}'>
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <h4 style="font-size: 15px; font-weight: 600; color: #111; margin: 0;">${esc(name)}</h4>
-                ${statusBadge(row.status)}
-              </div>
-              <button class="task-edit" data-edit="${esc(row.id)}" type="button">Edit template</button>
-            </div>
-            <div class="task-row-meta">
-              <span>Type: <strong>${row.schedule_type === "recurring" ? "Recurring" : "One-time"}</strong></span>
-              <span>Recipients: <strong>${recipients.length}</strong></span>
-              ${joined ? `<span style="max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${esc(joined)}">To: ${esc(joined)}</span>` : ""}
-              <span>Time: <strong>${schedTime}</strong></span>
-            </div>
-          </article>
+          <tr data-id="${esc(row.id)}" data-schedule='${esc(JSON.stringify(row))}'>
+            <td class="schedule-select-cell"><input type="checkbox" aria-label="Select ${esc(name)}"></td>
+            <td class="schedule-name-cell" title="${esc(name)}">${esc(name)}</td>
+            <td>${esc(row.job_type || "email")}</td>
+            <td>${esc(frequency)}</td>
+            <td>${date ? esc(formatInTimezone(scheduledAt, { dateStyle: "medium" })) : "—"}</td>
+            <td>${date ? esc(formatInTimezone(scheduledAt, { timeStyle: "short" })) : "—"}</td>
+            <td>${esc(row.timezone || "UTC")}</td>
+            <td>${esc(lastRun)}</td>
+            <td>${recipients.length}</td>
+            <td>${esc(nextRun)}</td>
+            <td class="schedule-recipient-cell" title="${esc(joined)}">${esc(joined || "—")}</td>
+            <td>${statusBadge(row.status)}</td>
+            <td class="schedule-actions-cell"><button class="task-row-action" data-edit="${esc(row.id)}" type="button">Edit</button>${statusAction}</td>
+          </tr>
         `;
       })
-      .join("");
+      .join("")}
+          </tbody>
+        </table>
+      </div>`;
   }
 
-  renderPagination(totalPages);
+  renderPagination();
 
-  // Update right panel task count
   if (typeof window.bzRightPanel?.updateTaskCount === 'function') {
-    window.bzRightPanel.updateTaskCount(filteredSchedules("all").length);
+    window.bzRightPanel.updateTaskCount(totalSchedules);
   }
-
-  if (!skipFit) requestAnimationFrame(() => fitPageToViewport(filter));
 }
 
 /**
@@ -312,15 +282,24 @@ async function loadRows(filter = currentFilter) {
 
   try {
     const result = await Promise.race([
-      loadSchedules(projectId),
+      loadSchedules(projectId, {
+        page: currentPage,
+        pageSize,
+        filter,
+        jobType: currentChannel === "payload" ? "payload" : "email",
+      }),
       new Promise((_, reject) => {
         timer = setTimeout(() => reject(new Error("timeout")), TIMEOUT_MS);
       }),
     ]);
-    schedules = Array.isArray(result) ? result : [];
+    schedules = Array.isArray(result) ? result : (result?.items || []);
+    totalSchedules = Number(result?.total || schedules.length);
+    hasMoreSchedules = Boolean(result?.hasMore);
   } catch (err) {
     fetchError = err;
     schedules = [];
+    totalSchedules = 0;
+    hasMoreSchedules = false;
   } finally {
     clearTimeout(timer);
     // Keep the red loader on screen long enough to be seen even when the
@@ -333,13 +312,11 @@ async function loadRows(filter = currentFilter) {
     if (fetchError && fetchError.status === 404) {
       showProjectNotFound();
     } else if (fetchError) {
-      // Timeout or other failure: show the empty state, as you asked.
-      hideAllStates();
-      if (noJobState) noJobState.hidden = false;
-      if (addTaskCta) addTaskCta.hidden = false;
+      showRequestError(fetchError.message === "timeout"
+        ? "Loading schedules timed out. Check your connection and try again."
+        : fetchError.message);
     } else {
-      currentPage = 1;
-      renderRows(filter);
+      renderRows();
     }
   }
 }
@@ -348,7 +325,15 @@ retryBtn?.addEventListener("click", () => {
   loadRows(currentFilter);
 });
 
-document.getElementById("cmp-mail-account")?.addEventListener("click", () => {
+mailAccountBtn?.addEventListener("click", () => {
+  if (!projectConnectionKnown) {
+    showToast("error", "Could not verify this project's mail account. Check your connection and try again.");
+    return;
+  }
+  if (currentProjectConnection?.status === "active") {
+    showToast("info", "This project already has a mail account. Go in and see your projects.");
+    return;
+  }
   openConnectModal({
     projectId,
     projectName: currentProject?.project_name || currentProject?.business_name || "",
@@ -395,13 +380,15 @@ async function updateProjectUI(project) {
       for (const p of allProjects) {
         const isCurrent = p.id === (project?.id || projectId);
         const projectName = p.project_name || p.business_name || "Untitled Project";
-        const item = el("a", `nav-item ${isCurrent ? "active" : ""}`, projectName);
+        const item = el("a", `nav-item ${isCurrent ? "active" : ""}`);
+        item.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5-9 4.5-9-4.5Z"/><path d="M3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5"/></svg><span>${esc(projectName)}</span>`;
         item.href = `schedules.html?project=${encodeURIComponent(p.id)}`;
         item.style.padding = "6px 10px";
         item.style.fontSize = "13px";
         item.title = p.business_name && p.business_name !== projectName
           ? `${projectName} — ${p.business_name}`
           : projectName;
+        item.setAttribute("aria-label", item.title);
         container.appendChild(item);
       }
     };
@@ -415,11 +402,12 @@ async function updateProjectUI(project) {
 
   // If project has an active connected Gmail/mail account, show light channel switcher and hide connect btn
   try {
-    const connections = (await loadConnections()).filter((c) => c.status === "active");
-    const projectConnection = connections.find((connection) =>
-      connection.id === project?.email_connection_id
-    );
-    const hasConnection = Boolean(projectConnection);
+    const returnedFromGoogle = urlParams.has("google");
+    currentProjectConnection = project?.id
+      ? await loadProjectConnection(project.id, { refresh: returnedFromGoogle })
+      : null;
+    projectConnectionKnown = Boolean(project?.id);
+    const hasConnection = currentProjectConnection?.status === "active";
     const channelSwitcher = document.getElementById("channel-switcher");
     const connectGmailBtn = document.getElementById("connect-gmail-btn");
     if (channelSwitcher && connectGmailBtn) {
@@ -432,7 +420,12 @@ async function updateProjectUI(project) {
       }
     }
   } catch (connErr) {
+    projectConnectionKnown = false;
     console.warn("Could not check connections for channel switcher:", connErr);
+  } finally {
+    const hasProject = Boolean(project?.id);
+    if (connectGmailBtn) connectGmailBtn.disabled = !hasProject;
+    if (mailAccountBtn) mailAccountBtn.disabled = !hasProject;
   }
 }
 
@@ -444,15 +437,13 @@ function isImmediate(draft) {
 async function populateConnections() {
   if (!emailConnSelect) return;
   try {
-    const connections = (await loadConnections()).filter((item) => item.status === "active");
+    const connection = currentProjectConnection?.status === "active" ? currentProjectConnection : null;
     emailConnSelect.innerHTML = "";
-    if (connections.length === 0) {
+    if (!connection) {
       emailConnSelect.add(new Option("No mail account connected", ""));
     } else {
-      for (const conn of connections) {
-        const label = `${conn.email_address} (${conn.provider === "google" ? "Gmail" : "SMTP"})`;
-        emailConnSelect.add(new Option(label, conn.id));
-      }
+      const label = `${connection.email_address} (${connection.provider === "google" ? "Gmail" : "SMTP"})`;
+      emailConnSelect.add(new Option(label, connection.id));
     }
   } catch (err) {
     console.warn("Could not populate connections select:", err);
@@ -465,8 +456,7 @@ async function refreshSenderField() {
   if (!account || !emailLabel) return;
 
   try {
-    const connections = (await loadConnections()).filter((item) => item.status === "active");
-    const sender = connections.find((item) => item.id === currentProject?.email_connection_id);
+    const sender = currentProjectConnection?.status === "active" ? currentProjectConnection : null;
     emailLabel.textContent = sender?.email_address || "Mail account unavailable";
     emailLabel.dataset.email = sender?.email_address || "";
     account.title = sender
@@ -482,18 +472,12 @@ async function refreshSenderField() {
 
 // Filter buttons
 filterButtons.forEach((btn) => {
-  btn.addEventListener("click", async () => {
+  btn.addEventListener("click", () => {
     filterButtons.forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
-    const filter = btn.dataset.filter || "all";
-    currentFilter = filter;
+    currentFilter = btn.dataset.filter || "all";
     currentPage = 1;
-
-    // Show smooth donut loader during filter switch operation for 2 seconds
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 2000));
-    setLoading(false);
-    renderRows(filter);
+    loadRows(currentFilter);
   });
 });
 
@@ -503,11 +487,37 @@ taskPagination?.addEventListener("click", (event) => {
   if (!button) return;
 
   const page = Number(button.dataset.page);
-  if (!Number.isInteger(page) || page === currentPage) return;
+  if (!Number.isInteger(page) || page < 1 || page === currentPage) return;
 
   currentPage = page;
-  renderRows(currentFilter);
-  jobRows?.scrollTo?.({ top: 0 });
+  loadRows(currentFilter);
+  jobRows?.scrollIntoView?.({ block: "nearest" });
+});
+
+jobRows?.addEventListener("click", async (event) => {
+  const actionButton = event.target.closest("[data-schedule-action]");
+  if (!actionButton) return;
+  const action = actionButton.dataset.scheduleAction;
+  const id = actionButton.dataset.id;
+  if (!["pause", "resume"].includes(action) || !id) return;
+
+  actionButton.disabled = true;
+  try {
+    const failed = await changeStatus(action, [id]);
+    if (failed) throw new Error(`Could not ${action} this schedule.`);
+    showToast("success", `Schedule ${action === "pause" ? "paused" : "resumed"}.`);
+    await loadRows(currentFilter);
+  } catch (error) {
+    actionButton.disabled = false;
+    showToast("error", error.message || `Could not ${action} this schedule.`);
+  }
+});
+
+jobRows?.addEventListener("change", (event) => {
+  if (!event.target.matches("[data-select-page]")) return;
+  jobRows.querySelectorAll("tbody input[type=checkbox]").forEach((checkbox) => {
+    checkbox.checked = event.target.checked;
+  });
 });
 
 let resizeTimer = null;
@@ -515,9 +525,7 @@ window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     if (window.innerWidth < 768) return;
-    pageSize = 4;
-    currentPage = 1;
-    renderRows(currentFilter);
+    jobRows?.querySelector(".schedule-table-scroll")?.scrollTo?.({ left: 0 });
   }, 180);
 });
 
@@ -659,6 +667,14 @@ function closeScheduleModal() {
 }
 
 connectGmailBtn?.addEventListener("click", () => {
+  if (!projectConnectionKnown) {
+    showToast("error", "Could not verify this project's mail account. Check your connection and try again.");
+    return;
+  }
+  if (currentProjectConnection?.status === "active") {
+    showToast("info", "This project already has a mail account. Go in and see your projects.");
+    return;
+  }
   openConnectModal({
     projectId,
     projectName: currentProject?.project_name || currentProject?.business_name || "",
@@ -754,6 +770,7 @@ scheduleForm?.addEventListener("submit", async (event) => {
     };
 
     await addSchedule(payload);
+    currentPage = 1;
     showToast("success", "Schedule created successfully.");
   } catch (err) {
     toastError(err.message || "Unable to create schedule.");
@@ -765,10 +782,7 @@ scheduleForm?.addEventListener("submit", async (event) => {
 
 // Composer submission hooks (Inline composer in Column 2)
 async function senderFor(draft) {
-  const connections = (await loadConnections()).filter((item) => item.status === "active");
-  const sender = connections.find((item) => item.email_address === draft.sender) ||
-    connections.find((item) => item.id === currentProject?.email_connection_id) ||
-    connections[0];
+  const sender = currentProjectConnection?.status === "active" ? currentProjectConnection : null;
   if (!sender) {
     throw new Error(`Connect a mail account first, then try again.`);
   }
@@ -821,6 +835,7 @@ window.bzComposer.onSubmit = async (draft) => {
     throw err;
   } finally {
     // Always re-fetch from server with loader — so the UI reflects real DB state
+    if (saved) currentPage = 1;
     await loadRows();
     if (saved && typeof window.bzShowSuccess === "function") {
       window.bzShowSuccess();
@@ -839,6 +854,7 @@ window.bzComposer.onUpdate = async (id, draft) => {
     toastError(err.message || "Could not update task.");
     throw err;
   } finally {
+    if (saved) currentPage = 1;
     await loadRows();
     if (saved && typeof window.bzShowSuccess === "function") {
       window.bzShowSuccess();

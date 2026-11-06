@@ -21,7 +21,12 @@ function handle(tag, run, okStatus = 200) {
 }
 
 export const scheduleController = {
-  getSchedules: handle("[GET SCHEDULES]", (req) => scheduleService.getSchedules(req.user.id, req.query.project_id)),
+  getSchedules: handle("[GET SCHEDULES]", (req) => scheduleService.getSchedules(req.user.id, req.query.project_id, {
+    page: req.query.page,
+    pageSize: req.query.page_size,
+    filter: req.query.filter,
+    jobType: req.query.job_type,
+  })),
   createSchedule: handle("[CREATE SCHEDULE]", (req) => scheduleService.createSchedule(req.user.id, req.body), 201),
   updateSchedule: handle("[UPDATE SCHEDULE]", (req) => scheduleService.updateSchedule(req.user.id, req.params.id, req.body)),
   pauseSchedule: handle("[PAUSE SCHEDULE]", (req) => scheduleService.pauseSchedule(req.user.id, req.params.id)),

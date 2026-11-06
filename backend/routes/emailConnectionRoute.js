@@ -3,6 +3,7 @@ import express from "express";
 import {
   createEmailConnection, 
   deleteEmailConnection,
+  getProjectEmailConnection,
   listEmailConnections
 } from "../controllers/emailConnectionsController.js";
 
@@ -28,6 +29,12 @@ router.get(
   "/", 
   authMiddleware, 
   listEmailConnections);
+
+router.get(
+  "/project/:projectId",
+  authMiddleware,
+  getProjectEmailConnection
+);
 
 router.get(
   "/google/start",

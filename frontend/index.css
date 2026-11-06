@@ -1486,6 +1486,12 @@ a {
 }
 
 @media (max-width: 768px) {
+  .header-right .login-link {
+    display: flex;
+  }
+  .header-right .signup-btn {
+    display: none;
+  }
   .hero-pill {
     /*flex-direction: column;*/
     align-items: center;
@@ -1508,13 +1514,10 @@ a {
     display: none;
   }
   .header-right .login-link {
-    display: none;
+    display: inline-flex;
   }
   .header-right .signup-btn {
-    display: inline-flex;
-    padding: 8px 13px;
-    font-size: 13px;
-    gap: 6px;
+    display: none;
   }
   .signup-text-full {
     display: none;

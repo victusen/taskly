@@ -1,8 +1,8 @@
 import { requireAuth, resolveUserInitial, applyUserAvatar } from "./scripts/auth/session.js";
 import { signOut } from "./scripts/auth/auth.js";
 import { startPayment } from "./scripts/payments/payment.js";
-import { showToast, error as toastError } from "./scripts/ui/toast.js";
-import { loadConnections, addProject, loadProjects, removeProject, mockProjects } from "./scripts/data/source.js";
+import { showToast } from "./scripts/ui/toast.js";
+import { loadConnections, addProject, loadProjects, removeProject } from "./scripts/data/source.js";
 import { initInviteModal } from "./scripts/ui/inviteModal.js";
 import { initAccountMenu } from "./scripts/ui/accountMenu.js";
 import { openConnectModal } from "./scripts/ui/connectModal.js";
@@ -19,7 +19,11 @@ if (window.location.hash || window.location.search.includes("code=") || window.l
 
 const modal = document.getElementById("business-modal");
 const form = document.getElementById("business-form");
-const select = document.getElementById("conn-select");
+const businessCreateState = document.getElementById("business-create-state");
+const businessLoading = document.getElementById("business-loading");
+const businessCreateMessage = document.getElementById("business-create-message");
+const businessCreateRetry = document.getElementById("business-create-retry");
+const businessCreateEdit = document.getElementById("business-create-edit");
 const projectListEl = document.getElementById("project-list");
 const deleteModal = document.getElementById("delete-project-modal");
 const deleteModalName = document.getElementById("delete-modal-project-name");
@@ -32,6 +36,11 @@ const settingsDeleteBtn = document.getElementById("settings-delete-btn");
 
 let pendingDeleteProject = null;
 let activeProjects = [];
+let projectMailConnections = new Map();
+let projectMailConnectionsRequest = null;
+let projectMailConnectionsLoaded = false;
+let pendingBusinessInput = null;
+let isCreatingBusiness = false;
 
 const session = await requireAuth();
 if (!session) throw new Error("Authentication required.");
@@ -87,6 +96,43 @@ function escapeHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
+async function refreshProjectMailConnections({ notify = false } = {}) {
+  if (projectMailConnectionsRequest) return projectMailConnectionsRequest;
+  projectMailConnectionsRequest = (async () => {
+    try {
+      const connections = await loadConnections();
+      const ownedProjectIds = new Set(activeProjects.map((project) => project.id));
+      projectMailConnections = new Map(
+        connections
+          .filter((connection) => ownedProjectIds.has(connection.project_id))
+          .map((connection) => [connection.project_id, connection])
+      );
+      projectMailConnectionsLoaded = true;
+
+      document.querySelectorAll(".proj-card-wrapper[data-project-id]").forEach((card) => {
+        const connection = projectMailConnections.get(card.dataset.projectId);
+        const label = card.querySelector(".project-tag");
+        if (label) {
+          label.textContent = connection?.status === "active"
+            ? `Mail connected · ${connection.email_address}`
+            : connection ? "Mail account needs attention" : "No mail account connected";
+        }
+        const connectAction = card.querySelector('[data-action="connect"]');
+        if (connectAction) connectAction.setAttribute("aria-label", connection ? "Check connected mail account" : "Connect mail account");
+      });
+      return projectMailConnections;
+    } catch (error) {
+      projectMailConnectionsLoaded = false;
+      console.error("Could not refresh project mail accounts:", error);
+      if (notify) showToast("error", error.message || "Could not check this project's mail account.");
+      return null;
+    } finally {
+      projectMailConnectionsRequest = null;
+    }
+  })();
+  return projectMailConnectionsRequest;
+}
+
 /**
  * Renders user's projects dynamically.
  * If 0 projects: shows pre-no-result state, followed by add project button on next line.
@@ -111,17 +157,11 @@ async function renderDashboardProjects() {
       // Offline mode silent or gentle indicator
     }
   } catch (err) {
-    // The request failed or hit the 8s timeout. Never leave the dashboard empty:
-    // fall back to the demo projects (mock-1, mock-2, mock-3) so the UI stays usable.
-    const fallback = mockProjects();
-    activeProjects = fallback;
-    loadError = null;
-    console.log(
-      `[projects] Could not load projects (${err?.message || err}). Falling back to mock projects: ${fallback
-        .map((p) => p.id)
-        .join(", ")}.`
-    );
+    activeProjects = [];
+    loadError = err;
   }
+
+  await refreshProjectMailConnections({ notify: true });
 
   // Always fade out skeleton loaders — errors or success, skeleton must go
   document.querySelectorAll("#subnav-skeleton").forEach((el) => {
@@ -249,7 +289,9 @@ async function renderDashboardProjects() {
                   <h4 class="title">${escapeHtml(pName)}</h4>
                   ${p.business_name && p.business_name !== pName ? `<p style="font-size: 13px; color: #6b7280; margin-top: 4px;">${escapeHtml(p.business_name)}</p>` : ""}
                 </div>
-                <p class="project-tag">${count} schedule${count === 1 ? "" : "s"} live and running</p>
+                <p class="project-tag">${projectMailConnections.get(p.id)?.status === "active"
+                  ? `Mail connected · ${escapeHtml(projectMailConnections.get(p.id).email_address)}`
+                  : projectMailConnections.has(p.id) ? "Mail account needs attention" : "No mail account connected"}</p>
               </div>
             </a>
 
@@ -270,7 +312,9 @@ async function renderDashboardProjects() {
               </a>
               <button type="button" class="proj-menu-item" data-action="connect" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(pName)}">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                Connect mail account
+                ${projectMailConnections.get(p.id)?.status === "active"
+                  ? "View mail account"
+                  : projectMailConnections.has(p.id) ? "Reconnect mail account" : "Connect mail account"}
               </button>
               <button type="button" class="proj-menu-item" data-action="settings" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(pName)}">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -300,7 +344,7 @@ async function renderDashboardProjects() {
 }
 
 // 3-dots popover toggles
-document.addEventListener("click", (e) => {
+document.addEventListener("click", async (e) => {
   const dotsBtn = e.target.closest("[data-dots-trigger]");
   const allDropdowns = document.querySelectorAll("[data-menu-dropdown]");
 
@@ -332,6 +376,15 @@ document.addEventListener("click", (e) => {
     document.querySelectorAll("[data-dots-trigger]").forEach((b) => b.classList.remove("active"));
 
     if (action === "connect") {
+      if (!projectMailConnectionsLoaded) {
+        showToast("error", "Could not verify this project's mail account. Check your connection and try again.");
+        return;
+      }
+      const connection = projectMailConnections.get(projectId);
+      if (connection?.status === "active") {
+        showToast("info", "This project already has a mail account. Go in and see your projects.");
+        return;
+      }
       openConnectModal({ projectId, projectName });
       return;
     }
@@ -443,64 +496,117 @@ document.addEventListener("keydown", (e) => {
  * Add Business Modal Functions
  */
 async function openModal() {
+  if (isCreatingBusiness) return;
   form.reset();
+  form.hidden = false;
+  businessCreateState.hidden = true;
+  businessLoading.hidden = true;
+  modal.classList.remove("is-loading");
+  businessCreateRetry.hidden = true;
+  businessCreateEdit.hidden = true;
+  businessCreateMessage.textContent = "";
   modal.classList.add("open");
   form.elements.business_name.focus();
-
-  select.innerHTML = "";
-  select.add(new Option("Loading accounts", ""));
-  select.disabled = true;
-
-  try {
-    const connections = (await loadConnections()).filter((item) => item.status === "active");
-
-    select.innerHTML = "";
-    select.add(new Option(connections.length ? "Choose mail connection" : "No account connected yet", ""));
-
-    for (const item of connections) {
-      select.add(new Option(`${item.email_address} (${item.provider === "google" ? "Gmail" : "SMTP"})`, item.id));
-    }
-  } catch (err) {
-    select.innerHTML = "";
-    select.add(new Option("Could not load accounts", ""));
-  } finally {
-    select.disabled = false;
-  }
 }
 
 function closeModal() {
+  if (isCreatingBusiness) return;
   modal.classList.remove("open");
+  modal.classList.remove("is-loading");
+  businessLoading.hidden = true;
 }
 
 document.getElementById("modal-close")?.addEventListener("click", closeModal);
+document.getElementById("business-create-close")?.addEventListener("click", closeModal);
 document.getElementById("add-business-card")?.addEventListener("click", openModal);
 modal.addEventListener("click", (event) => {
-  if (event.target === modal) closeModal();
+  if (event.target === modal && !isCreatingBusiness) closeModal();
+});
+
+form.elements.project_name.addEventListener("input", (event) => {
+  form.elements.business_name.setCustomValidity("");
+  if (event.currentTarget.value.trim()) event.currentTarget.setCustomValidity("");
+});
+form.elements.business_name.addEventListener("input", (event) => {
+  form.elements.project_name.setCustomValidity("");
+  if (event.currentTarget.value.trim()) event.currentTarget.setCustomValidity("");
 });
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+  const enteredProjectName = form.elements.project_name.value.trim();
+  const enteredBusinessName = form.elements.business_name.value.trim();
+  const projectNameField = form.elements.project_name;
+  const businessNameField = form.elements.business_name;
 
-  const button = form.querySelector("button[type=submit]");
-  button.disabled = true;
+  if (!enteredProjectName && !enteredBusinessName) {
+    projectNameField.setCustomValidity("Enter a business name or a project name.");
+    projectNameField.reportValidity();
+    return;
+  }
+
+  projectNameField.setCustomValidity("");
+  businessNameField.setCustomValidity("");
+  pendingBusinessInput = {
+    project_name: enteredProjectName || enteredBusinessName,
+    business_name: enteredBusinessName || enteredProjectName,
+  };
+  await createBusiness(pendingBusinessInput);
+});
+
+async function createBusiness(input) {
+  if (!input || isCreatingBusiness) return;
+  const enteredProjectName = String(input.project_name || "").trim();
+  const enteredBusinessName = String(input.business_name || "").trim();
+  if (!enteredProjectName && !enteredBusinessName) {
+    form.hidden = false;
+    businessCreateState.hidden = true;
+    form.elements.project_name.setCustomValidity("Enter a business name or a project name.");
+    form.elements.project_name.reportValidity();
+    return;
+  }
+  const projectName = enteredProjectName || enteredBusinessName;
+  const businessName = enteredBusinessName || enteredProjectName;
+  input = { project_name: projectName, business_name: businessName };
+  pendingBusinessInput = input;
+  isCreatingBusiness = true;
+  form.hidden = true;
+  businessCreateState.hidden = true;
+  businessLoading.hidden = false;
+  modal.classList.add("is-loading");
+  businessCreateRetry.hidden = true;
+  businessCreateState.dataset.state = "loading";
+  businessCreateMessage.textContent = "Creating your business and loading its project details…";
 
   try {
-    const project = await addProject({
-      project_name: form.elements.project_name.value.trim(),
-      business_name: form.elements.business_name.value.trim(),
-      email_connection_id: form.elements.email_connection_id.value,
-    });
-
+    await addProject(input);
+    await renderDashboardProjects();
+    isCreatingBusiness = false;
     closeModal();
     showToast("success", "Business profile created.");
-    await renderDashboardProjects();
   } catch (err) {
+    modal.classList.remove("is-loading");
+    businessLoading.hidden = true;
+    businessCreateState.hidden = false;
     const first = err.fieldErrors ? Object.values(err.fieldErrors)[0] : null;
-    toastError(first || err.message || "Could not create the business profile.");
+    businessCreateState.dataset.state = "error";
+    businessCreateMessage.textContent = first || err.message || "Could not create the business profile. Check your connection and try again.";
+    businessCreateRetry.hidden = false;
+    businessCreateEdit.hidden = false;
   } finally {
-    button.disabled = false;
+    isCreatingBusiness = false;
   }
+}
+
+businessCreateRetry?.addEventListener("click", () => createBusiness(pendingBusinessInput));
+businessCreateEdit?.addEventListener("click", () => {
+  if (isCreatingBusiness) return;
+  businessCreateState.hidden = true;
+  form.hidden = false;
 });
 
 // Initial load
 renderDashboardProjects();
+window.setInterval(() => {
+  if (document.visibilityState === "visible") refreshProjectMailConnections();
+}, 60_000);

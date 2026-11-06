@@ -53,7 +53,7 @@ export function isValidEmail(value) {
 
 /*
  * Whitelist validation. Only the fields read below can ever reach the database.
- * user_id, status, run_count, retry_count, next_run_at and last_run_at are owned by the backend.
+ * status, run_count, retry_count, next_run_at and last_run_at are owned by the backend.
  * Throws ValidationError listing every bad field, not just the first.
  */
 export function validateScheduleInput(input, now = new Date()) {

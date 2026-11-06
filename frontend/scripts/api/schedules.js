@@ -1,7 +1,14 @@
 import { authenticatedFetch } from "../auth/api.js";
 
-export function getSchedules(projectId) {
-  return authenticatedFetch(`/api/schedules?project_id=${encodeURIComponent(projectId)}`, { method: "GET" });
+export function getSchedules(projectId, { page = 1, pageSize = 5, filter = "all", jobType = "email" } = {}) {
+  const query = new URLSearchParams({
+    project_id: projectId,
+    page: String(page),
+    page_size: String(pageSize),
+    filter,
+    job_type: jobType,
+  });
+  return authenticatedFetch(`/api/schedules?${query}`, { method: "GET" });
 }
 
 export function createSchedule(schedule) {

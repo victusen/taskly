@@ -1,6 +1,7 @@
 import {
   createCustomSmtpConnection,
   listConnections,
+  getProjectConnection,
   deleteConnection
 } from "../services/emailConnectionService.js";
 import { assertPublicHost } from "../utils/networkGuard.js";
@@ -19,6 +20,7 @@ const ALLOWED_SMTP_PORTS = new Set([
 export async function createEmailConnection(req, res) {
   try {
     const {
+      projectId,
       emailAddress,
       host,
       port,
@@ -97,6 +99,7 @@ export async function createEmailConnection(req, res) {
     const connection =
       await createCustomSmtpConnection({
         userId: req.user.id,
+        projectId,
 
         emailAddress:
           emailAddress.trim().toLowerCase(),
@@ -119,6 +122,13 @@ export async function createEmailConnection(req, res) {
     });
 
   } catch (error) {
+    if (error?.status && error?.code) {
+      return res.status(error.status).json({
+        success: false,
+        code: error.code,
+        message: error.message,
+      });
+    }
     console.error(
       "[EMAIL CONNECTION CREATE]",
       error
@@ -137,6 +147,23 @@ export async function listEmailConnections(req, res) {
     console.error("[EMAIL CONNECTION LIST]", error);
 
     return res.status(500).json({ success: false, code: "SERVER_ERROR", message: "Unable to load email connections." });
+  }
+}
+
+export async function getProjectEmailConnection(req, res) {
+  try {
+    const data = await getProjectConnection(req.user.id, req.params.projectId);
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    if (error?.status && error?.code) {
+      return res.status(error.status).json({
+        success: false,
+        code: error.code,
+        message: error.message,
+      });
+    }
+    console.error("[EMAIL CONNECTION PROJECT]", error);
+    return res.status(500).json({ success: false, code: "SERVER_ERROR", message: "Unable to load this project's mail account." });
   }
 }
 

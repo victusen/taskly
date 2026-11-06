@@ -130,10 +130,11 @@
       gap: 16px;
     }
     .banner-right .avatar-initial {
-      height: 30px; width: 30px; border-radius: 20px;
+      height: 30px; width: 30px; border-radius: 50%;
       background-color: red;
       display: flex; align-items: center; justify-content: center; align-self: center;
       color: white; font-weight: 600; border: 0; padding: 0; font: inherit; cursor: pointer;
+      font-size: 12px;
     }
     .avatar-menu-wrap { position: relative; margin-left: 8px; }
     .avatar-menu {
@@ -163,7 +164,7 @@
     body[data-theme="dark"] .sched-editor-foot { background: #111827; border-color: #374151; color: #f9fafb; }
     body[data-theme="dark"] .cmp-input::placeholder, body[data-theme="dark"] .cmp-code::placeholder { color: #9ca3af; }
     .header-action-btn {
-      background: transparent; border: none; width: 32px; height: 32px;
+      background: transparent; border: none; width: 38px; height: 38px;
       border-radius: 50%; display: flex; align-items: center; justify-content: center;
       color: #4b5563; cursor: pointer; transition: background 0.15s ease, color 0.15s ease;
     }
@@ -211,7 +212,8 @@
       justify-content: flex-start;
       max-width: 1680px;
       width: calc(100% - 32px);
-      margin: 68px 16px 3rem 16px;
+      margin: 68px 20px 3rem 16px;
+      padding-right: 18px;
       gap: 24px;
       align-items: flex-start;
     }
@@ -227,17 +229,57 @@
       display: flex;
       flex-direction: column;
     }
-    .sidebar-collapse-btn {
-      align-self: flex-end; width: 32px; height: 32px; margin: 10px 10px 0;
-      display: grid; place-items: center; border: 0; border-radius: 7px;
-      background: transparent; color: #6b7280; cursor: pointer;
+    .sidebar-nav-heading {
+      display: flex; align-items: center; justify-content: space-between;
+      min-height: 48px; padding: 6px 12px 0 16px; color: #888;
+      font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
     }
+    .sidebar-collapse-btn {
+      flex: 0 0 28px; width: 28px; height: 28px; margin: 0;
+      display: grid; place-items: center; border: 0; border-radius: 7px;
+      padding: 0; background: transparent; color: #6b7280; cursor: pointer;
+    }
+    .sidebar-collapse-btn svg { width: 16px; height: 16px; }
     .sidebar-collapse-btn:hover { background: #f3f4f6; color: #111827; }
     .left-sidebar { transition: width .2s ease, min-width .2s ease; }
-    .left-sidebar.collapsed { width: 54px !important; min-width: 54px !important; }
-    .left-sidebar.collapsed .left-sidebar-content { display: none; }
-    .left-sidebar.collapsed .sidebar-collapse-btn { align-self: center; margin: 10px 0; }
+    .left-sidebar.collapsed { width: 64px !important; min-width: 64px !important; overflow: visible; }
+    .left-sidebar.collapsed .left-sidebar-card { overflow: visible; }
+    .left-sidebar.collapsed .left-sidebar-content {
+      display: flex; padding: 8px 6px; overflow: visible; gap: 12px;
+    }
+    .left-sidebar.collapsed .nav-section { min-width: 0; }
+    .left-sidebar.collapsed .nav-section h4,
+    .left-sidebar.collapsed .nav-item > span,
+    .left-sidebar.collapsed .nav-item > div span,
+    .left-sidebar.collapsed .nav-item .projects-toggle-icon,
+    .left-sidebar.collapsed .nav-item .soon,
+    .left-sidebar.collapsed .sub-nav,
+    .left-sidebar.collapsed .skeleton-nav-group { display: none !important; }
+    .left-sidebar.collapsed .nav-links-list { align-items: center; gap: 5px; }
+    .left-sidebar.collapsed .nav-item {
+      position: relative; justify-content: center; width: 40px; height: 38px;
+      margin: 0 auto; padding: 0; border-radius: 9px; gap: 0;
+    }
+    .left-sidebar.collapsed .nav-item > div { display: contents !important; }
+    .left-sidebar.collapsed .nav-item svg { flex: 0 0 20px; }
+    .left-sidebar.collapsed .nav-item:hover,
+    .left-sidebar.collapsed .nav-item.active:hover { background: #f3f4f6; color: #111827; }
+    .left-sidebar.collapsed .sidebar-nav-heading { justify-content: center; padding: 0; }
+    .left-sidebar.collapsed .sidebar-nav-heading > span { display: none; }
+    .left-sidebar.collapsed .sidebar-collapse-btn {
+      flex-basis: 40px; width: 40px; height: 38px; padding: 0;
+    }
     .left-sidebar.collapsed .sidebar-collapse-btn svg { transform: rotate(180deg); }
+    #desktop-nav .nav-section:first-child > h4 { display: none; }
+    .left-sidebar.collapsed .nav-item[data-tooltip]::after {
+      content: attr(data-tooltip); position: absolute; z-index: 20; left: calc(100% + 9px); top: 50%;
+      transform: translateY(-50%); display: none; width: max-content; max-width: 220px;
+      padding: 6px 9px; border-radius: 6px; background: #111827; color: #fff;
+      font-size: 12px; font-weight: 500; line-height: 1.3; white-space: normal;
+      box-shadow: 0 4px 12px rgba(0,0,0,.16); pointer-events: none;
+    }
+    .left-sidebar.collapsed .nav-item[data-tooltip]:hover::after,
+    .left-sidebar.collapsed .nav-item[data-tooltip]:focus-visible::after { display: block; }
     .left-sidebar-content {
       padding: 16px;
       display: flex;
@@ -345,7 +387,10 @@
       min-height: 0;
     }
     .task-list > #task-loader { flex: 1; }
-    .no-job { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px 20px; color: #777; }
+    .no-job {
+      display: flex; flex: 1 1 auto; flex-direction: column; align-items: center; justify-content: center;
+      width: 100%; min-width: 0; min-height: 0; padding: 24px 20px; color: #6b7280; text-align: center;
+    }
     .no-job[hidden] { display: none; }
 
     /* Short, background-free pager that closes the schedule list. */
@@ -364,9 +409,115 @@
     .page-btn:hover { background: #f3f4f6; color: #111827; }
     .page-btn.active { background: #e6f4ea; color: #15803d; }
     .page-ellipsis { color: #9ca3af; font-size: 12px; padding: 0 2px; user-select: none; }
-    .no-job svg { width: 76px; height: 76px; margin-top: 8px; margin-bottom: 24px; transform: rotate(-8deg); }
+    .no-job svg { width: 44px; height: 44px; flex: 0 0 auto; margin: 0 0 14px; color: #9ca3af; transform: none; }
+    #request-error-state > svg { width: 42px; height: 42px; margin: 0 0 12px; color: #9ca3af; transform: none; }
+    #request-error-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    #request-error-state[hidden] { display: none; }
+    #request-error-state .request-error-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: min(100%, 440px);
+      min-width: 0;
+    }
+    #request-error-state #btn-retry-schedules {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      align-self: center;
+      flex: 0 0 76px;
+      width: 76px;
+      height: 32px;
+      min-height: 32px;
+      box-sizing: border-box;
+      padding: 0 8px;
+      gap: 6px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: #111827;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    #request-error-state #btn-retry-schedules:hover { background: transparent; opacity: .75; }
+    #request-error-state #btn-retry-schedules svg {
+      display: block;
+      flex: 0 0 18px;
+      align-self: center;
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      overflow: hidden;
+      transform: none;
+    }
+    #request-error-state h3 { margin: 0; color: #111827; font-size: 17px; line-height: 1.35; }
+    #request-error-state p { width: 100%; max-width: 380px; margin: 0; color: #6b7280; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+    #request-error-state .request-error-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: auto;
+      min-width: 0;
+      margin-top: 8px;
+    }
+    #request-error-state .request-error-actions > button,
+    #request-error-state .request-error-actions > a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 44px;
+      min-height: 44px;
+      max-height: 44px;
+      padding: 0 16px;
+      min-width: 0;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s ease, background 0.15s ease;
+    }
+    #request-error-state .request-error-actions #request-error-add-task-cta {
+      display: inline-flex;
+      flex: 0 0 auto;
+      align-self: center;
+      height: 44px;
+      min-height: 44px;
+      max-height: 44px;
+      margin: 0;
+      background-color: #111111;
+      color: #ffffff;
+      border: 1px solid #111111;
+      white-space: nowrap;
+    }
+    #request-error-state .request-error-actions #request-error-add-task-cta svg {
+      display: block;
+      flex: 0 0 20px;
+      width: 20px;
+      height: 20px;
+      margin: 0;
+      overflow: hidden;
+      transform: none;
+    }
+    #request-error-state .request-error-actions #request-error-add-task-cta:hover {
+      background-color: #262626;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
     .no-job h3 { font-size: 18px; color: #333; margin-bottom: 4px; }
     .no-job p { font-size: 14px; max-width: 320px; }
+    @media (max-width: 420px) {
+      #request-error-state { padding: 20px 12px; }
+      #request-error-state .request-error-actions > button { padding: 0 12px; font-size: 13px; }
+    }
 
     .connect-avatars { display: inline-flex; align-items: center; }
     .connect-avatars img {
@@ -561,10 +712,6 @@
     .cmp-create { padding: 5px 12px; font: inherit; font-size: 14px; font-weight: 400; color: #ffffff; background: #111111; border: 1px solid #111111; border-radius: 8px; cursor: pointer; transition: background 0.15s ease; }
     .cmp-create:hover:not(:disabled) { background: #374151; }
     .cmp-create:disabled { opacity: 0.5; cursor: wait; }
-    #add-task-cta { transition: background-color 0.15s ease, box-shadow 0.15s ease; }
-    #add-task-cta:hover { background-color: #262626 !important; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
-    #add-task-cta:active { background-color: #111111 !important; box-shadow: none; }
-
     .task-edit { padding: 6px 12px; font: inherit; font-size: 13px; color: #111111; background: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; }
     .task-edit:hover { background: #111111; color: #ffffff; border-color: #111111; }
 
@@ -663,10 +810,36 @@
     .cmp-cancel { padding: 6px 10px; font: inherit; font-size: 12px; color: #4b5563; background: transparent; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; transition: background 0.15s ease; }
     .cmp-cancel:hover { background: #f3f4f6; color: #111; }
 
-    #job-rows { display: flex; flex-direction: column; }
-    #job-rows .task { display: flex; flex-direction: column; gap: 5px; padding: 12px 0; border-bottom: 1px solid #e5e7eb; }
-    #job-rows .task:last-child { border-bottom: 0; }
-    #job-rows .task-row-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: #6b7280; }
+    #job-rows { width: 100%; min-width: 0; }
+    .schedule-table-scroll { width: 100%; overflow: auto; border: 1px solid #e5e7eb; border-radius: 9px; background: #fff; }
+    .schedule-table { width: 100%; min-width: 1510px; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 12px; color: #374151; }
+    .schedule-table th, .schedule-table td { padding: 11px 10px; text-align: left; vertical-align: middle; border-bottom: 1px solid #eef0f2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .schedule-table th { position: sticky; top: 0; z-index: 1; background: #f9fafb; color: #6b7280; font-size: 10px; font-weight: 700; letter-spacing: .045em; text-transform: uppercase; }
+    .schedule-table tbody tr:last-child td { border-bottom: 0; }
+    .schedule-table tbody tr:hover { background: #fafafa; }
+    .schedule-table th:first-child, .schedule-table td:first-child { position: sticky; left: 0; z-index: 2; width: 42px; text-align: center; background: #fff; }
+    .schedule-table th:first-child { z-index: 3; background: #f9fafb; }
+    .schedule-table th:nth-child(2) { width: 180px; }
+    .schedule-table th:nth-child(3), .schedule-table th:nth-child(4) { width: 92px; }
+    .schedule-table th:nth-child(5), .schedule-table th:nth-child(6) { width: 106px; }
+    .schedule-table th:nth-child(7) { width: 155px; }
+    .schedule-table th:nth-child(8), .schedule-table th:nth-child(10) { width: 158px; }
+    .schedule-table th:nth-child(9) { width: 90px; }
+    .schedule-table th:nth-child(11) { width: 220px; }
+    .schedule-table th:nth-child(12) { width: 100px; }
+    .schedule-table th:nth-child(13) { width: 140px; }
+    .schedule-name-cell { color: #111827; font-weight: 600; }
+    .schedule-recipient-cell { max-width: 220px; }
+    .schedule-select-cell input { accent-color: #15803d; }
+    .schedule-table .badge { display: inline-flex; }
+    .schedule-actions-cell { overflow: visible !important; }
+    .task-row-action { margin: 0 4px 0 0; padding: 5px 8px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #374151; font: inherit; font-size: 11px; cursor: pointer; }
+    .task-row-action:hover:not(:disabled) { background: #f3f4f6; color: #111827; }
+    .task-row-action:disabled { opacity: .6; cursor: wait; }
+    .page-controls { display: flex; align-items: center; gap: 10px; }
+    .page-summary, .page-current { color: #6b7280; font-size: 12px; }
+    .task-pagination { justify-content: space-between; padding: 0 4px; }
+    .page-btn:disabled { opacity: .4; cursor: not-allowed; }
 
     .cmp-details-grid {
       display: grid;
@@ -718,7 +891,7 @@
     <div class="banner-right">
       <!-- Invite button -->
       <button type="button" class="header-action-btn" id="btn-header-invite" title="Invite team member">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
         </svg>
       </button>
@@ -726,7 +899,7 @@
       <!-- Help / Docs dropdown (?) -->
       <div style="position: relative;" id="help-menu-container">
         <button type="button" class="header-action-btn" id="help-dropdown-btn" title="Help & Documentation">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
         </button>
@@ -815,7 +988,7 @@
               <path d="M16.5 10.2L21 12.8V18L16.5 20.6L12 18V12.8L16.5 10.2Z"/>
               <path d="M16.5 20.6V15.4M16.5 15.4L21 12.8M16.5 15.4L12 12.8"/>
             </svg>
-            <span>Your Project</span>
+            <span>Your Projects</span>
           </div>
           <svg class="projects-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
@@ -828,13 +1001,15 @@
         <div class="sub-nav collapsed" data-sub-nav></div>
 
         <a href="#" class="nav-item" data-nav-toast="audiences">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6.5 8-6.5s8 2.5 8 6.5"/></svg>
           <span>Audiences</span>
         </a>
+
         <a href="#" class="nav-item" data-action="open-invite">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span>Team members</span>
         </a>
+
         <a href="#" class="nav-item" data-nav-toast="notifications">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span>Notifications</span>
@@ -891,9 +1066,12 @@
     <!-- Laptop sidebar (left column) -->
     <aside class="left-sidebar" id="left-sidebar" aria-label="Main navigation">
       <div class="left-sidebar-card">
-        <button type="button" class="sidebar-collapse-btn" id="sidebar-collapse-btn" aria-label="Collapse navigation" title="Collapse navigation">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-        </button>
+        <div class="sidebar-nav-heading">
+          <span>Navigation</span>
+          <button type="button" class="sidebar-collapse-btn" id="sidebar-collapse-btn" aria-label="Collapse navigation" title="Collapse navigation">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+        </div>
         <div class="left-sidebar-content" id="desktop-nav"></div>
       </div>
     </aside>
@@ -909,7 +1087,7 @@
         <div class="proj-display" style="border-top: none;">
           <p style="font-size: 14px; color: grey; text-transform: uppercase; letter-spacing: 0.5px;">MY PROJECT</p>
           <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <h2 id="project-title" style="font-size: 28px; font-weight: 700;">Project</h2>
+            <h2 id="project-title" style="font-size: 28px; font-weight: 700;">Project Name</h2>
             <span class="proj-menu-icon-wrap" style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 6px; background-color: #e0f2fe; cursor: pointer;" title="Project options">
               <img src="menu.png" height="16px" alt="Menu" style="pointer-events: none;" />
             </span>
@@ -1154,12 +1332,6 @@
               <p>There are no jobs or tasks available matching your filter at the moment.</p>
             </div>
 
-            <!-- Add a new task CTA -->
-            <button id="add-task-cta" class="btn btn-dark" type="button" style="margin: 4px auto 0; background-color: #111; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              <span>Add a new task</span>
-            </button>
-
             <!-- State: Project not found or not owned by user -->
             <div class="no-job" id="project-not-found-state" hidden>
               <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1176,17 +1348,23 @@
 
             <!-- State: Request failed with Retry button -->
             <div class="no-job" id="request-error-state" hidden>
-              <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                <line x1="12" y1="9" x2="12" y2="13"></line>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-              </svg>
-              <h3>Unable to load schedules</h3>
-              <p id="request-error-message" style="margin-bottom: 16px;">Something went wrong while communicating with the server.</p>
-              <button type="button" id="btn-retry-schedules" class="btn btn-dark" style="background-color: #111; color: white; border: none; border-radius: 6px; padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                <span>Retry</span>
-              </button>
+              <div class="request-error-body">
+                <button type="button" id="btn-retry-schedules" class="btn btn-dark" aria-label="Retry loading schedules">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 11a8 8 0 1 0 2 5"></path>
+                    <path d="M20 4v7h-7"></path>
+                  </svg>
+                  <span>Retry</span>
+                </button>
+                <h3>Unable to load schedules</h3>
+                <p id="request-error-message">Something went wrong while communicating with the server.</p>
+                <div class="request-error-actions">
+                  <button id="request-error-add-task-cta" class="btn btn-dark" type="button" style="margin: 0; background-color: #111; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>Add a new task</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
           </div>
@@ -1209,6 +1387,16 @@
       const navTemplate = document.getElementById("nav-template");
       document.getElementById("desktop-nav").append(navTemplate.content.cloneNode(true));
       document.getElementById("mobile-nav").append(navTemplate.content.cloneNode(true));
+      document.querySelectorAll("#desktop-nav .nav-item").forEach((item) => {
+        const label = (item.querySelector(".nav-item-collapsible > div span") ||
+          item.querySelector(":scope > span") ||
+          item.querySelector("span") ||
+          item).textContent.trim();
+        if (label) {
+          item.dataset.tooltip = label;
+          item.setAttribute("aria-label", label);
+        }
+      });
 
       /* Phone drawer */
       const overlay = document.getElementById("mobile-sidebar-overlay");
@@ -1553,7 +1741,8 @@
 
   closeButton.addEventListener("click", closeEditor);
   cancelButton.addEventListener("click", closeEditor);
-  document.getElementById("add-task-cta")?.addEventListener("click", openCreate);
+  document.getElementById("request-error-add-task-cta")?.addEventListener("click", openCreate);
+  document.getElementById("add-task-error-cta")?.addEventListener("click", openCreate);
 
   composer.addEventListener("click", (event) => {
     if (event.target === composer) closeEditor();
@@ -1581,7 +1770,7 @@
   jobRows?.addEventListener("click", (event) => {
     const button = event.target.closest("[data-edit]");
     if (!button) return;
-    const row = button.closest(".task");
+    const row = button.closest("tr[data-schedule]");
     if (!row || !row.dataset.schedule) return;
     openEdit(row, JSON.parse(row.dataset.schedule));
   });

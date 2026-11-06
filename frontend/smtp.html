@@ -418,65 +418,11 @@
 
   
   <script type="module">
-    import { BACKEND_URL } from "./scripts/config.js";
-    import { addEmailConnection } from "./scripts/api/emailConnections.js";
-
-    /* Password visibility toggle */
-    const toggleBtn = document.getElementById("toggle-password");
-    const passwordInput = document.getElementById("password");
-    const eyeShow = document.getElementById("eye-icon-show");
-    const eyeHide = document.getElementById("eye-icon-hide");
-
-    toggleBtn.addEventListener("click", () => {
-      const isPassword = passwordInput.type === "password";
-      passwordInput.type = isPassword ? "text" : "password";
-      eyeShow.style.display = isPassword ? "none" : "";
-      eyeHide.style.display = isPassword ? "" : "none";
-    });
-
-    /* Form submission */
-    const form = document.getElementById("smtp-form");
-    const status = document.getElementById("status");
-
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        showToast("warning", "Log in or create an account to connect a mail account.", { title: "Sign in needed" });
-        return;
-      }
-      if (!projectId) {
-        showToast("warning", "You can't add a custom domain from here. Open this page from one of your projects.", { title: "Not available" });
-        return;
-      }
-      
-      status.textContent = "Adding SMTP connection...";
-
-      try {
-        const emailAddress = document.getElementById("emailAddress").value;
-        const host = document.getElementById("host").value;
-        const port = Number(document.getElementById("port").value);
-        const secure = document.getElementById("secure").value === "true";
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
-
-        const result = await addEmailConnection({ emailAddress, host, port, secure, username, password });
-        console.log("[SMTP]", result);
-        status.textContent = "SMTP connection saved successfully.";
-      } catch (error) {
-        console.error("[SMTP]", error);
-        status.textContent = error.message || "Unable to add SMTP connection.";
-      }
-    });
-  </script>
-  <script type="module" src="./scripts/ui/toast.js"></script>
-  <script type="module">
   import { supabase } from "./scripts/auth/auth.js";
   import { addEmailConnection } from "./scripts/api/emailConnections.js";
   import { showToast } from "./scripts/ui/toast.js";
 
-  const PROJECT_ID_PATTERN = /^[A-Za-z0-9-]{1,64}$/;
+  const PROJECT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const PRESETS = {
     yahoo: { host: "smtp.mail.yahoo.com", port: "465", secure: "true" },
