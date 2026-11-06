@@ -42,9 +42,10 @@
     }
     .banner-right div.avatar-initial {
       height: 30px; width: 30px; border-radius: 50%;
-      background-color: red;
+      background: linear-gradient(#ef4444, #ef4444) padding-box, linear-gradient(135deg, #34d399, #60a5fa, #a78bfa) border-box;
       display: flex; align-items: center; justify-content: center; align-self: center;
       color: white; font-weight: 600;
+      border: 2px solid transparent;
       font-size: 12px;
     }
     .brand { font-size: 20px; font-weight: 600; color: #111; }
@@ -165,14 +166,20 @@
     .skeleton-nav-group .skeleton-line:nth-child(3) { width: 68%; }
 
     /* Header action buttons & dropdowns */
-    .banner-right { display: flex; align-items: center; gap: 12px; }
-    .banner-right > .avatar-initial { margin-left: 8px; }
+    .banner-right { display: flex; align-items: center; gap: 4px; }
+    .banner-right > .avatar-initial { margin-left: 0; }
     .header-action-btn {
       background: transparent; border: none; width: 38px; height: 38px;
       border-radius: 50%; display: flex; align-items: center; justify-content: center;
       color: #4b5563; cursor: pointer; transition: background 0.15s ease, color 0.15s ease;
     }
     .header-action-btn:hover { background: #f3f4f6 !important; color: #111827 !important; }
+    @media (max-width: 767px) {
+      .banner-right { gap: 2px; }
+      .banner-right .header-action-btn { width: 30px; height: 30px; }
+      .banner-right .header-action-btn svg { width: 17px; height: 17px; }
+      .banner-right .avatar-initial { width: 26px; height: 26px; font-size: 11px; }
+    }
     /* ? button stays highlighted while dropdown is open */
     #help-menu-container:has(#help-dropdown-menu.show) #help-dropdown-btn {
       background: #e5e7eb !important;
@@ -376,6 +383,7 @@
       .dp-metrics-bar { flex-direction: column; align-items: flex-start; gap: 8px; padding: 14px 16px; }
       .dp-metric { border-right: none; padding: 6px 0; margin-right: 0; }
       .dp-time-pills { margin-left: 0; }
+      .dashboard-panel, .dp-metrics-bar { width: 100%; min-width: 0; }
     }
 
     /* Layout wrapper: stacked on phones, three columns on laptops */
@@ -383,14 +391,17 @@
     .col-empty-third { display: none; }
 
     /* Main column */
-    main { display: flex; flex-direction: column; gap: 15px; width: 100%; padding: 12px 15px; overflow-y: auto; }
+    main { display: flex; flex-direction: column; gap: 15px; width: 100%; min-width: 0; padding: 12px 15px; overflow-y: auto; }
     .dash-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
     .dash-header-strip { display: flex; justify-content: space-between; padding: 0; }
     @media (max-width: 639px) {
       .dash-header-strip { padding: 0; }
       #upgrade-to-paid-link { padding-right: 12px !important; }
       .business-overviews { padding: 0 4px; }
-      .dashboard-panel { margin-left: -15px; margin-right: -15px; width: calc(100% + 30px); border-radius: 0; border-left: none; border-right: none; }
+      .asymmetric-wrapper { width: 100%; margin: 60px 0 2rem; }
+      main { width: 100%; padding-left: 14px; padding-right: 14px; }
+      .dashboard-panel { width: 100%; min-width: 0; margin-left: 0; margin-right: 0; border-radius: 10px; }
+      .dp-metrics-bar { width: 100%; min-width: 0; }
     }
     .business-overviews { display: flex; flex-direction: column; gap: 20px; width: 100%; margin-top: 20px; margin-bottom: 30px; }
     .project-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }

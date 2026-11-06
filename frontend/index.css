@@ -476,7 +476,7 @@ a {
   max-width: 85vw;
   height: 100%;
   background: #ffffff;
-  padding: 24px;
+  padding: 0 24px 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -486,18 +486,28 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: 60px;
+  min-height: 60px;
+  margin: 0 -24px;
+  padding: 0 24px;
   border-bottom: 1px solid var(--border-light);
-  padding-bottom: 16px;
 }
 
 .mobile-drawer-close {
   background: none;
   border: none;
-  font-size: 24px;
   color: #111111;
   cursor: pointer;
-  padding: 4px;
-  line-height: 1;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.mobile-drawer-close:hover {
+  background: #f3f4f6;
 }
 
 .mobile-nav-links {
@@ -508,11 +518,15 @@ a {
 }
 
 .mobile-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 16px;
   font-weight: 500;
   color: #111111;
   padding: 6px 0;
 }
+.mobile-nav-item--drop .nav-drop-arrow { color: #6b7280; }
 
 .mobile-drawer-auth {
   display: flex;
@@ -1487,6 +1501,24 @@ a {
 
 @media (max-width: 768px) {
   .header-right .login-link {
+    padding: 6px 13px;
+    font-size: 13px;
+  }
+  .hero-actions .btn-primary {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    width: 90%;
+    background-color: inherit;
+    color: #111111;
+    border-color: #111111;
+  }
+  .hero-actions .btn-primary:hover {
+    background-color: transparent;
+    color: #111111;
+    border-color: #111111;
+  }
+  .header-right .login-link {
     display: flex;
   }
   .header-right .signup-btn {
@@ -1582,7 +1614,8 @@ a {
     flex-direction: column;
     width: 100%;
   }
-  .btn-primary, .btn-secondary {
+  .hero-actions .btn-primary { align-self: center; }
+  .hero-actions .btn-secondary {
     width: 100%;
     justify-content: center;
   }

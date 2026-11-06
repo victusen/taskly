@@ -41,12 +41,16 @@ const requestErrorMessage = document.getElementById("request-error-message");
 const retryBtn = document.getElementById("btn-retry-schedules");
 const jobRows = document.getElementById("job-rows");
 const taskPagination = document.getElementById("task-pagination");
+const taskListFooter = document.getElementById("task-list-footer");
+const footerAddScheduleBtn = document.getElementById("footer-add-schedule");
+const scheduleDetailOverlay = document.getElementById("schedule-detail-overlay");
 const projectTitleEl = document.getElementById("project-title");
 const filterButtons = document.querySelectorAll(".toggles .toggle");
 const connectGmailBtn = document.getElementById("connect-gmail-btn");
 const mailAccountBtn = document.getElementById("cmp-mail-account");
 const connectDatabaseBtn = document.getElementById("cmp-connect-database");
 const addScheduleBtn = document.getElementById("add-schedule");
+const emptyAddScheduleBtn = document.getElementById("empty-add-schedule");
 const closeScheduleBtn = document.getElementById("close-btn");
 const scheduleOverlay = document.getElementById("schedule-overlay");
 const scheduleForm = document.getElementById("schedule-form");
@@ -56,9 +60,10 @@ let currentFilter = "all";
 let currentChannel = "emails";
 let schedules = [];
 let currentPage = 1;
-const pageSize = 5;
+let pageSize = window.matchMedia("(max-width: 767px)").matches ? 1 : 5;
 let totalSchedules = 0;
 let hasMoreSchedules = false;
+let reloadAfterCurrentFetch = false;
 let inviteModal = null;
 let currentProjectConnection = null;
 let projectConnectionKnown = false;
@@ -107,6 +112,7 @@ function hideAllStates() {
     taskPagination.hidden = true;
     taskPagination.style.display = "none";
   }
+  if (taskListFooter) taskListFooter.hidden = true;
 }
 
 function setLoading(isLoading) {
@@ -144,27 +150,36 @@ function showRequestError(msg) {
 }
 
 function renderPagination() {
-  if (!taskPagination) return;
-
-  const totalPages = Math.max(1, Math.ceil(totalSchedules / pageSize));
-  if (totalPages <= 1) {
-    taskPagination.hidden = true;
-    taskPagination.style.display = "none";
-    taskPagination.innerHTML = "";
-    return;
-  }
+  if (!taskPagination || totalSchedules === 0) return;
 
   const firstItem = (currentPage - 1) * pageSize + 1;
   const lastItem = Math.min(currentPage * pageSize, totalSchedules);
+  const canGoBack = currentPage > 1;
+  const canGoForward = hasMoreSchedules;
   taskPagination.innerHTML = `
-    <span class="page-summary">Showing ${firstItem}–${lastItem} of ${totalSchedules}</span>
-    <div class="page-controls">
-      <button type="button" class="page-btn" data-page="${currentPage - 1}" ${currentPage <= 1 ? "disabled" : ""} aria-label="Previous page">‹</button>
-      <span class="page-current">Page ${currentPage} of ${totalPages}</span>
-      <button type="button" class="page-btn" data-page="${currentPage + 1}" ${!hasMoreSchedules ? "disabled" : ""} aria-label="Next page">›</button>
-    </div>`;
+    <span class="page-summary">${firstItem}–${lastItem} of ${totalSchedules} schedules</span>
+    <span class="page-current">${currentPage}</span>
+    <button type="button" class="page-btn" data-page="${currentPage - 1}" ${canGoBack ? "" : "disabled"} aria-label="Previous schedule page">‹</button>
+    <button type="button" class="page-btn" data-page="${currentPage + 1}" ${canGoForward ? "" : "disabled"} aria-label="Next schedule page">›</button>`;
   taskPagination.hidden = false;
   taskPagination.style.display = "flex";
+}
+
+function formatScheduleDateTime(value, timezone = "UTC") {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  try {
+    const formattedDate = new Intl.DateTimeFormat("en-US", {
+      month: "2-digit", day: "2-digit", year: "2-digit", timeZone: timezone,
+    }).format(date);
+    const formattedTime = new Intl.DateTimeFormat(undefined, {
+      hour: "numeric", minute: "2-digit", timeZone: timezone,
+    }).format(date);
+    return `${formattedDate} · ${formattedTime}`;
+  } catch {
+    return `${new Intl.DateTimeFormat("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" }).format(date)} · ${date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+  }
 }
 
 /**
@@ -188,6 +203,7 @@ function renderRows() {
   }
 
   hideAllStates();
+  if (taskListFooter) taskListFooter.hidden = false;
 
   if (jobRows) {
     jobRows.hidden = false;
@@ -196,57 +212,45 @@ function renderRows() {
       <div class="schedule-table-scroll">
         <table class="schedule-table">
           <thead><tr>
-            <th class="schedule-select-cell"><input type="checkbox" aria-label="Select all schedules on this page" data-select-page></th>
-            <th>Name</th><th>Type</th><th>Frequency</th><th>Date</th><th>Time</th><th>Time zone</th>
-            <th>Last run</th><th>Recipients</th><th>Next run</th><th>Recipient list</th><th>Status</th><th>Actions</th>
+            <th class="schedule-select-cell">Select</th>
+            <th>Name</th><th>Type</th><th>Created at</th><th>Next run</th><th>Last run</th>
+            <th>Recipients</th><th>Status</th><th aria-label="More actions"></th>
           </tr></thead>
           <tbody>
       ${schedules
       .map((row) => {
         const recipients = Array.isArray(row.config?.recipients) ? row.config.recipients : [];
-        const joined = recipients.join(", ");
         const name = row.name || row.config?.subject || "Untitled task";
-        const scheduledAt = row.scheduled_for || row.next_run_at;
-        const date = scheduledAt ? new Date(scheduledAt) : null;
         const frequency = row.schedule_type === "recurring"
           ? (row.schedule_rule?.every || "Repeating").replace(/\b\w/g, (letter) => letter.toUpperCase())
           : "One time";
-        const formatInTimezone = (value, options) => {
-          if (!value) return "—";
-          try {
-            return new Intl.DateTimeFormat(undefined, { ...options, timeZone: row.timezone || "UTC" })
-              .format(new Date(value));
-          } catch {
-            return new Date(value).toLocaleString();
-          }
-        };
-        const lastRun = row.last_run_at
-          ? formatInTimezone(row.last_run_at, { dateStyle: "medium", timeStyle: "short" })
-          : "—";
-        const nextRun = row.next_run_at
-          ? formatInTimezone(row.next_run_at, { dateStyle: "medium", timeStyle: "short" })
-          : "—";
-        const statusAction = row.status === "active"
-          ? `<button class="task-row-action" type="button" data-schedule-action="pause" data-id="${esc(row.id)}">Pause</button>`
-          : row.status === "paused"
-            ? `<button class="task-row-action" type="button" data-schedule-action="resume" data-id="${esc(row.id)}">Resume</button>`
-            : "";
+        const createdAt = formatScheduleDateTime(row.created_at, row.timezone || "UTC");
+        const nextRun = formatScheduleDateTime(row.next_run_at, row.timezone || "UTC");
+        const lastRun = formatScheduleDateTime(row.last_run_at, row.timezone || "UTC");
+        const statusAction = row.status === "active" ? "Pause" : row.status === "paused" ? "Resume" : "";
 
         return `
-          <tr data-id="${esc(row.id)}" data-schedule='${esc(JSON.stringify(row))}'>
+          <tr data-id="${esc(row.id)}" data-schedule='${esc(JSON.stringify(row))}' tabindex="0" aria-label="View schedule ${esc(name)}">
             <td class="schedule-select-cell"><input type="checkbox" aria-label="Select ${esc(name)}"></td>
             <td class="schedule-name-cell" title="${esc(name)}">${esc(name)}</td>
             <td>${esc(row.job_type || "email")}</td>
-            <td>${esc(frequency)}</td>
-            <td>${date ? esc(formatInTimezone(scheduledAt, { dateStyle: "medium" })) : "—"}</td>
-            <td>${date ? esc(formatInTimezone(scheduledAt, { timeStyle: "short" })) : "—"}</td>
-            <td>${esc(row.timezone || "UTC")}</td>
-            <td>${esc(lastRun)}</td>
+            <td><div class="schedule-date-time"><strong>${esc(createdAt.split(" · ")[0])}</strong><span>${esc(createdAt.split(" · ")[1] || "")}</span></div></td>
+            <td><div class="schedule-date-time"><strong>${esc(nextRun.split(" · ")[0])}</strong><span>${esc(nextRun.split(" · ")[1] || "—")}</span></div></td>
+            <td><div class="schedule-date-time"><strong>${esc(lastRun.split(" · ")[0])}</strong><span>${esc(lastRun.split(" · ")[1] || "—")}</span></div></td>
             <td>${recipients.length}</td>
-            <td>${esc(nextRun)}</td>
-            <td class="schedule-recipient-cell" title="${esc(joined)}">${esc(joined || "—")}</td>
             <td>${statusBadge(row.status)}</td>
-            <td class="schedule-actions-cell"><button class="task-row-action" data-edit="${esc(row.id)}" type="button">Edit</button>${statusAction}</td>
+            <td class="schedule-actions-cell">
+              <div class="schedule-row-actions">
+                <button type="button" class="schedule-menu-trigger" aria-label="Schedule actions" aria-expanded="false">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+                </button>
+                <div class="schedule-row-menu" hidden>
+                  <button type="button" data-edit="${esc(row.id)}">Edit</button>
+                  ${statusAction ? `<button type="button" data-schedule-action="${statusAction.toLowerCase()}" data-id="${esc(row.id)}">${statusAction}</button>` : ""}
+                  <button type="button" data-delete-schedule="${esc(row.id)}">Delete</button>
+                </div>
+              </div>
+            </td>
           </tr>
         `;
       })
@@ -270,7 +274,10 @@ function renderRows() {
  */
 
 async function loadRows(filter = currentFilter) {
-  if (isFetchingSchedules) return;
+  if (isFetchingSchedules) {
+    reloadAfterCurrentFetch = true;
+    return;
+  }
   isFetchingSchedules = true;
   const startedAt = Date.now();
   setLoading(true);
@@ -317,6 +324,10 @@ async function loadRows(filter = currentFilter) {
         : fetchError.message);
     } else {
       renderRows();
+    }
+    if (reloadAfterCurrentFetch) {
+      reloadAfterCurrentFetch = false;
+      await loadRows(currentFilter);
     }
   }
 }
@@ -423,10 +434,21 @@ async function updateProjectUI(project) {
     projectConnectionKnown = false;
     console.warn("Could not check connections for channel switcher:", connErr);
   } finally {
+    renderHeaderConnection();
     const hasProject = Boolean(project?.id);
     if (connectGmailBtn) connectGmailBtn.disabled = !hasProject;
     if (mailAccountBtn) mailAccountBtn.disabled = !hasProject;
   }
+}
+
+function renderHeaderConnection() {
+  const account = document.getElementById("header-connected-account");
+  const email = document.getElementById("header-connected-account-email");
+  const sender = currentProjectConnection?.status === "active" ? currentProjectConnection : null;
+  if (!account || !email) return;
+  email.textContent = sender?.email_address || "";
+  account.hidden = !sender;
+  account.title = sender ? `Connected mail account: ${sender.email_address}` : "";
 }
 
 function isImmediate(draft) {
@@ -451,6 +473,7 @@ async function populateConnections() {
 }
 
 async function refreshSenderField() {
+  renderHeaderConnection();
   const account = document.getElementById("cmp-mail-account");
   const emailLabel = document.getElementById("cmp-mail-account-email");
   if (!account || !emailLabel) return;
@@ -494,30 +517,140 @@ taskPagination?.addEventListener("click", (event) => {
   jobRows?.scrollIntoView?.({ block: "nearest" });
 });
 
-jobRows?.addEventListener("click", async (event) => {
-  const actionButton = event.target.closest("[data-schedule-action]");
-  if (!actionButton) return;
-  const action = actionButton.dataset.scheduleAction;
-  const id = actionButton.dataset.id;
-  if (!["pause", "resume"].includes(action) || !id) return;
+function openScheduleDetails(rowElement) {
+  if (!scheduleDetailOverlay || !rowElement?.dataset.schedule) return;
+  const schedule = JSON.parse(rowElement.dataset.schedule);
+  const config = schedule.config || {};
+  const value = (id, content) => {
+    const node = document.getElementById(id);
+    if (node) node.textContent = content || "—";
+  };
+  const frequency = schedule.schedule_type === "recurring"
+    ? (schedule.schedule_rule?.every || "Repeating").replace(/\b\w/g, (letter) => letter.toUpperCase())
+    : "One time";
+  const recipients = Array.isArray(config.recipients) ? config.recipients.join(", ") : "";
+  const parser = new DOMParser();
+  const message = parser.parseFromString(String(config.body || ""), "text/html").body.textContent.trim();
+  value("schedule-detail-title", schedule.name || config.subject || "Untitled task");
+  value("schedule-detail-type", schedule.job_type || "email");
+  value("schedule-detail-status", schedule.status);
+  value("schedule-detail-created", formatScheduleDateTime(schedule.created_at, schedule.timezone || "UTC"));
+  value("schedule-detail-frequency", frequency);
+  value("schedule-detail-next", formatScheduleDateTime(schedule.next_run_at, schedule.timezone || "UTC"));
+  value("schedule-detail-last", formatScheduleDateTime(schedule.last_run_at, schedule.timezone || "UTC"));
+  value("schedule-detail-timezone", schedule.timezone || "UTC");
+  value("schedule-detail-recipients", recipients || "No recipients");
+  value("schedule-detail-subject", config.subject || "No subject");
+  value("schedule-detail-message", message || "No message content");
+  value("schedule-detail-error", schedule.last_failure_reason || "");
+  const errorWrap = document.getElementById("schedule-detail-error-wrap");
+  if (errorWrap) errorWrap.hidden = !schedule.last_failure_reason;
+  scheduleDetailOverlay.dataset.schedule = JSON.stringify(schedule);
+  scheduleDetailOverlay.classList.add("open");
+  scheduleDetailOverlay.setAttribute("aria-hidden", "false");
+}
 
-  actionButton.disabled = true;
-  try {
-    const failed = await changeStatus(action, [id]);
-    if (failed) throw new Error(`Could not ${action} this schedule.`);
-    showToast("success", `Schedule ${action === "pause" ? "paused" : "resumed"}.`);
-    await loadRows(currentFilter);
-  } catch (error) {
-    actionButton.disabled = false;
-    showToast("error", error.message || `Could not ${action} this schedule.`);
+function closeScheduleDetails() {
+  scheduleDetailOverlay?.classList.remove("open");
+  scheduleDetailOverlay?.setAttribute("aria-hidden", "true");
+}
+
+scheduleDetailOverlay?.addEventListener("click", (event) => {
+  if (event.target === scheduleDetailOverlay || event.target.closest("[data-detail-close]")) {
+    closeScheduleDetails();
+    return;
+  }
+  if (event.target.closest("[data-detail-edit]")) {
+    const schedule = JSON.parse(scheduleDetailOverlay.dataset.schedule || "null");
+    if (schedule && typeof window.bzComposer?.openEdit === "function") {
+      closeScheduleDetails();
+      window.bzComposer.openEdit(null, schedule);
+    }
   }
 });
 
-jobRows?.addEventListener("change", (event) => {
-  if (!event.target.matches("[data-select-page]")) return;
-  jobRows.querySelectorAll("tbody input[type=checkbox]").forEach((checkbox) => {
-    checkbox.checked = event.target.checked;
-  });
+jobRows?.addEventListener("click", async (event) => {
+  const menuTrigger = event.target.closest(".schedule-menu-trigger");
+  if (menuTrigger) {
+    const menu = menuTrigger.parentElement.querySelector(".schedule-row-menu");
+    const opening = menu.hidden;
+    jobRows.querySelectorAll(".schedule-row-menu").forEach((item) => { item.hidden = true; });
+    jobRows.querySelectorAll(".schedule-menu-trigger").forEach((item) => item.setAttribute("aria-expanded", "false"));
+    menu.hidden = !opening;
+    menuTrigger.setAttribute("aria-expanded", String(opening));
+    event.stopPropagation();
+    return;
+  }
+
+  const deleteButton = event.target.closest("[data-delete-schedule]");
+  if (deleteButton) {
+    const id = deleteButton.dataset.deleteSchedule;
+    if (!id || !window.confirm("Delete this schedule? This cannot be undone.")) return;
+    deleteButton.disabled = true;
+    try {
+      const failed = await changeStatus("remove", [id]);
+      if (failed) throw new Error("Could not delete this schedule.");
+      showToast("success", "Schedule deleted.");
+      await loadRows(currentFilter);
+    } catch (error) {
+      deleteButton.disabled = false;
+      showToast("error", error.message || "Could not delete this schedule.");
+    }
+    return;
+  }
+
+  const actionButton = event.target.closest("[data-schedule-action]");
+  if (actionButton) {
+    const action = actionButton.dataset.scheduleAction;
+    const id = actionButton.dataset.id;
+    if (!["pause", "resume"].includes(action) || !id) return;
+    actionButton.disabled = true;
+    try {
+      const failed = await changeStatus(action, [id]);
+      if (failed) throw new Error(`Could not ${action} this schedule.`);
+      showToast("success", `Schedule ${action === "pause" ? "paused" : "resumed"}.`);
+      await loadRows(currentFilter);
+    } catch (error) {
+      actionButton.disabled = false;
+      showToast("error", error.message || `Could not ${action} this schedule.`);
+    }
+    return;
+  }
+
+  if (event.target.closest("button, input, a")) return;
+  const row = event.target.closest("tr[data-schedule]");
+  if (row) openScheduleDetails(row);
+});
+
+jobRows?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  if (event.target.closest("button, input")) return;
+  const row = event.target.closest("tr[data-schedule]");
+  if (!row) return;
+  event.preventDefault();
+  openScheduleDetails(row);
+});
+
+document.addEventListener("click", (event) => {
+  if (event.target.closest(".schedule-row-actions")) return;
+  jobRows?.querySelectorAll(".schedule-row-menu").forEach((item) => { item.hidden = true; });
+  jobRows?.querySelectorAll(".schedule-menu-trigger").forEach((item) => item.setAttribute("aria-expanded", "false"));
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeScheduleDetails();
+});
+
+footerAddScheduleBtn?.addEventListener("click", () => {
+  if (typeof window.bzComposer?.openCreate === "function") window.bzComposer.openCreate();
+});
+
+window.addEventListener("resize", () => {
+  const nextPageSize = window.matchMedia("(max-width: 767px)").matches ? 1 : 5;
+  if (nextPageSize === pageSize) return;
+  pageSize = nextPageSize;
+  currentPage = 1;
+  loadRows(currentFilter);
 });
 
 let resizeTimer = null;
@@ -695,6 +828,13 @@ connectDatabaseBtn?.addEventListener("click", async () => {
 addScheduleBtn?.addEventListener("click", () => {
   const composer = document.getElementById("job-composer");
   if (composer?.classList.contains("sched-editor-overlay") && typeof window.bzComposer?.openCreate === "function") {
+    window.bzComposer.openCreate();
+    return;
+  }
+  openScheduleModal();
+});
+emptyAddScheduleBtn?.addEventListener("click", () => {
+  if (typeof window.bzComposer?.openCreate === "function") {
     window.bzComposer.openCreate();
     return;
   }
