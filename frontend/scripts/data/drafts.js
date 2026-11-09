@@ -10,12 +10,13 @@ export function readDrafts() {
   }
 }
 
-export function saveDraft({ name, subject, body }) {
+export function saveDraft({ name, subject, body, spreadsheet }) {
   const clean = {
     id: `d-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name: String(name || "Untitled draft").slice(0, 120),
     subject: String(subject || "").slice(0, 300),
     body: String(body || "").slice(0, 200000),
+    ...(spreadsheet ? { spreadsheet: JSON.parse(JSON.stringify(spreadsheet)) } : {}),
     savedAt: new Date().toISOString(),
   };
   const next = [clean, ...readDrafts()].slice(0, MAX_DRAFTS);

@@ -11,6 +11,7 @@ const GOOGLE_RESULTS = {
   cancelled: ["warning", "Gmail connection cancelled."],
   missing_scope: ["warning", "Gmail needs the send permission. Connect again and keep it ticked."],
   missing_sheets_scope: ["warning", "Google Sheets access is needed. Connect again and approve the Sheets permission."],
+  missing_drive_scope: ["warning", "Google Drive file access is needed to choose a spreadsheet. Connect again and approve the Drive file permission."],
   failed: ["error", "Could not connect Gmail. Try again."],
 };
 

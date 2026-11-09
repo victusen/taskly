@@ -20,6 +20,7 @@ export function createGoogleAuthorizationUrl(state, { includeSheets = false } = 
   const scopes = [...GOOGLE_SCOPES];
   if (includeSheets) {
     scopes.push("https://www.googleapis.com/auth/spreadsheets.readonly");
+    scopes.push("https://www.googleapis.com/auth/drive.file");
   }
 
   return client.generateAuthUrl({

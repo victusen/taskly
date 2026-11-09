@@ -41,6 +41,7 @@ let projectMailConnectionsRequest = null;
 let projectMailConnectionsLoaded = false;
 let pendingBusinessInput = null;
 let isCreatingBusiness = false;
+let dashboardProjectRenderVersion = 0;
 
 const session = await requireAuth();
 if (!session) throw new Error("Authentication required.");
@@ -111,14 +112,16 @@ async function refreshProjectMailConnections({ notify = false } = {}) {
 
       document.querySelectorAll(".proj-card-wrapper[data-project-id]").forEach((card) => {
         const connection = projectMailConnections.get(card.dataset.projectId);
-        const label = card.querySelector(".project-tag");
-        if (label) {
-          label.textContent = connection?.status === "active"
-            ? `Mail connected · ${connection.email_address}`
-            : connection ? "Mail account needs attention" : "No mail account connected";
-        }
         const connectAction = card.querySelector('[data-action="connect"]');
-        if (connectAction) connectAction.setAttribute("aria-label", connection ? "Check connected mail account" : "Connect mail account");
+        if (connectAction) {
+          connectAction.setAttribute("aria-label", connection ? "Check connected mail account" : "Connect mail account");
+          const label = connectAction.querySelector("[data-mail-action-label]");
+          if (label) {
+            label.textContent = connection?.status === "active"
+              ? "View mail account"
+              : connection ? "Reconnect mail account" : "Connect mail account";
+          }
+        }
       });
       return projectMailConnections;
     } catch (error) {
@@ -139,29 +142,40 @@ async function refreshProjectMailConnections({ notify = false } = {}) {
  * Hides dropdown arrow if no projects exist.
  * Populates left sidebar with user's projects.
  */
-async function renderDashboardProjects() {
+async function renderDashboardProjects({ fallbackProject = null, useFallback = false } = {}) {
   // Race loadProjects against an 8-second timeout so skeleton never spins forever
   const SKELETON_TIMEOUT_MS = 8000;
-  let projects;
+  const renderVersion = ++dashboardProjectRenderVersion;
+  const previousProjects = activeProjects;
+  let projects = null;
   let loadError = null;
 
-  try {
-    projects = await Promise.race([
-      loadProjects(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Request timed out. Check your connection and refresh.")), SKELETON_TIMEOUT_MS)
-      ),
-    ]);
-    activeProjects = Array.isArray(projects) ? projects : [];
-    if (projects && projects.__fromCache) {
-      // Offline mode silent or gentle indicator
+  if (useFallback && fallbackProject) {
+    activeProjects = [fallbackProject, ...previousProjects.filter((project) => project.id !== fallbackProject.id)];
+  } else {
+    try {
+      projects = await Promise.race([
+        loadProjects(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Request timed out. Check your connection and refresh.")), SKELETON_TIMEOUT_MS)
+        ),
+      ]);
+    } catch (err) {
+      loadError = err;
     }
-  } catch (err) {
-    activeProjects = [];
-    loadError = err;
+    if (renderVersion !== dashboardProjectRenderVersion) return;
+    if (loadError && fallbackProject) {
+      activeProjects = [fallbackProject, ...previousProjects.filter((project) => project.id !== fallbackProject.id)];
+      loadError = null;
+    } else if (loadError) {
+      activeProjects = [];
+    } else {
+      activeProjects = Array.isArray(projects) ? projects : [];
+      if (projects && projects.__fromCache) {
+        // Offline mode silent or gentle indicator
+      }
+    }
   }
-
-  await refreshProjectMailConnections({ notify: true });
 
   // Always fade out skeleton loaders — errors or success, skeleton must go
   document.querySelectorAll("#subnav-skeleton").forEach((el) => {
@@ -289,9 +303,17 @@ async function renderDashboardProjects() {
                   <h4 class="title">${escapeHtml(pName)}</h4>
                   ${p.business_name && p.business_name !== pName ? `<p style="font-size: 13px; color: #6b7280; margin-top: 4px;">${escapeHtml(p.business_name)}</p>` : ""}
                 </div>
-                <p class="project-tag">${projectMailConnections.get(p.id)?.status === "active"
-                  ? `Mail connected · ${escapeHtml(projectMailConnections.get(p.id).email_address)}`
-                  : projectMailConnections.has(p.id) ? "Mail account needs attention" : "No mail account connected"}</p>
+                <div class="project-insights" aria-label="Project insights">
+                  <span class="project-insights-kicker">Project insights</span>
+                  <div class="project-insights-slide">
+                    <strong>Schedule activity</strong>
+                    <span>Live schedule insights are coming soon.</span>
+                  </div>
+                  <div class="project-insights-slide" hidden>
+                    <strong>Delivery performance</strong>
+                    <span>Project analytics are coming soon.</span>
+                  </div>
+                </div>
               </div>
             </a>
 
@@ -312,9 +334,9 @@ async function renderDashboardProjects() {
               </a>
               <button type="button" class="proj-menu-item" data-action="connect" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(pName)}">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                ${projectMailConnections.get(p.id)?.status === "active"
+                <span data-mail-action-label>${projectMailConnections.get(p.id)?.status === "active"
                   ? "View mail account"
-                  : projectMailConnections.has(p.id) ? "Reconnect mail account" : "Connect mail account"}
+                  : projectMailConnections.has(p.id) ? "Reconnect mail account" : "Connect mail account"}</span>
               </button>
               <button type="button" class="proj-menu-item" data-action="settings" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(pName)}">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -341,7 +363,20 @@ async function renderDashboardProjects() {
   if (mDel) mDel.textContent = "0%";
   if (mBnc) mBnc.textContent = "0%";
   if (mFail) mFail.textContent = "0%";
+  void refreshProjectMailConnections({ notify: true });
 }
+
+function rotateProjectInsights() {
+  document.querySelectorAll(".proj-card-wrapper .project-insights").forEach((carousel) => {
+    const slides = [...carousel.querySelectorAll(".project-insights-slide")];
+    if (slides.length < 2) return;
+    const activeIndex = slides.findIndex((slide) => !slide.hidden);
+    const nextIndex = (activeIndex + 1) % slides.length;
+    slides.forEach((slide, index) => { slide.hidden = index !== nextIndex; });
+  });
+}
+
+window.setInterval(rotateProjectInsights, 5000);
 
 // 3-dots popover toggles
 document.addEventListener("click", async (e) => {
@@ -510,17 +545,19 @@ async function openModal() {
 }
 
 function closeModal() {
-  if (isCreatingBusiness) return;
   modal.classList.remove("open");
   modal.classList.remove("is-loading");
   businessLoading.hidden = true;
+  form.hidden = false;
+  businessCreateState.hidden = true;
 }
 
 document.getElementById("modal-close")?.addEventListener("click", closeModal);
 document.getElementById("business-create-close")?.addEventListener("click", closeModal);
+document.getElementById("business-loading-close")?.addEventListener("click", closeModal);
 document.getElementById("add-business-card")?.addEventListener("click", openModal);
 modal.addEventListener("click", (event) => {
-  if (event.target === modal && !isCreatingBusiness) closeModal();
+  if (event.target === modal) closeModal();
 });
 
 form.elements.project_name.addEventListener("input", (event) => {
@@ -579,11 +616,11 @@ async function createBusiness(input) {
   businessCreateMessage.textContent = "Creating your business and loading its project details…";
 
   try {
-    await addProject(input);
-    await renderDashboardProjects();
+    const createdProject = await addProject(input);
     isCreatingBusiness = false;
     closeModal();
     showToast("success", "Business profile created.");
+    await renderDashboardProjects({ fallbackProject: createdProject, useFallback: true });
   } catch (err) {
     modal.classList.remove("is-loading");
     businessLoading.hidden = true;

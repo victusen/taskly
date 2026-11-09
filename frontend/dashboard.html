@@ -174,12 +174,6 @@
       color: #4b5563; cursor: pointer; transition: background 0.15s ease, color 0.15s ease;
     }
     .header-action-btn:hover { background: #f3f4f6 !important; color: #111827 !important; }
-    @media (max-width: 767px) {
-      .banner-right { gap: 2px; }
-      .banner-right .header-action-btn { width: 30px; height: 30px; }
-      .banner-right .header-action-btn svg { width: 17px; height: 17px; }
-      .banner-right .avatar-initial { width: 26px; height: 26px; font-size: 11px; }
-    }
     /* ? button stays highlighted while dropdown is open */
     #help-menu-container:has(#help-dropdown-menu.show) #help-dropdown-btn {
       background: #e5e7eb !important;
@@ -412,7 +406,18 @@
     }
     .projs:active { background-color: lightgray; }
     .title { font-weight: 700; }
-    .project-tag { font-size: 15px; padding: 6px 8px; background-color: green; color: white; }
+    .project-insights {
+      display: grid; gap: 5px; min-height: 82px; padding: 10px 11px;
+      border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;
+    }
+    .project-insights-kicker {
+      color: #6b7280; font-size: 9px; font-weight: 700;
+      letter-spacing: .07em; text-transform: uppercase;
+    }
+    .project-insights-slide { display: grid; gap: 2px; }
+    .project-insights-slide[hidden] { display: none; }
+    .project-insights-slide strong { color: #1f2937; font-size: 12px; font-weight: 700; }
+    .project-insights-slide span { color: #6b7280; font-size: 11px; line-height: 1.4; }
     .add-card {
       height: 60px; padding: 10px; width: 100%;
       display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -447,10 +452,19 @@
     .modal-backdrop.open { display: flex; }
     #business-modal.is-loading .modal-box { display: none; }
     .business-loading {
+      position: absolute; inset: 0; display: grid; place-items: center;
+    }
+    .business-loading[hidden] { display: none; }
+    .business-loading-spinner {
       width: 42px; height: 42px; border: 4px solid rgba(255,255,255,.35);
       border-top-color: #fff; border-radius: 50%; animation: business-spin .75s linear infinite;
     }
-    .business-loading[hidden] { display: none; }
+    .business-loading-close {
+      position: absolute; top: 20px; right: 20px; width: 34px; height: 34px;
+      display: grid; place-items: center; border: 1px solid rgba(255,255,255,.35);
+      border-radius: 50%; background: rgba(255,255,255,.08); color: #fff; cursor: pointer;
+    }
+    .business-loading-close:hover { background: rgba(255,255,255,.18); }
     .modal-box {
       background: white; border-radius: 8px; width: 100%; max-width: 480px; padding: 24px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.15);
@@ -1055,7 +1069,12 @@
         </div>
       </div>
     </div>
-    <div id="business-loading" class="business-loading" role="status" aria-label="Creating your business" hidden></div>
+    <div id="business-loading" class="business-loading" role="status" aria-label="Creating your business" hidden>
+      <span class="business-loading-spinner" aria-hidden="true"></span>
+      <button type="button" class="business-loading-close" id="business-loading-close" aria-label="Close creation status">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg>
+      </button>
+    </div>
   </div>
 
   <!-- Delete Project Confirmation Modal (with blurred background) -->

@@ -23,6 +23,7 @@ const STATE_EXPIRY_MINUTES = 10;
 const FRONTEND_URL = (process.env.FRONTEND_URL || "https://bzade.app").replace(/\/+$/, "");
 const GMAIL_SEND_SCOPE = "https://www.googleapis.com/auth/gmail.send";
 const GOOGLE_SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
+const GOOGLE_DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 const projectBack = (result, projectId) =>
   `${FRONTEND_URL}/schedules.html?project=${encodeURIComponent(projectId)}&google=${result}`;
 
@@ -157,6 +158,12 @@ export async function googleOAuthCallback(req, res) {
       !String(tokens.scope || "").split(" ").includes(GOOGLE_SHEETS_SCOPE)
     ) {
       return res.redirect(resultUrl("missing_sheets_scope"));
+    }
+    if (
+      databaseProjectId &&
+      !String(tokens.scope || "").split(" ").includes(GOOGLE_DRIVE_FILE_SCOPE)
+    ) {
+      return res.redirect(resultUrl("missing_drive_scope"));
     }
 
     client.setCredentials(tokens);

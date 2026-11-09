@@ -4,6 +4,17 @@ import { initShell, showGoogleResult } from "./scripts/ui/shell.js";
 import { initAccountMenu } from "./scripts/ui/accountMenu.js";
 import { initInviteModal } from "./scripts/ui/inviteModal.js";
 import { startGoogleConnection } from "./scripts/api/emailConnections.js";
+import {
+  listProjectSpreadsheets,
+  listSpreadsheetColumns,
+  listSpreadsheetSheets,
+} from "./scripts/api/googleSheets.js";
+import {
+  formatSheetRowSelection,
+  inspectTemplateVariables,
+  parseSheetRowSelection,
+  validateSheetPlan as getSheetPlanErrors,
+} from "./scripts/utils/scheduleSheets.js";
 import { openConnectModal } from "./scripts/ui/connectModal.js";
 import { sendNow } from "./scripts/api/schedules.js"
 import {
@@ -42,13 +53,27 @@ const retryBtn = document.getElementById("btn-retry-schedules");
 const jobRows = document.getElementById("job-rows");
 const taskPagination = document.getElementById("task-pagination");
 const taskListFooter = document.getElementById("task-list-footer");
+const scheduleListShell = document.getElementById("schedule-list-shell");
 const footerAddScheduleBtn = document.getElementById("footer-add-schedule");
 const scheduleDetailOverlay = document.getElementById("schedule-detail-overlay");
 const projectTitleEl = document.getElementById("project-title");
 const filterButtons = document.querySelectorAll(".toggles .toggle");
 const connectGmailBtn = document.getElementById("connect-gmail-btn");
 const mailAccountBtn = document.getElementById("cmp-mail-account");
-const connectDatabaseBtn = document.getElementById("cmp-connect-database");
+const connectDatabaseBtns = document.querySelectorAll("#cmp-connect-database, #cmp-connect-database-summary");
+const sheetPicker = document.getElementById("sheet-picker-overlay");
+const sheetPickerFile = document.getElementById("sheet-picker-file");
+const sheetPickerTab = document.getElementById("sheet-picker-tab");
+const sheetPickerHeaderRow = document.getElementById("sheet-picker-header-row");
+const sheetPickerStartRow = document.getElementById("sheet-picker-start-row");
+const sheetPickerEmailColumn = document.getElementById("sheet-picker-email-column");
+const sheetPickerMappings = document.getElementById("sheet-picker-mappings");
+const sheetPickerMessage = document.getElementById("sheet-picker-message");
+const sheetPickerSkipInput = document.getElementById("sheet-picker-skip-input");
+const sheetPickerSkipList = document.getElementById("sheet-picker-skip-list");
+const sheetPickerManualRows = document.getElementById("sheet-picker-manual-rows");
+const sheetPlanSummaryCopy = document.getElementById("sheet-plan-summary-copy");
+const sheetPlanSummaryList = document.getElementById("sheet-plan-summary-list");
 const addScheduleBtn = document.getElementById("add-schedule");
 const emptyAddScheduleBtn = document.getElementById("empty-add-schedule");
 const closeScheduleBtn = document.getElementById("close-btn");
@@ -67,6 +92,13 @@ let reloadAfterCurrentFetch = false;
 let inviteModal = null;
 let currentProjectConnection = null;
 let projectConnectionKnown = false;
+let sheetPlan = null;
+let spreadsheetFiles = [];
+let spreadsheetSheets = [];
+let spreadsheetColumns = [];
+let sheetVariables = { tokens: [], variables: [], operations: [] };
+let skippedRows = [];
+let additionalRows = [];
 if (connectGmailBtn) connectGmailBtn.disabled = true;
 if (mailAccountBtn) mailAccountBtn.disabled = true;
 
@@ -96,6 +128,409 @@ function statusBadge(status) {
   return `<span class="badge ${b.cls}">${esc(b.label)}</span>`;
 }
 
+function setSheetPickerMessage(message, isError = false) {
+  if (!sheetPickerMessage) return;
+  sheetPickerMessage.textContent = message;
+  sheetPickerMessage.dataset.error = String(isError);
+}
+
+function setSelectOptions(select, placeholder, options, selected = "") {
+  if (!select) return;
+  select.replaceChildren(new Option(placeholder, ""));
+  for (const option of options) {
+    const item = new Option(option.label, String(option.value));
+    item.selected = String(option.value) === String(selected);
+    select.add(item);
+  }
+  select.value = String(selected || "");
+}
+
+function currentSheetVariables() {
+  const subject = document.querySelector('#cmp-form [name="subject"]')?.value || "";
+  const body = document.getElementById("cmp-body")?.value || "";
+  return inspectTemplateVariables(subject, body);
+}
+
+function selectedSheetFile() {
+  return spreadsheetFiles.find((item) => String(item.id) === sheetPickerFile?.value)
+    || (sheetPlan?.file && String(sheetPlan.file.id) === sheetPickerFile?.value ? sheetPlan.file : null);
+}
+
+function selectedSheetTab() {
+  return spreadsheetSheets.find((item) => String(item.id) === sheetPickerTab?.value)
+    || (sheetPlan?.sheet && String(sheetPlan.sheet.id) === sheetPickerTab?.value ? sheetPlan.sheet : null);
+}
+
+function selectedSheetColumns() {
+  return Object.fromEntries(
+    sheetPickerMappings
+      ? [...sheetPickerMappings.querySelectorAll("select[data-variable]")].map((select) => [select.dataset.variable, select.value])
+      : []
+  );
+}
+
+function pickerPlan() {
+  return {
+    version: 1,
+    provider: "google_sheets",
+    file: selectedSheetFile(),
+    sheet: selectedSheetTab(),
+    headerRow: Number(sheetPickerHeaderRow?.value),
+    startRow: Number(sheetPickerStartRow?.value),
+    emailColumn: sheetPickerEmailColumn?.value || "",
+    variableColumns: selectedSheetColumns(),
+    variables: sheetVariables.variables,
+    operations: sheetVariables.operations,
+    skipRows: skippedRows.map(({ start, end }) => ({ start, end })),
+    skipExpression: formatSheetRowSelection(skippedRows),
+    manualRows: additionalRows.map((row) => ({
+      email: row.email || "",
+      values: { ...(row.values || {}) },
+    })),
+  };
+}
+
+function renderSheetSummary() {
+  if (!sheetPlanSummaryCopy || !sheetPlanSummaryList) return;
+  sheetPlanSummaryList.replaceChildren();
+  if (!sheetPlan?.file || !sheetPlan?.sheet) {
+    sheetPlanSummaryCopy.textContent = "No spreadsheet selected. Choose a sheet to map recipients and message variables.";
+    return;
+  }
+
+  sheetPlanSummaryCopy.textContent = `${sheetPlan.file.name || "Spreadsheet"} · ${sheetPlan.sheet.title || "Sheet"}`;
+  const summaryItems = [
+    `Recipients: column ${sheetPlan.emailColumn || "not mapped"}`,
+    `Data starts at row ${sheetPlan.startRow || "not set"}`,
+    ...Object.entries(sheetPlan.variableColumns || {}).map(([name, column]) => `{${name}} → column ${column}`),
+  ];
+  if (sheetPlan.operations?.length) {
+    summaryItems.push(`Operations: ${sheetPlan.operations.map(({ expression }) => `{${expression}}`).join(", ")}`);
+  }
+  if (sheetPlan.skipExpression) summaryItems.push(`Skipped rows: ${sheetPlan.skipExpression}`);
+  (sheetPlan.manualRows || []).forEach((row, index) => {
+    const values = Object.entries(row.values || {}).map(([name, value]) => `${name}=${value || "—"}`).join(", ");
+    summaryItems.push(`Added row ${index + 1}: ${row.email || "email missing"}${values ? ` · ${values}` : ""}`);
+  });
+  for (const text of summaryItems) {
+    const item = el("li", "", text);
+    sheetPlanSummaryList.append(item);
+  }
+}
+
+function renderSheetMappings() {
+  if (!sheetPickerMappings) return;
+  sheetPickerMappings.replaceChildren();
+  sheetVariables = currentSheetVariables();
+  const columnOptions = spreadsheetColumns.map((column) => ({
+    value: column.letter || column.id || column.column,
+    label: `${column.letter || column.id || column.column} — ${column.header || column.title || "Column"}`,
+  })).filter((column) => column.value);
+
+  if (!sheetVariables.variables.length) {
+    sheetPickerMappings.append(el("p", "sheet-picker-message", "Insert a variable into the email design to map its spreadsheet column."));
+  }
+  for (const variable of sheetVariables.variables) {
+    const row = el("label", "sheet-picker-mapping");
+    const token = el("code", "", `{${variable}}`);
+    const select = document.createElement("select");
+    select.dataset.variable = variable;
+    select.setAttribute("aria-label", `Spreadsheet column for ${variable}`);
+    select.disabled = columnOptions.length === 0;
+    setSelectOptions(select, columnOptions.length ? "Select a column" : "Choose a sheet first", columnOptions, sheetPlan?.variableColumns?.[variable] || "");
+    row.append(token, select);
+    sheetPickerMappings.append(row);
+  }
+
+  renderManualRows();
+}
+
+function renderManualRows() {
+  if (!sheetPickerManualRows) return;
+  sheetPickerManualRows.replaceChildren();
+  for (const [index, rowData] of additionalRows.entries()) {
+    const row = el("div", "sheet-picker-manual-row");
+    const email = document.createElement("input");
+    email.type = "email";
+    email.placeholder = "Recipient email";
+    email.setAttribute("aria-label", `Additional recipient ${index + 1} email`);
+    email.value = rowData.email || "";
+    email.addEventListener("input", () => { rowData.email = email.value; });
+    row.append(email);
+    for (const variable of sheetVariables.variables) {
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = `{${variable}}`;
+      input.setAttribute("aria-label", `Additional recipient ${index + 1} value for ${variable}`);
+      input.value = rowData.values?.[variable] || "";
+      input.addEventListener("input", () => {
+        rowData.values = { ...(rowData.values || {}), [variable]: input.value };
+      });
+      row.append(input);
+    }
+    const remove = el("button", "sheet-picker-secondary", "Remove");
+    remove.type = "button";
+    remove.setAttribute("aria-label", `Remove additional recipient ${index + 1}`);
+    remove.addEventListener("click", () => {
+      additionalRows.splice(index, 1);
+      renderManualRows();
+    });
+    row.append(remove);
+    sheetPickerManualRows.append(row);
+  }
+}
+
+function renderSkippedRows() {
+  if (!sheetPickerSkipList) return;
+  sheetPickerSkipList.replaceChildren();
+  skippedRows.forEach((selection, index) => {
+    const chip = el("span", "sheet-picker-chip", selection.start === selection.end
+      ? `Row ${selection.start}`
+      : `Rows ${selection.start}–${selection.end}`);
+    const remove = el("button", "", "×");
+    remove.type = "button";
+    remove.setAttribute("aria-label", `Remove skipped row range ${index + 1}`);
+    remove.addEventListener("click", () => {
+      skippedRows.splice(index, 1);
+      renderSkippedRows();
+    });
+    chip.append(remove);
+    sheetPickerSkipList.append(chip);
+  });
+}
+
+function setSheetPlan(plan) {
+  sheetPlan = plan ? JSON.parse(JSON.stringify(plan)) : null;
+  skippedRows = Array.isArray(sheetPlan?.skipRows) ? sheetPlan.skipRows.map(({ start, end }) => ({ start, end })) : [];
+  additionalRows = Array.isArray(sheetPlan?.manualRows)
+    ? sheetPlan.manualRows.map((row) => ({ email: row.email || "", values: { ...(row.values || {}) } }))
+    : [];
+  if (!sheetPlan) {
+    spreadsheetSheets = [];
+    spreadsheetColumns = [];
+    setSelectOptions(sheetPickerTab, "Select a sheet tab", []);
+    setSelectOptions(sheetPickerEmailColumn, "Select a column", []);
+  }
+  if (sheetPickerHeaderRow) sheetPickerHeaderRow.value = String(sheetPlan?.headerRow || 1);
+  if (sheetPickerStartRow) sheetPickerStartRow.value = String(sheetPlan?.startRow || 2);
+  spreadsheetFiles = sheetPlan?.file ? [sheetPlan.file] : spreadsheetFiles;
+  spreadsheetSheets = sheetPlan?.sheet ? [sheetPlan.sheet] : spreadsheetSheets;
+  setSelectOptions(sheetPickerFile, "Select a spreadsheet", spreadsheetFiles.map((file) => ({
+    value: file.id,
+    label: file.name || file.title || "Untitled spreadsheet",
+  })), sheetPlan?.file?.id || "");
+  setSelectOptions(sheetPickerTab, "Select a sheet tab", spreadsheetSheets.map((sheet) => ({
+    value: sheet.id,
+    label: sheet.title || sheet.name || "Untitled sheet",
+  })), sheetPlan?.sheet?.id || "");
+  setSelectOptions(sheetPickerEmailColumn, "Select a column", spreadsheetColumns.map((column) => ({
+    value: column.letter || column.id || column.column,
+    label: `${column.letter || column.id || column.column} — ${column.header || column.title || "Column"}`,
+  })), sheetPlan?.emailColumn || "");
+  if (sheetPickerTab) sheetPickerTab.disabled = !sheetPlan?.file;
+  if (sheetPickerEmailColumn) sheetPickerEmailColumn.disabled = !spreadsheetColumns.length;
+  renderSheetMappings();
+  renderSkippedRows();
+  renderSheetSummary();
+}
+
+async function loadSheetFiles() {
+  setSheetPickerMessage("Loading spreadsheets…");
+  try {
+    spreadsheetFiles = await listProjectSpreadsheets(projectId);
+    setSelectOptions(sheetPickerFile, "Select a spreadsheet", spreadsheetFiles.map((file) => ({
+      value: file.id,
+      label: file.name || file.title || "Untitled spreadsheet",
+    })), sheetPlan?.file?.id || "");
+    setSheetPickerMessage(spreadsheetFiles.length
+      ? "Choose a spreadsheet, then select the tab and columns to use."
+      : "No spreadsheets were returned for this Google account.");
+    if (sheetPlan?.file?.id) {
+      await loadSheetTabs(sheetPlan.file.id);
+      if (sheetPlan.sheet?.id && sheetPickerTab) {
+        sheetPickerTab.value = String(sheetPlan.sheet.id);
+        await loadSheetColumns();
+      }
+    }
+  } catch (error) {
+    const message = error.status === 404
+      ? "Spreadsheet listing is not available yet. The frontend is ready; the authenticated backend must provide the Google Sheets file-list endpoint."
+      : `Could not load spreadsheets: ${error.message}`;
+    setSheetPickerMessage(message, true);
+  }
+}
+
+async function loadSheetTabs(spreadsheetId) {
+  spreadsheetSheets = [];
+  spreadsheetColumns = [];
+  setSelectOptions(sheetPickerTab, "Loading sheet tabs…", []);
+  if (sheetPickerTab) sheetPickerTab.disabled = true;
+  setSelectOptions(sheetPickerEmailColumn, "Select a column", []);
+  if (sheetPickerEmailColumn) sheetPickerEmailColumn.disabled = true;
+  renderSheetMappings();
+  if (!spreadsheetId) return;
+
+  try {
+    spreadsheetSheets = await listSpreadsheetSheets(projectId, spreadsheetId);
+    setSelectOptions(sheetPickerTab, "Select a sheet tab", spreadsheetSheets.map((sheet) => ({
+      value: sheet.id,
+      label: sheet.title || sheet.name || "Untitled sheet",
+    })), "");
+    if (sheetPickerTab) sheetPickerTab.disabled = false;
+    setSheetPickerMessage(spreadsheetSheets.length ? "Choose the tab that contains the schedule data." : "This spreadsheet has no available tabs.", !spreadsheetSheets.length);
+  } catch (error) {
+    setSheetPickerMessage(`Could not load sheet tabs: ${error.message}`, true);
+  }
+}
+
+async function loadSheetColumns() {
+  const file = selectedSheetFile();
+  const tab = selectedSheetTab();
+  const headerRow = Number(sheetPickerHeaderRow?.value);
+  spreadsheetColumns = [];
+  setSelectOptions(sheetPickerEmailColumn, "Loading columns…", []);
+  if (sheetPickerEmailColumn) sheetPickerEmailColumn.disabled = true;
+  if (!file || !tab || !Number.isSafeInteger(headerRow) || headerRow < 1) {
+    renderSheetMappings();
+    return;
+  }
+
+  try {
+    spreadsheetColumns = await listSpreadsheetColumns(projectId, file.id, tab.id, headerRow);
+    const options = spreadsheetColumns.map((column) => ({
+      value: column.letter || column.id || column.column,
+      label: `${column.letter || column.id || column.column} — ${column.header || column.title || "Column"}`,
+    }));
+    setSelectOptions(sheetPickerEmailColumn, "Select a column", options, sheetPlan?.emailColumn || "");
+    if (sheetPickerEmailColumn) sheetPickerEmailColumn.disabled = options.length === 0;
+    renderSheetMappings();
+    setSheetPickerMessage(options.length
+      ? "Choose the recipient column and map each message variable."
+      : "No columns were returned for this header row.", !options.length);
+  } catch (error) {
+    setSheetPickerMessage(`Could not load spreadsheet columns: ${error.message}`, true);
+    renderSheetMappings();
+  }
+}
+
+function openSheetPicker() {
+  if (!sheetPicker) return;
+  sheetPicker.classList.add("open");
+  sheetPicker.setAttribute("aria-hidden", "false");
+  if (sheetPlan) setSheetPlan(sheetPlan);
+  loadSheetFiles();
+}
+
+function closeSheetPicker() {
+  sheetPicker?.classList.remove("open");
+  sheetPicker?.setAttribute("aria-hidden", "true");
+}
+
+function validateCurrentSheetPlan(subject, body) {
+  if (!sheetPlan) return [];
+  const variables = inspectTemplateVariables(subject, body).variables;
+  const errors = getSheetPlanErrors(sheetPlan, variables);
+  if (errors.length) return errors;
+  return ["Spreadsheet-based delivery is not supported by the current schedule API yet. Save this setup as a draft until backend row processing is available."];
+}
+
+window.bzComposer = window.bzComposer || {};
+window.bzComposer.openSheetPicker = openSheetPicker;
+window.bzComposer.getSheetPlan = () => sheetPlan ? JSON.parse(JSON.stringify(sheetPlan)) : null;
+window.bzComposer.setSheetPlan = setSheetPlan;
+window.bzComposer.validateSheetPlan = validateCurrentSheetPlan;
+
+document.addEventListener("schedule-template-change", () => {
+  sheetVariables = currentSheetVariables();
+  renderSheetMappings();
+  if (sheetPlan) {
+    sheetPlan.variables = sheetVariables.variables;
+    sheetPlan.operations = sheetVariables.operations;
+    sheetPlan.variableColumns = {
+      ...sheetPlan.variableColumns,
+      ...selectedSheetColumns(),
+    };
+    sheetPlan.manualRows = additionalRows.map((row) => ({ email: row.email || "", values: { ...(row.values || {}) } }));
+    renderSheetSummary();
+  }
+});
+
+connectDatabaseBtns.forEach((button) => button.addEventListener("click", openSheetPicker));
+document.getElementById("sheet-picker-close")?.addEventListener("click", closeSheetPicker);
+document.getElementById("sheet-picker-cancel")?.addEventListener("click", closeSheetPicker);
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && sheetPicker?.classList.contains("open")) closeSheetPicker();
+});
+sheetPicker?.addEventListener("click", (event) => {
+  if (event.target === sheetPicker) closeSheetPicker();
+});
+document.getElementById("sheet-picker-connect")?.addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  try {
+    await startGoogleConnection(projectId, "database");
+  } catch (error) {
+    setSheetPickerMessage(error.message || "Could not start the Google Sheets connection.", true);
+    button.disabled = false;
+  }
+});
+sheetPickerFile?.addEventListener("change", async () => {
+  const selectedId = sheetPickerFile.value;
+  if (sheetPlan && String(selectedId) !== String(sheetPlan.file?.id)) {
+    sheetPlan = null;
+    skippedRows = [];
+    additionalRows = [];
+    spreadsheetColumns = [];
+    renderSheetSummary();
+    renderSkippedRows();
+    renderManualRows();
+    sheetPickerFile.value = selectedId;
+  }
+  await loadSheetTabs(selectedId);
+});
+sheetPickerTab?.addEventListener("change", loadSheetColumns);
+sheetPickerHeaderRow?.addEventListener("change", loadSheetColumns);
+sheetPickerMappings?.addEventListener("change", () => {
+  if (sheetPlan) sheetPlan.variableColumns = { ...(sheetPlan.variableColumns || {}), ...selectedSheetColumns() };
+  renderSheetSummary();
+});
+sheetPickerEmailColumn?.addEventListener("change", () => {
+  if (sheetPlan) sheetPlan.emailColumn = sheetPickerEmailColumn.value;
+  renderSheetSummary();
+});
+sheetPickerSkipInput?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    document.getElementById("sheet-picker-skip-add")?.click();
+  }
+});
+document.getElementById("sheet-picker-skip-add")?.addEventListener("click", () => {
+  try {
+    const row = parseSheetRowSelection(sheetPickerSkipInput.value);
+    if (!skippedRows.some((item) => item.start === row.start && item.end === row.end)) skippedRows.push(row);
+    skippedRows.sort((left, right) => left.start - right.start);
+    sheetPickerSkipInput.value = "";
+    renderSkippedRows();
+  } catch (error) {
+    setSheetPickerMessage(error.message, true);
+  }
+});
+document.getElementById("sheet-picker-row-add")?.addEventListener("click", () => {
+  additionalRows.push({ email: "", values: {} });
+  renderManualRows();
+});
+document.getElementById("sheet-picker-apply")?.addEventListener("click", () => {
+  const candidate = pickerPlan();
+  const errors = getSheetPlanErrors(candidate, sheetVariables.variables);
+  if (errors.length) {
+    setSheetPickerMessage(errors[0], true);
+    return;
+  }
+  sheetPlan = candidate;
+  renderSheetSummary();
+  closeSheetPicker();
+});
+
 function hideAllStates() {
   if (taskLoader) {
     taskLoader.hidden = true;
@@ -113,6 +548,7 @@ function hideAllStates() {
     taskPagination.style.display = "none";
   }
   if (taskListFooter) taskListFooter.hidden = true;
+  if (scheduleListShell) scheduleListShell.hidden = true;
 }
 
 function setLoading(isLoading) {
@@ -203,43 +639,57 @@ function renderRows() {
   }
 
   hideAllStates();
+  if (scheduleListShell) scheduleListShell.hidden = false;
   if (taskListFooter) taskListFooter.hidden = false;
 
   if (jobRows) {
     jobRows.hidden = false;
     jobRows.style.display = "block";
-    jobRows.innerHTML = `
-      <div class="schedule-table-scroll">
-        <table class="schedule-table">
-          <thead><tr>
-            <th class="schedule-select-cell">Select</th>
-            <th>Name</th><th>Type</th><th>Created at</th><th>Next run</th><th>Last run</th>
-            <th>Recipients</th><th>Status</th><th aria-label="More actions"></th>
-          </tr></thead>
-          <tbody>
-      ${schedules
-      .map((row) => {
-        const recipients = Array.isArray(row.config?.recipients) ? row.config.recipients : [];
-        const name = row.name || row.config?.subject || "Untitled task";
-        const frequency = row.schedule_type === "recurring"
-          ? (row.schedule_rule?.every || "Repeating").replace(/\b\w/g, (letter) => letter.toUpperCase())
-          : "One time";
-        const createdAt = formatScheduleDateTime(row.created_at, row.timezone || "UTC");
-        const nextRun = formatScheduleDateTime(row.next_run_at, row.timezone || "UTC");
-        const lastRun = formatScheduleDateTime(row.last_run_at, row.timezone || "UTC");
-        const statusAction = row.status === "active" ? "Pause" : row.status === "paused" ? "Resume" : "";
-
-        return `
-          <tr data-id="${esc(row.id)}" data-schedule='${esc(JSON.stringify(row))}' tabindex="0" aria-label="View schedule ${esc(name)}">
-            <td class="schedule-select-cell"><input type="checkbox" aria-label="Select ${esc(name)}"></td>
-            <td class="schedule-name-cell" title="${esc(name)}">${esc(name)}</td>
-            <td>${esc(row.job_type || "email")}</td>
-            <td><div class="schedule-date-time"><strong>${esc(createdAt.split(" · ")[0])}</strong><span>${esc(createdAt.split(" · ")[1] || "")}</span></div></td>
-            <td><div class="schedule-date-time"><strong>${esc(nextRun.split(" · ")[0])}</strong><span>${esc(nextRun.split(" · ")[1] || "—")}</span></div></td>
-            <td><div class="schedule-date-time"><strong>${esc(lastRun.split(" · ")[0])}</strong><span>${esc(lastRun.split(" · ")[1] || "—")}</span></div></td>
-            <td>${recipients.length}</td>
-            <td>${statusBadge(row.status)}</td>
-            <td class="schedule-actions-cell">
+    const tableRows = schedules.map((row) => {
+      const recipients = Array.isArray(row.config?.recipients) ? row.config.recipients : [];
+      const name = row.name || row.config?.subject || "Untitled task";
+      const createdAt = formatScheduleDateTime(row.created_at, row.timezone || "UTC");
+      const nextRun = formatScheduleDateTime(row.next_run_at, row.timezone || "UTC");
+      const lastRun = formatScheduleDateTime(row.last_run_at, row.timezone || "UTC");
+      const statusAction = row.status === "active" ? "Pause" : row.status === "paused" ? "Resume" : "";
+      return `
+        <tr data-id="${esc(row.id)}" data-schedule='${esc(JSON.stringify(row))}' tabindex="0" aria-label="View schedule ${esc(name)}">
+          <td class="schedule-select-cell"><input type="checkbox" aria-label="Select ${esc(name)}"></td>
+          <td class="schedule-name-cell" title="${esc(name)}">${esc(name)}</td>
+          <td>${esc(row.job_type || "email")}</td>
+          <td><div class="schedule-date-time"><strong>${esc(createdAt.split(" · ")[0])}</strong><span>${esc(createdAt.split(" · ")[1] || "")}</span></div></td>
+          <td><div class="schedule-date-time"><strong>${esc(nextRun.split(" · ")[0])}</strong><span>${esc(nextRun.split(" · ")[1] || "—")}</span></div></td>
+          <td><div class="schedule-date-time"><strong>${esc(lastRun.split(" · ")[0])}</strong><span>${esc(lastRun.split(" · ")[1] || "—")}</span></div></td>
+          <td>${recipients.length}</td>
+          <td>${statusBadge(row.status)}</td>
+          <td class="schedule-actions-cell">
+            <div class="schedule-row-actions">
+              <button type="button" class="schedule-menu-trigger" aria-label="Schedule actions" aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+              </button>
+              <div class="schedule-row-menu" hidden>
+                <button type="button" data-edit="${esc(row.id)}">Edit</button>
+                ${statusAction ? `<button type="button" data-schedule-action="${statusAction.toLowerCase()}" data-id="${esc(row.id)}">${statusAction}</button>` : ""}
+                <button type="button" data-delete-schedule="${esc(row.id)}">Delete</button>
+              </div>
+            </div>
+          </td>
+        </tr>`;
+    }).join("");
+    const mobileCards = schedules.map((row) => {
+      const recipients = Array.isArray(row.config?.recipients) ? row.config.recipients : [];
+      const name = row.name || row.config?.subject || "Untitled task";
+      const createdAt = formatScheduleDateTime(row.created_at, row.timezone || "UTC").split(" · ");
+      const nextRun = formatScheduleDateTime(row.next_run_at, row.timezone || "UTC").split(" · ");
+      const lastRun = formatScheduleDateTime(row.last_run_at, row.timezone || "UTC").split(" · ");
+      const statusAction = row.status === "active" ? "Pause" : row.status === "paused" ? "Resume" : "";
+      const dateValue = (parts) => `<span class="schedule-mobile-date"><strong>${esc(parts[0] || "—")}</strong><span>${esc(parts[1] || "")}</span></span>`;
+      return `
+        <article class="schedule-mobile-card" data-schedule='${esc(JSON.stringify(row))}' tabindex="0" aria-label="View schedule ${esc(name)}">
+          <div class="schedule-mobile-header">
+            <h3 class="schedule-mobile-title">${esc(name)}</h3>
+            <div class="schedule-mobile-actions">
+              <label class="schedule-select-cell" aria-label="Select ${esc(name)}"><input type="checkbox" aria-label="Select ${esc(name)}"></label>
               <div class="schedule-row-actions">
                 <button type="button" class="schedule-menu-trigger" aria-label="Schedule actions" aria-expanded="false">
                   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
@@ -250,14 +700,30 @@ function renderRows() {
                   <button type="button" data-delete-schedule="${esc(row.id)}">Delete</button>
                 </div>
               </div>
-            </td>
-          </tr>
-        `;
-      })
-      .join("")}
-          </tbody>
+            </div>
+          </div>
+          <div class="schedule-mobile-meta">
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Type</span><span class="schedule-mobile-value">${esc(row.job_type || "email")}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Status</span><span class="schedule-mobile-value">${statusBadge(row.status)}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Created at</span><span class="schedule-mobile-value">${dateValue(createdAt)}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Next run</span><span class="schedule-mobile-value">${dateValue(nextRun)}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Last run</span><span class="schedule-mobile-value">${dateValue(lastRun)}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Recipients</span><span class="schedule-mobile-value">${recipients.length}</span></div>
+          </div>
+        </article>`;
+    }).join("");
+    jobRows.innerHTML = `
+      <div class="schedule-table-scroll">
+        <table class="schedule-table">
+          <thead><tr>
+            <th class="schedule-select-cell">Select</th>
+            <th>Name</th><th>Type</th><th>Created at</th><th>Next run</th><th>Last run</th>
+            <th>Recipients</th><th>Status</th><th aria-label="More actions"></th>
+          </tr></thead>
+          <tbody>${tableRows}</tbody>
         </table>
-      </div>`;
+      </div>
+      <div class="schedule-mobile-list">${mobileCards}</div>`;
   }
 
   renderPagination();
@@ -582,6 +1048,16 @@ jobRows?.addEventListener("click", async (event) => {
     return;
   }
 
+  const editButton = event.target.closest("[data-edit]");
+  if (editButton) {
+    const row = editButton.closest("[data-schedule]");
+    const schedule = row ? JSON.parse(row.dataset.schedule || "null") : null;
+    if (schedule && typeof window.bzComposer?.openEdit === "function") {
+      window.bzComposer.openEdit(null, schedule);
+    }
+    return;
+  }
+
   const deleteButton = event.target.closest("[data-delete-schedule]");
   if (deleteButton) {
     const id = deleteButton.dataset.deleteSchedule;
@@ -618,14 +1094,14 @@ jobRows?.addEventListener("click", async (event) => {
   }
 
   if (event.target.closest("button, input, a")) return;
-  const row = event.target.closest("tr[data-schedule]");
+  const row = event.target.closest("[data-schedule]");
   if (row) openScheduleDetails(row);
 });
 
 jobRows?.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" && event.key !== " ") return;
   if (event.target.closest("button, input")) return;
-  const row = event.target.closest("tr[data-schedule]");
+  const row = event.target.closest("[data-schedule]");
   if (!row) return;
   event.preventDefault();
   openScheduleDetails(row);
@@ -677,13 +1153,13 @@ function openDrafts() {
     draftsOverlay.style.cssText = "position:fixed;inset:0;z-index:4700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(17,24,39,.55);";
     draftsOverlay.innerHTML = `
       <section role="dialog" aria-modal="true" aria-labelledby="drafts-title" style="width:min(560px,100%);max-height:min(680px,90vh);display:flex;flex-direction:column;background:#fff;border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,.2);">
-        <header style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #e5e7eb;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #e5e7eb;">
           <div>
             <p class="drafts-kicker">Your saved drafts</p>
             <h2 id="drafts-title" style="margin:0;font-size:18px;color:#111827;">Email drafts</h2>
           </div>
           <button type="button" data-drafts-close aria-label="Close drafts" style="border:0;background:transparent;font-size:24px;line-height:1;cursor:pointer;color:#6b7280;">&times;</button>
-        </header>
+        </div>
         <div data-drafts-list style="padding:12px 20px;overflow:auto;"></div>
       </section>`;
     document.body.appendChild(draftsOverlay);
@@ -814,17 +1290,6 @@ connectGmailBtn?.addEventListener("click", () => {
   });
 });
 
-connectDatabaseBtn?.addEventListener("click", async () => {
-  connectDatabaseBtn.disabled = true;
-  try {
-    showToast("info", "Opening Google to connect your Sheets.");
-    await startGoogleConnection(projectId, "database");
-  } catch (err) {
-    showToast("error", err.message || "Could not start the Google Sheets connection.");
-    connectDatabaseBtn.disabled = false;
-  }
-});
-
 addScheduleBtn?.addEventListener("click", () => {
   const composer = document.getElementById("job-composer");
   if (composer?.classList.contains("sched-editor-overlay") && typeof window.bzComposer?.openCreate === "function") {
@@ -943,6 +1408,7 @@ function payloadFor(draft, sender) {
       subject: draft.subject,
       body: draft.body,
       body_type: "html",
+      ...(draft.spreadsheet ? { spreadsheet: draft.spreadsheet } : {}),
     },
   };
 

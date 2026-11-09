@@ -136,13 +136,6 @@
       color: white; font-weight: 600; border: 2px solid transparent; padding: 0; font: inherit; cursor: pointer;
       font-size: 12px;
     }
-    .header-connected-account {
-      display: inline-flex; align-items: center; gap: 7px; min-width: 0; max-width: 220px;
-      margin-left: 4px; color: #4b5563; font-size: 13px; font-weight: 500;
-    }
-    .header-connected-account[hidden] { display: none; }
-    .header-connected-account svg { width: 16px; height: 16px; flex: 0 0 16px; }
-    .header-connected-account span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .avatar-menu-wrap { position: relative; margin-left: 0; }
     .avatar-menu {
       display: none; position: absolute; top: 42px; right: 0; width: 280px;
@@ -176,12 +169,6 @@
       color: #4b5563; cursor: pointer; transition: background 0.15s ease, color 0.15s ease;
     }
     .header-action-btn:hover { background: #f3f4f6 !important; color: #111827 !important; }
-    @media (max-width: 767px) {
-      .banner-right { gap: 2px; }
-      .banner-right .header-action-btn { width: 32px; height: 32px; }
-      .banner-right .header-action-btn svg { width: 18px; height: 18px; }
-      .banner-right .avatar-initial { width: 26px; height: 26px; flex: 0 0 26px; font-size: 11px; }
-    }
     .header-dropdown-menu {
       display: none; position: absolute; top: 40px; right: 0;
       background: white; border: 1px solid #e5e7eb; border-radius: 8px;
@@ -410,6 +397,7 @@
       flex-shrink: 0;
     }
     .task-list-footer[hidden], .task-pagination[hidden] { display: none !important; }
+    .schedule-list-shell { display: flex; flex: 1 1 auto; flex-direction: column; min-width: 0; min-height: 0; }
     .schedule-footer-add {
       display: inline-flex; align-items: center; gap: 5px; padding: 4px 0;
       border: 0; background: transparent; color: #374151; font: inherit;
@@ -675,9 +663,8 @@
       .col-empty-third { display: none; }
       .task-list { overflow: visible; }
       #job-rows { overflow: visible; }
-      .header-connected-account { display: none !important; }
       .task-list-footer { min-height: 40px; gap: 8px; }
-      .page-summary { display: none; }
+      .page-summary { display: inline; color: #6b7280; font-size: 10px; white-space: nowrap; }
       .task-pagination { gap: 6px; }
     }
 
@@ -807,6 +794,46 @@
     .cmp-connect-database:hover { background: #f9fafb; border-color: #9ca3af; }
     .cmp-connect-database:focus-visible { outline: 2px solid #15803d; outline-offset: 2px; }
     .cmp-connect-database svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .sheet-plan-summary { margin-top: 16px; padding: 14px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fafafa; }
+    .sheet-plan-summary-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .sheet-plan-summary-title { margin: 0; color: #111827; font-size: 13px; font-weight: 650; }
+    .sheet-plan-summary-copy { margin: 4px 0 0; color: #6b7280; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+    .sheet-plan-summary-list { display: grid; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; color: #374151; font-size: 12px; overflow-wrap: anywhere; }
+    .sheet-plan-summary-list:empty { display: none; }
+    .sheet-picker-overlay { position: fixed; inset: 0; z-index: 4300; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(17,24,39,.66); backdrop-filter: blur(4px); }
+    .sheet-picker-overlay.open { display: flex; }
+    .sheet-picker-card { width: min(660px, calc(100vw - 32px)); max-height: min(820px, calc(100vh - 32px)); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #e5e7eb; border-radius: 14px; background: #fff; box-shadow: 0 24px 70px rgba(0,0,0,.3); }
+    .sheet-picker-header, .sheet-picker-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; }
+    .sheet-picker-header { border-bottom: 1px solid #e5e7eb; }
+    .sheet-picker-footer { border-top: 1px solid #e5e7eb; justify-content: flex-end; }
+    .sheet-picker-header h2 { margin: 0; color: #111827; font-size: 18px; }
+    .sheet-picker-header p { margin: 4px 0 0; color: #6b7280; font-size: 13px; }
+    .sheet-picker-body { display: grid; gap: 14px; min-height: 0; overflow-y: auto; padding: 18px 20px; }
+    .sheet-picker-field { display: grid; gap: 6px; min-width: 0; color: #374151; font-size: 12px; font-weight: 600; }
+    .sheet-picker-field input, .sheet-picker-field select { width: 100%; min-width: 0; height: 40px; padding: 0 10px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #111827; font: inherit; font-size: 13px; font-weight: 400; }
+    .sheet-picker-field input:focus, .sheet-picker-field select:focus { outline: 2px solid #15803d; outline-offset: 1px; border-color: #15803d; }
+    .sheet-picker-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .sheet-picker-mappings { display: grid; gap: 10px; }
+    .sheet-picker-mapping { display: grid; grid-template-columns: minmax(0, 1fr) minmax(150px, .8fr); gap: 12px; align-items: center; }
+    .sheet-picker-mapping code { overflow-wrap: anywhere; color: #111827; font-size: 12px; }
+    .sheet-picker-message { margin: 0; color: #6b7280; font-size: 12px; line-height: 1.5; }
+    .sheet-picker-message[data-error="true"] { color: #b91c1c; }
+    .sheet-picker-chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .sheet-picker-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border: 1px solid #d1d5db; border-radius: 999px; background: #f9fafb; color: #374151; font-size: 11px; }
+    .sheet-picker-chip button { padding: 0; border: 0; background: none; color: #6b7280; font: inherit; cursor: pointer; }
+    .sheet-picker-manual-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .sheet-picker-manual-row input { flex: 1 1 140px; min-width: 0; height: 36px; padding: 0 8px; border: 1px solid #d1d5db; border-radius: 6px; font: inherit; font-size: 12px; }
+    .sheet-picker-row-input { flex: 1; min-width: 0; height: 38px; padding: 0 10px; border: 1px solid #d1d5db; border-radius: 7px; font: inherit; font-size: 13px; }
+    .sheet-picker-secondary { padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #374151; font: inherit; font-size: 12px; cursor: pointer; }
+    .sheet-picker-primary { padding: 8px 13px; border: 1px solid #111827; border-radius: 7px; background: #111827; color: #fff; font: inherit; font-size: 13px; cursor: pointer; }
+    .sheet-picker-primary:disabled, .sheet-picker-secondary:disabled { opacity: .55; cursor: wait; }
+    .sheet-picker-section-title { margin: 0; color: #111827; font-size: 13px; font-weight: 650; }
+    @media (max-width: 600px) {
+      .sheet-picker-overlay { padding: 0; }
+      .sheet-picker-card { width: 100%; height: 100%; max-height: none; border: 0; border-radius: 0; }
+      .sheet-picker-header, .sheet-picker-body, .sheet-picker-footer { padding-left: 16px; padding-right: 16px; }
+      .sheet-picker-columns, .sheet-picker-mapping { grid-template-columns: 1fr; }
+    }
     .sched-editor-body .cmp-code { min-height: 350px; }
     .sched-editor-body .cmp-editor { border-radius: 10px; }
     .sched-editor-foot {
@@ -881,6 +908,21 @@
     .schedule-row-menu button { display: block; width: 100%; padding: 7px 9px; border: 0; border-radius: 5px; background: transparent; color: #374151; font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
     .schedule-row-menu button:hover { background: #f3f4f6; }
     .schedule-row-menu button[data-delete-schedule] { color: #b91c1c; }
+    .schedule-mobile-list { display: none; }
+    .schedule-mobile-card { min-width: 0; padding: 14px; border-bottom: 1px solid #e5e7eb; background: #fff; cursor: pointer; }
+    .schedule-mobile-card:last-child { border-bottom: 0; }
+    .schedule-mobile-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .schedule-mobile-title { min-width: 0; color: #111827; font-size: 15px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+    .schedule-mobile-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+    .schedule-mobile-actions .schedule-select-cell { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; }
+    .schedule-mobile-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; margin-top: 16px; }
+    .schedule-mobile-field { display: grid; gap: 2px; min-width: 0; }
+    .schedule-mobile-label { color: #6b7280; font-size: 10px; font-weight: 700; letter-spacing: .045em; text-transform: uppercase; }
+    .schedule-mobile-value { min-width: 0; color: #1f2937; font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+    .schedule-mobile-date { display: flex; flex-direction: column; }
+    .schedule-mobile-date strong { color: #1f2937; font-size: 12px; font-weight: 600; }
+    .schedule-mobile-date span { color: #6b7280; font-size: 11px; }
+    .schedule-mobile-actions .schedule-row-menu { top: calc(100% + 2px); }
     .schedule-detail-overlay { position: fixed; inset: 0; z-index: 4200; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(17,24,39,.52); }
     .schedule-detail-overlay.open { display: flex; }
     .schedule-detail-card { width: min(660px,100%); max-height: min(760px,90vh); overflow: auto; border: 1px solid #e5e7eb; border-radius: 14px; background: #fff; box-shadow: 0 24px 70px rgba(0,0,0,.2); }
@@ -898,13 +940,15 @@
     .schedule-detail-footer button { padding: 8px 13px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #374151; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
     .schedule-detail-footer [data-detail-edit] { border-color: #111827; background: #111827; color: #fff; }
     @media (max-width: 767px) {
-      .schedule-table-scroll { overflow-x: auto; }
-      .schedule-table { min-width: 760px; }
-      .schedule-table th:first-child, .schedule-table td:first-child { display: table-cell; width: 38px; text-align: center; }
-      .schedule-table tbody tr { height: 54px; }
-      .schedule-table th:nth-child(2) { width: 150px; }
-      .schedule-table th:nth-child(4), .schedule-table th:nth-child(5), .schedule-table th:nth-child(6) { width: 130px; }
-      .schedule-table th:nth-child(9) { width: 44px; }
+      .schedule-list-shell { flex: 1 1 auto; min-height: 390px; border: 1px solid #d1d5db; border-radius: 10px; background: #fff; overflow: visible; }
+      .schedule-list-shell #job-rows { flex: 1 1 auto; min-height: 0; }
+      .schedule-table-scroll { display: none; }
+      .schedule-mobile-list { display: flex; flex-direction: column; }
+      .task-list-footer { min-height: 46px; margin-top: auto; padding: 6px 12px; border-top: 1px solid #e5e7eb; }
+      .schedule-footer-add { font-size: 11px; }
+      .page-current { min-width: 18px; text-align: center; }
+      .page-summary { display: none; }
+      .task-pagination { margin-left: auto; }
       .schedule-detail-overlay { padding: 12px; }
       .schedule-detail-card { max-height: 94vh; }
       .schedule-detail-header, .schedule-detail-body { padding-left: 16px; padding-right: 16px; }
@@ -961,12 +1005,6 @@
             <p style="font-size: 13px;">Mail Connections</p>
           </div>
         </div>
-      </div>
-      <div class="header-connected-account" id="header-connected-account" hidden title="Connected mail account">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M6.5 19a6 6 0 0 1 11 0"/>
-        </svg>
-        <span id="header-connected-account-email"></span>
       </div>
     </div>
     <div class="banner-right">
@@ -1091,17 +1129,17 @@
           <span>Team members</span>
         </a>
 
-        <a href="#" class="nav-item" data-nav-toast="notifications">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <span>Notifications</span>
-        </a>
-        <a href="#" class="nav-item" data-nav-toast="email-template">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-          <span>Email template</span>
-        </a>
         <a href="#" class="nav-item" data-nav-toast="drafts">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
           <span>Drafts</span>
+        </a>
+        <a href="#" class="nav-item" data-nav-toast="email-template">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          <span>Email templates</span>
+        </a>
+        <a href="#" class="nav-item" data-nav-toast="notifications">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span>Notifications</span>
         </a>
         <a href="#" class="nav-item" data-action="open-settings">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -1276,7 +1314,7 @@
                                 <path fill="#34a853" d="M14 2v5h5z"/>
                                 <path fill="#fff" d="M7 10h10v1.5H7zm0 3h10v1.5H7zm0 3h10v1.5H7z"/>
                               </svg>
-                              <span>Connect Database</span>
+                              <span>Connect database</span>
                             </button>
                           </div>
                         </div>
@@ -1323,6 +1361,23 @@
                             </select>
                           </label>
                         </div>
+                        <section class="sheet-plan-summary cmp-field full" aria-labelledby="sheet-plan-summary-title">
+                          <div class="sheet-plan-summary-head">
+                            <div>
+                              <h3 id="sheet-plan-summary-title" class="sheet-plan-summary-title">Spreadsheet recipients</h3>
+                              <p id="sheet-plan-summary-copy" class="sheet-plan-summary-copy">No spreadsheet selected. Choose a sheet to map recipients and message variables.</p>
+                            </div>
+                            <button type="button" class="sheet-picker-secondary" id="cmp-connect-database-summary" aria-label="Choose a Google spreadsheet">
+                              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                <path fill="#188038" d="M5 2h9l5 5v15H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+                                <path fill="#34a853" d="M14 2v5h5z"/>
+                                <path fill="#fff" d="M7 10h10v1.5H7zm0 3h10v1.5H7zm0 3h10v1.5H7z"/>
+                              </svg>
+                              Choose spreadsheet
+                            </button>
+                          </div>
+                          <ul class="sheet-plan-summary-list" id="sheet-plan-summary-list"></ul>
+                        </section>
                       </div>
                     </section>
 
@@ -1345,7 +1400,8 @@
                             <div class="cmp-tools" role="toolbar" aria-label="Insert element">
                               <button type="button" class="cmp-tool" data-insert="h1">H1</button>
                               <button type="button" class="cmp-tool" data-insert="p">P</button>
-                              <button type="button" class="cmp-tool" data-insert="personalize">Personalize</button>
+                              <button type="button" class="cmp-tool" data-insert="variable">Variable</button>
+                              <button type="button" class="cmp-tool" data-insert="operation">Operation</button>
                               <button type="button" class="cmp-tool" data-insert="a">Link</button>
                               <button type="button" class="cmp-tool" data-insert="button">Button</button>
                               <button type="button" class="cmp-tool" data-insert="img">Image</button>
@@ -1397,15 +1453,17 @@
             </div>
 
             <!-- Schedules Render Container -->
-            <div class="job-rows" id="job-rows" hidden style="display: none;"></div>
+            <div class="schedule-list-shell" id="schedule-list-shell">
+              <div class="job-rows" id="job-rows" hidden style="display: none;"></div>
 
-            <!-- Short, background-free pager at the end of the schedule list -->
-            <div class="task-list-footer" id="task-list-footer" hidden>
-              <button type="button" class="schedule-footer-add" id="footer-add-schedule">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                Add a new task
-              </button>
-              <div class="task-pagination" id="task-pagination" aria-label="Schedule pages"></div>
+              <!-- Short, background-free pager at the end of the schedule list -->
+              <div class="task-list-footer" id="task-list-footer" hidden>
+                <button type="button" class="schedule-footer-add" id="footer-add-schedule">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                  Add a new task
+                </button>
+                <div class="task-pagination" id="task-pagination" aria-label="Schedule pages"></div>
+              </div>
             </div>
 
             <!-- Empty State: No schedules found -->
@@ -1470,6 +1528,76 @@
   </div>
 
   <!-- Add new task overlay -->
+
+  <div class="sheet-picker-overlay" id="sheet-picker-overlay" aria-hidden="true">
+    <section class="sheet-picker-card" role="dialog" aria-modal="true" aria-labelledby="sheet-picker-title">
+      <div class="sheet-picker-header">
+        <div>
+          <h2 id="sheet-picker-title">Choose a spreadsheet</h2>
+          <p>Map recipient and personalization columns. Google access stays on the server.</p>
+        </div>
+        <button type="button" class="cmp-cancel" id="sheet-picker-close" aria-label="Close spreadsheet picker">Close</button>
+      </div>
+      <div class="sheet-picker-body">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+          <p class="sheet-picker-section-title">Google Sheets connection</p>
+          <button type="button" class="sheet-picker-secondary" id="sheet-picker-connect">Connect Google Sheets</button>
+        </div>
+        <p class="sheet-picker-message" id="sheet-picker-message" role="status">Connect Google Sheets or load the spreadsheets available to this project.</p>
+        <label class="sheet-picker-field">
+          Spreadsheet
+          <select id="sheet-picker-file"><option value="">Select a spreadsheet</option></select>
+        </label>
+        <label class="sheet-picker-field">
+          Sheet tab
+          <select id="sheet-picker-tab" disabled><option value="">Select a sheet tab</option></select>
+        </label>
+        <div class="sheet-picker-columns">
+          <label class="sheet-picker-field">
+            Header row
+            <input id="sheet-picker-header-row" type="number" min="1" max="1000000" value="1">
+          </label>
+          <label class="sheet-picker-field">
+            First data row
+            <input id="sheet-picker-start-row" type="number" min="1" max="1000000" value="2">
+          </label>
+        </div>
+        <div class="sheet-picker-columns">
+          <label class="sheet-picker-field">
+            Recipient email column
+            <select id="sheet-picker-email-column" disabled><option value="">Select a column</option></select>
+          </label>
+          <div class="sheet-picker-field">
+            <span>Message variable columns</span>
+            <div class="sheet-picker-mappings" id="sheet-picker-mappings">
+              <p class="sheet-picker-message">Insert a variable into the email design to map its spreadsheet column.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="sheet-picker-section-title">Skip rows</p>
+          <p class="sheet-picker-message">Add row numbers or ranges, for example 25 or 40-50.</p>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <input class="sheet-picker-row-input" id="sheet-picker-skip-input" type="text" inputmode="numeric" placeholder="Row or range">
+            <button type="button" class="sheet-picker-secondary" id="sheet-picker-skip-add">Add skip</button>
+          </div>
+          <div class="sheet-picker-chip-list" id="sheet-picker-skip-list" aria-live="polite"></div>
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <p class="sheet-picker-section-title">Additional recipients</p>
+            <button type="button" class="sheet-picker-secondary" id="sheet-picker-row-add">Add row</button>
+          </div>
+          <p class="sheet-picker-message">Every added recipient row needs a value for each message variable.</p>
+          <div class="sheet-picker-mappings" id="sheet-picker-manual-rows"></div>
+        </div>
+      </div>
+      <footer class="sheet-picker-footer">
+        <button type="button" class="cmp-cancel" id="sheet-picker-cancel">Cancel</button>
+        <button type="button" class="sheet-picker-primary" id="sheet-picker-apply">Use spreadsheet</button>
+      </footer>
+    </section>
+  </div>
 
   <script>
     /* Layout behaviour: navigation cloning, phone drawer, project sub-list. */
@@ -1586,7 +1714,8 @@
   const SNIPPETS = {
     h1: "<h1>|</h1>",
     p: "<p>|</p>",
-    personalize: "<div>Hi {customerName}, how are you doing today|</div>",
+    variable: "{name1}|",
+    operation: "{num1/num2}|",
     a: '<a href="https://|" target="_blank" rel="noopener noreferrer">Link text</a>',
     button: '<a href="https://|" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:12px 22px;background-color:#111111;color:#ffffff;text-decoration:none;">Button text</a>',
     img: '<img src="|" alt="" width="240" style="display:block;max-width:100%;height:auto;">',
@@ -1629,13 +1758,19 @@
   }
 
   function insertTemplate(template) {
+    if (!template) return;
     const marker = template.indexOf("|");
-    insertAtCursor(template.replace("|", ""), marker);
+    const insertion = template.replace("|", "");
+    insertAtCursor(insertion, marker < 0 ? insertion.length : marker);
+    document.dispatchEvent(new CustomEvent("schedule-template-change"));
   }
 
   document.querySelectorAll("[data-insert]").forEach((button) => {
     button.addEventListener("click", () => insertTemplate(SNIPPETS[button.dataset.insert]));
   });
+
+  subjectInput.addEventListener("input", () => document.dispatchEvent(new CustomEvent("schedule-template-change")));
+  bodyInput.addEventListener("input", () => document.dispatchEvent(new CustomEvent("schedule-template-change")));
 
   bodyInput.addEventListener("keydown", (event) => {
     if (event.key !== "Tab") return;
@@ -1754,6 +1889,7 @@
     recipientsInput.value = (config.recipients || []).join(", ");
     subjectInput.value = config.subject || "";
     bodyInput.value = config.body || "";
+    window.bzComposer.setSheetPlan?.(config.spreadsheet || null);
     dateInput.value = datePart || "";
     timeInput.value = timePart ? timePart.slice(0, 5) : "09:00";
 
@@ -1793,6 +1929,7 @@
     mode = "create";
     editingId = null;
     resetForm();
+    window.bzComposer.setSheetPlan?.(null);
     setHeading("New schedule", "Create task", "Set when this email goes out and design the message.");
     clearError();
     openEditor();
@@ -1819,6 +1956,7 @@
     nameInput.value = draft.name || "";
     subjectInput.value = draft.subject || "";
     bodyInput.value = draft.body || "";
+    window.bzComposer.setSheetPlan?.(draft.spreadsheet || null);
     setHeading("Edit saved draft", "Create task", "Complete the schedule details to create this task.");
     clearError();
     openEditor();
@@ -1845,7 +1983,12 @@
 
     try {
       if (typeof window.bzComposer.saveDraft === "function") {
-        window.bzComposer.saveDraft({ name, subject, body: bodyInput.value });
+        window.bzComposer.saveDraft({
+          name,
+          subject,
+          body: bodyInput.value,
+          spreadsheet: window.bzComposer.getSheetPlan?.() || null,
+        });
       }
       window.bzComposer.toast?.("success", "Draft saved.");
       closeEditor();
@@ -1855,7 +1998,11 @@
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !composer.hidden) closeEditor();
+    if (
+      event.key === "Escape" &&
+      !composer.hidden &&
+      !document.getElementById("sheet-picker-overlay")?.classList.contains("open")
+    ) closeEditor();
   });
 
   jobRows?.addEventListener("click", (event) => {
@@ -1879,17 +2026,21 @@
     const subject = String(data.get("subject") || "").trim();
     const html = bodyInput.value.trim();
     const how = howSelect.value;
+    const spreadsheet = window.bzComposer.getSheetPlan?.() || null;
 
     if (!name) return showError("Give this task a job name.");
-    if (recipients.length === 0) return showError("Add at least one recipient.");
+    if (recipients.length === 0 && !spreadsheet) return showError("Add at least one recipient or choose a spreadsheet.");
     if (!subject) return showError("Add a subject.");
     if (!html) return showError("Write the message in the editor.");
+    const spreadsheetErrors = window.bzComposer.validateSheetPlan?.(subject, html) || [];
+    if (spreadsheetErrors.length) return showError(spreadsheetErrors[0]);
 
     const draft = {
       name,
       recipients,
       subject,
       body: html,
+      spreadsheet,
       sender: senderEmail?.dataset.email || "",
       schedule_type: "immediate",
       schedule_rule: null,
@@ -1991,7 +2142,7 @@
 
   <div class="schedule-detail-overlay" id="schedule-detail-overlay" aria-hidden="true">
     <section class="schedule-detail-card" role="dialog" aria-modal="true" aria-labelledby="schedule-detail-title">
-      <header class="schedule-detail-header">
+      <div class="schedule-detail-header">
         <div>
           <p class="schedule-detail-kicker">Schedule details</p>
           <h2 class="schedule-detail-title" id="schedule-detail-title"></h2>
@@ -1999,7 +2150,7 @@
         <button type="button" class="schedule-detail-close" data-detail-close aria-label="Close schedule details">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg>
         </button>
-      </header>
+      </div>
       <div class="schedule-detail-body">
         <div class="schedule-detail-item"><p class="schedule-detail-label">Type</p><p class="schedule-detail-value" id="schedule-detail-type"></p></div>
         <div class="schedule-detail-item"><p class="schedule-detail-label">Status</p><p class="schedule-detail-value" id="schedule-detail-status"></p></div>

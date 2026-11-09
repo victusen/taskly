@@ -13,3 +13,8 @@ Taskly (Bzade) is a scheduling web application that allows small business owners
 
 - **Frontend**: Vanilla JavaScript modules, responsive CSS design, UI toast notifications, and Supabase client authentication.
 - **Backend**: Node.js & Express API with security middleware (Helmet, CORS, Rate Limiting), Supabase Auth middleware, and cron/scheduler integration.
+
+## Project insights and spreadsheet access
+
+- Project-card insight slides are presentation placeholders only. Live schedule counts, delivery activity, and performance analytics are not connected yet.
+- Google OAuth scopes authorize access to Google APIs; they do not restrict access to a user's selected spreadsheet rows, columns, or tabs. Those selections must be validated and enforced by the backend whenever spreadsheet data is read or a schedule is delivered.
