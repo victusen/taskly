@@ -6,6 +6,7 @@ import {
 } from "./scheduleValidation.js";
 import { computeNextRun } from "./scheduleRule.js";
 import { syncSchedule } from "../workers/planDay.js";
+import { runImmediateOccurrence } from "../workers/runSchedule.js";
 
 /* Active plus paused schedules one user may hold, by plan_tier. Change the numbers when pricing is decided. */ 
 const PLAN_LIMITS = {
@@ -34,6 +35,29 @@ function assertUuid(value, field) {
   if (typeof value !== "string" || !UUID_PATTERN.test(value)) {
     throw new ValidationError({ [field]: "Invalid id." });
   }
+}
+
+async function insertSchedule(value) {
+  const { data, error } = await supabase
+    .from("schedules")
+    .insert({
+      project_id: value.project_id,
+      status: "active",
+      name: value.name,
+      job_type: value.job_type,
+      schedule_type: value.schedule_type,
+      schedule_rule: value.schedule_rule,
+      timezone: "UTC",
+      scheduled_for: value.scheduled_for,
+      next_run_at: value.next_run_at,
+      email_connection_id: value.email_connection_id,
+      config: value.config,
+    })
+    .select(COLUMNS)
+    .single();
+
+  if (error) throw error;
+  return data;
 }
 
 /* The project must belong to this user and not be deleted. */
@@ -207,6 +231,10 @@ export const scheduleService = {
   },
 
   async createSchedule(userId, input) {
+    if (input?.schedule_type === "immediate") {
+      throw new ValidationError({ schedule_type: "Use the send-now action for immediate emails." });
+    }
+
     /* Validates and cleans everything. Throws ValidationError with a message per field. */
     const value = validateScheduleInput(input);
 
@@ -214,32 +242,27 @@ export const scheduleService = {
     await assertConnection(userId, value.project_id, value.email_connection_id);
     await assertUnderPlanLimit(userId);
 
-    /* The browser never sets status, run_count or next_run_at. */
-    const { data, error } = await supabase
-      .from("schedules")
-      .insert({
-        project_id: value.project_id,
-        status: "active",
-        name: value.name,
-        job_type: value.job_type,
-        schedule_type: value.schedule_type,
-        schedule_rule: value.schedule_rule,
-        timezone: value.timezone,
-        scheduled_for: value.scheduled_for,
-        next_run_at: value.next_run_at,
-        email_connection_id: value.email_connection_id,
-        config: value.config,
-      })
-      .select(COLUMNS)
-      .single();
-
-    if (error) throw error;
+    const data = await insertSchedule(value);
 
     if (process.env.ENABLE_SCHEDULER === "true") {
       syncSchedule(data);
     }
 
     return data;
+  },
+
+  async sendNow(userId, input) {
+    if (input?.schedule_type !== "immediate") {
+      throw new ValidationError({ schedule_type: "Choose send now for an immediate email." });
+    }
+
+    const value = validateScheduleInput(input);
+    await assertProject(userId, value.project_id);
+    await assertUnderPlanLimit(userId);
+
+    const schedule = await insertSchedule(value);
+    const run = await runImmediateOccurrence(schedule);
+    return { schedule, run };
   },
 
   /* Edit: the same rules as create. Allowed only while the schedule is active, paused or failed. */
@@ -271,7 +294,7 @@ export const scheduleService = {
       name: patch.name !== undefined ? patch.name : row.name,
       email_connection_id: patch.email_connection_id ?? row.email_connection_id,
       config: { ...row.config, ...(patch.config && typeof patch.config === "object" ? patch.config : {}) },
-      timezone: patch.timezone ?? row.timezone,
+      timezone: "UTC",
       /* No timing change: validate as "immediate" so only the content is checked, then ignore the timing result. */
       schedule_type: changesTiming ? patch.schedule_type : "immediate",
       scheduled_for: patch.scheduled_for,
@@ -286,6 +309,7 @@ export const scheduleService = {
       name: value.name,
       email_connection_id: value.email_connection_id,
       config: value.config,
+      timezone: "UTC",
     };
 
     /* Timing is rewritten only when the caller sent it. */
@@ -336,13 +360,13 @@ export const scheduleService = {
     await assertProject(userId, row.project_id);
 
     /* Time kept passing while it was paused. Skip missed runs and find the next real one. */
-    const nextRunAt = computeNextRun(row, new Date());
+    const nextRunAt = computeNextRun({ ...row, timezone: "UTC" }, new Date());
 
     if (!nextRunAt) {
       throw new ServiceError(409, "INVALID_STATE", "The send time has passed. Edit the schedule and pick a new time.");
     }
 
-    const updated = await changeStatus(userId, id, ["paused"], { status: "active", next_run_at: nextRunAt });
+    const updated = await changeStatus(userId, id, ["paused"], { status: "active", timezone: "UTC", next_run_at: nextRunAt });
 
     if (process.env.ENABLE_SCHEDULER === "true") {
       syncSchedule(updated);

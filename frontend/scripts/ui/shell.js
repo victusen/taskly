@@ -7,6 +7,7 @@ const GOOGLE_RESULTS = {
   database_connected: ["success", "Google Sheets database connected."],
   database_cancelled: ["warning", "Google Sheets connection cancelled."],
   database_failed: ["error", "Could not connect Google Sheets. Try again."],
+  database_account_mismatch: ["warning", "Connect Google Sheets with the same Google account used for this project's mail account."],
   database_missing_scope: ["warning", "Google Sheets connection also needs Gmail send access. Approve both permissions to continue."],
   cancelled: ["warning", "Gmail connection cancelled."],
   missing_scope: ["warning", "Gmail needs the send permission. Connect again and keep it ticked."],

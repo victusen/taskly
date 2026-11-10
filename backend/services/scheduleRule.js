@@ -1,4 +1,4 @@
-import { DateTime, IANAZone } from "luxon";
+import { DateTime } from "luxon";
 import getCron from "get-cron";
 import { CronExpressionParser } from "cron-parser";
 
@@ -7,12 +7,12 @@ import { CronExpressionParser } from "cron-parser";
  *
  * Stored in the database (no cron expression is ever stored):
  *   scheduled_for : the first run, a UTC instant
- *   timezone      : the user's zone, for example "Africa/Lagos"
+ *   timezone      : UTC
  *   schedule_rule : the plain word the user picked, for example { "every": "weekday" }
  *
  * At run time:
  *   get-cron turns (first run, word) into a cron expression, for example "0 9 * * 1-5".
- *   cron-parser reads that expression in the user's timezone and returns the next date.
+ *   cron-parser reads that expression in UTC and returns the next date.
  *
  * To offer a new repeat word, add it to REPEAT_OPTIONS. get-cron must support it.
  */
@@ -27,11 +27,12 @@ export const REPEAT_OPTIONS = [
   "weekly",
   "monthly",
   "yearly",
+  "christmas",
+  "christmas-eve",
+  "new year",
+  "new years-eve",
+  "valentines",
 ];
-
-export function isValidTimezone(zone) {
-  return typeof zone === "string" && IANAZone.isValidZone(zone);
-}
 
 /* Returns { rule } (a clean copy) or { error } (a message the user can read). */
 export function parseRule(raw) {
@@ -50,16 +51,21 @@ export function parseRule(raw) {
  * The cron expression for a rule, built from the wall clock time of the first run.
  * Example: first run 09:00 Lagos on a Monday, every "weekday" gives "0 9 * * 1-5".
  */
-export function buildCronExpression({ scheduled_for, schedule_rule, timezone }) {
-  const first = DateTime.fromISO(String(scheduled_for), { zone: "utc" }).setZone(timezone);
+export function buildCronExpression({ schedule_type, scheduled_for, schedule_rule }) {
+  const first = DateTime.fromISO(String(scheduled_for), { zone: "utc" });
 
-  if (!first.isValid) {
+  const every = schedule_type === RECURRING ? schedule_rule?.every : "once";
+  if (
+    !first.isValid ||
+    ![ONE_TIME, RECURRING].includes(schedule_type) ||
+    (schedule_type === RECURRING && !REPEAT_OPTIONS.includes(every))
+  ) {
     return null;
   }
 
   return getCron({
     at: first.toFormat("yyyy-LL-dd'T'HH:mm"),
-    every: schedule_rule.every,
+    every,
   });
 }
 
@@ -98,7 +104,7 @@ export function computeNextRun(
     const expression = buildCronExpression({ scheduled_for, schedule_rule, timezone });
 
     const next = CronExpressionParser.parse(expression, {
-      tz: timezone,
+      tz: "UTC",
       currentDate: after,
     }).next();
 

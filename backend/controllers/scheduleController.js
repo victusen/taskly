@@ -28,6 +28,7 @@ export const scheduleController = {
     jobType: req.query.job_type,
   })),
   createSchedule: handle("[CREATE SCHEDULE]", (req) => scheduleService.createSchedule(req.user.id, req.body), 201),
+  sendNow: handle("[SEND SCHEDULE NOW]", (req) => scheduleService.sendNow(req.user.id, req.body)),
   updateSchedule: handle("[UPDATE SCHEDULE]", (req) => scheduleService.updateSchedule(req.user.id, req.params.id, req.body)),
   pauseSchedule: handle("[PAUSE SCHEDULE]", (req) => scheduleService.pauseSchedule(req.user.id, req.params.id)),
   resumeSchedule: handle("[RESUME SCHEDULE]", (req) => scheduleService.resumeSchedule(req.user.id, req.params.id)),

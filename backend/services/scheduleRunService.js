@@ -21,17 +21,77 @@ export async function getScheduleStatus(scheduleId, projectId) {
   return data;
 }
 
-// Read the email account the schedule sends through.
-// Returns null if deleted or does not belong to the schedule's project.
-export async function getActiveConnection(connectionId, projectId) {
-  const { data, error } = await supabase
-    .from("email_connections")
+export async function getScheduleReadiness(scheduleId, projectId) {
+  const { data: schedule, error: scheduleError } = await supabase
+    .from("schedules")
     .select("*")
-    .eq("id", connectionId)
+    .eq("id", scheduleId)
     .eq("project_id", projectId)
     .maybeSingle();
-  if (error) throw error;
-  return data;
+  if (scheduleError) throw scheduleError;
+
+  const { data: project, error: projectError } = await supabase
+    .from("projects")
+    .select("id, user_id, status")
+    .eq("id", projectId)
+    .maybeSingle();
+  if (projectError) throw projectError;
+
+  let account = null;
+  if (project?.user_id) {
+    const { data, error } = await supabase
+      .from("users")
+      .select("id")
+      .eq("id", project.user_id)
+      .maybeSingle();
+    if (error) throw error;
+    account = data;
+  }
+
+  let connection = null;
+  if (schedule?.email_connection_id) {
+    const { data, error } = await supabase
+      .from("email_connections")
+      .select("*")
+      .eq("id", schedule.email_connection_id)
+      .eq("project_id", projectId)
+      .maybeSingle();
+    if (error) throw error;
+    connection = data;
+  }
+
+  const issues = [];
+  if (!schedule) issues.push({ code: "schedule_missing", reason: "Schedule was deleted or is unavailable." });
+  else if (schedule.status !== "active") {
+    issues.push({ code: "schedule_inactive", reason: `Schedule status is ${schedule.status}.` });
+  }
+  else if (schedule.job_type !== "email") {
+    issues.push({ code: "unsupported_job_type", reason: `Schedule job type is ${schedule.job_type}.` });
+  }
+  if (!project) issues.push({ code: "project_missing", reason: "Project was deleted or is unavailable." });
+  else if (project.status !== "active") {
+    issues.push({ code: "project_inactive", reason: `Project status is ${project.status}.` });
+  }
+  if (!account) issues.push({ code: "account_missing", reason: "The project owner account is unavailable." });
+  if (!connection) {
+    issues.push({ code: "connection_missing", reason: "The schedule's mail account was deleted or is unavailable." });
+  } else if (connection.status !== "active") {
+    issues.push({ code: "connection_inactive", reason: `Mail account status is ${connection.status}.` });
+  } else if (!["oauth2", "smtp"].includes(connection.connection_type)) {
+    issues.push({
+      code: "connection_unsupported",
+      reason: `Mail account connection type ${connection.connection_type} is unsupported.`,
+    });
+  }
+
+  return {
+    eligible: issues.length === 0,
+    code: issues[0]?.code || null,
+    reason: issues.map((issue) => issue.reason).join(" "),
+    issues,
+    schedule,
+    connection,
+  };
 }
 
 // Open a new attempt row and return its id.
@@ -58,7 +118,7 @@ export async function openAttempt({ scheduleId, runFor, attempt }) {
 }
 
 // Write the final status and close the attempt.
-// 'status' is one of: 'sent', 'failed', 'skipped'.
+// 'status' is one of: 'succeeded' or 'failed'.
 // 'error' is a short message string or null.
 // The live schema column is 'error' (not error_message) and 'completed_at' (not finished_at).
 export async function closeAttempt(runId, { status, error }) {

@@ -37,7 +37,7 @@ export async function assertProjectCanConnect(userId, projectId, { allowExisting
   await assertOwnedProject(userId, projectId);
   const { data, error } = await supabase
     .from("email_connections")
-    .select("id, provider, status")
+    .select("id, provider, status, email_address")
     .eq("project_id", projectId)
     .maybeSingle();
 

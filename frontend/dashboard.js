@@ -2,7 +2,7 @@ import { requireAuth, resolveUserInitial, applyUserAvatar } from "./scripts/auth
 import { signOut } from "./scripts/auth/auth.js";
 import { startPayment } from "./scripts/payments/payment.js";
 import { showToast } from "./scripts/ui/toast.js";
-import { loadConnections, addProject, loadProjects, removeProject } from "./scripts/data/source.js";
+import { loadConnections, addProject, loadProjects, loadSchedules, removeProject } from "./scripts/data/source.js";
 import { initInviteModal } from "./scripts/ui/inviteModal.js";
 import { initAccountMenu } from "./scripts/ui/accountMenu.js";
 import { openConnectModal } from "./scripts/ui/connectModal.js";
@@ -37,6 +37,7 @@ const settingsDeleteBtn = document.getElementById("settings-delete-btn");
 let pendingDeleteProject = null;
 let activeProjects = [];
 let projectMailConnections = new Map();
+let projectScheduleCounts = new Map();
 let projectMailConnectionsRequest = null;
 let projectMailConnectionsLoaded = false;
 let pendingBusinessInput = null;
@@ -122,6 +123,7 @@ async function refreshProjectMailConnections({ notify = false } = {}) {
               : connection ? "Reconnect mail account" : "Connect mail account";
           }
         }
+        renderProjectInsight(card);
       });
       return projectMailConnections;
     } catch (error) {
@@ -134,6 +136,62 @@ async function refreshProjectMailConnections({ notify = false } = {}) {
     }
   })();
   return projectMailConnectionsRequest;
+}
+
+function renderProjectInsight(card) {
+  const projectId = card.dataset.projectId;
+  const label = card.querySelector("[data-project-info]");
+  if (!label) return;
+  const connection = projectMailConnections.get(projectId);
+  const mailMessage = connection?.status === "active"
+    ? `Mail connected: ${connection.email_address}`
+    : connection ? "Mail account needs attention" : "No mail account connected";
+  const todayCount = projectScheduleCounts.get(projectId);
+  const messages = [mailMessage];
+  if (Number.isInteger(todayCount)) {
+    messages.push(todayCount === 1
+      ? "1 schedule set to run today"
+      : `${todayCount} schedules set to run today`);
+  }
+  const currentIndex = Number(card.dataset.projectInfoIndex || 0) % messages.length;
+  card.dataset.projectInfoIndex = String(currentIndex);
+  label.textContent = messages[currentIndex];
+  label.dataset.messages = JSON.stringify(messages);
+}
+
+async function refreshProjectScheduleInsights() {
+  const projects = [...activeProjects];
+  await Promise.all(projects.map(async (project) => {
+    try {
+      const schedules = [];
+      let page = 1;
+      let hasMore = true;
+      while (hasMore) {
+        const result = await loadSchedules(project.id, { page, pageSize: 50, filter: "all", jobType: "email" });
+        const items = Array.isArray(result) ? result : result?.items || [];
+        schedules.push(...items);
+        hasMore = Boolean(result?.hasMore);
+        page += 1;
+      }
+      const now = new Date();
+      const todayCount = schedules.filter((schedule) => {
+        if (schedule.status !== "active") return false;
+        const nextRun = schedule.next_run_at || schedule.scheduled_for;
+        if (!nextRun) return false;
+        const date = new Date(nextRun);
+        return !Number.isNaN(date.getTime()) &&
+          date.getFullYear() === now.getFullYear() &&
+          date.getMonth() === now.getMonth() &&
+          date.getDate() === now.getDate();
+      }).length;
+      projectScheduleCounts.set(project.id, todayCount);
+      const card = document.querySelector(`.proj-card-wrapper[data-project-id="${CSS.escape(project.id)}"]`);
+      if (card) renderProjectInsight(card);
+    } catch (error) {
+      projectScheduleCounts.delete(project.id);
+      console.error(`Could not load schedule insights for project ${project.id}:`, error);
+    }
+  }));
 }
 
 /**
@@ -303,17 +361,9 @@ async function renderDashboardProjects({ fallbackProject = null, useFallback = f
                   <h4 class="title">${escapeHtml(pName)}</h4>
                   ${p.business_name && p.business_name !== pName ? `<p style="font-size: 13px; color: #6b7280; margin-top: 4px;">${escapeHtml(p.business_name)}</p>` : ""}
                 </div>
-                <div class="project-insights" aria-label="Project insights">
-                  <span class="project-insights-kicker">Project insights</span>
-                  <div class="project-insights-slide">
-                    <strong>Schedule activity</strong>
-                    <span>Live schedule insights are coming soon.</span>
-                  </div>
-                  <div class="project-insights-slide" hidden>
-                    <strong>Delivery performance</strong>
-                    <span>Project analytics are coming soon.</span>
-                  </div>
-                </div>
+                <p class="project-tag" data-project-info aria-live="polite">${projectMailConnections.get(p.id)?.status === "active"
+                  ? `Mail connected: ${escapeHtml(projectMailConnections.get(p.id).email_address)}`
+                  : projectMailConnections.has(p.id) ? "Mail account needs attention" : "No mail account connected"}</p>
               </div>
             </a>
 
@@ -363,20 +413,26 @@ async function renderDashboardProjects({ fallbackProject = null, useFallback = f
   if (mDel) mDel.textContent = "0%";
   if (mBnc) mBnc.textContent = "0%";
   if (mFail) mFail.textContent = "0%";
-  void refreshProjectMailConnections({ notify: true });
+  void refreshProjectMailConnections({ notify: true }).then(() => refreshProjectScheduleInsights());
 }
 
 function rotateProjectInsights() {
-  document.querySelectorAll(".proj-card-wrapper .project-insights").forEach((carousel) => {
-    const slides = [...carousel.querySelectorAll(".project-insights-slide")];
-    if (slides.length < 2) return;
-    const activeIndex = slides.findIndex((slide) => !slide.hidden);
-    const nextIndex = (activeIndex + 1) % slides.length;
-    slides.forEach((slide, index) => { slide.hidden = index !== nextIndex; });
+  document.querySelectorAll(".proj-card-wrapper[data-project-id]").forEach((card) => {
+    const label = card.querySelector("[data-project-info]");
+    if (!label) return;
+    let messages = [];
+    try {
+      messages = JSON.parse(label.dataset.messages || "[]");
+    } catch (error) {
+      console.error("Could not read project insight messages:", error);
+    }
+    if (messages.length < 2) return;
+    card.dataset.projectInfoIndex = String((Number(card.dataset.projectInfoIndex || 0) + 1) % messages.length);
+    label.textContent = messages[Number(card.dataset.projectInfoIndex)];
   });
 }
 
-window.setInterval(rotateProjectInsights, 5000);
+window.setInterval(rotateProjectInsights, 4500);
 
 // 3-dots popover toggles
 document.addEventListener("click", async (e) => {
@@ -645,5 +701,7 @@ businessCreateEdit?.addEventListener("click", () => {
 // Initial load
 renderDashboardProjects();
 window.setInterval(() => {
-  if (document.visibilityState === "visible") refreshProjectMailConnections();
+  if (document.visibilityState === "visible") {
+    void refreshProjectMailConnections().then(() => refreshProjectScheduleInsights());
+  }
 }, 60_000);

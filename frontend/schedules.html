@@ -235,9 +235,16 @@
       font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
     }
     .sidebar-collapse-btn {
-      flex: 0 0 28px; width: 28px; height: 28px; margin: 0;
-      display: grid; place-items: center; border: 0; border-radius: 7px;
-      padding: 0; background: transparent; color: #6b7280; cursor: pointer;
+      flex: 0 0 28px;
+      width: 28px; height: 28px;
+      margin: 0; margin-right: 10px;
+      display: grid;
+      place-items: center;
+      border: 0; border-radius: 7px;
+      padding: 0;
+      background: transparent;
+      color: #6b7280;
+      cursor: pointer;
     }
     .sidebar-collapse-btn svg { width: 16px; height: 16px; }
     .sidebar-collapse-btn:hover { background: #f3f4f6; color: #111827; }
@@ -398,6 +405,7 @@
     }
     .task-list-footer[hidden], .task-pagination[hidden] { display: none !important; }
     .schedule-list-shell { display: flex; flex: 1 1 auto; flex-direction: column; min-width: 0; min-height: 0; }
+    .schedule-list-shell[hidden] { display: none !important; }
     .schedule-footer-add {
       display: inline-flex; align-items: center; gap: 5px; padding: 4px 0;
       border: 0; background: transparent; color: #374151; font: inherit;
@@ -418,7 +426,8 @@
     }
     .page-btn:hover:not(:disabled) { background: #f3f4f6; color: #111827; }
     .page-btn:disabled { opacity: .4; cursor: not-allowed; }
-    .page-current, .page-summary { color: #6b7280; font-size: 11px; white-space: nowrap; }
+    .page-current, .page-summary, .page-mobile-summary, .page-mobile-current { color: #6b7280; font-size: 11px; white-space: nowrap; }
+    .page-mobile-summary, .page-mobile-current { display: none; }
     .no-job svg { width: 44px; height: 44px; flex: 0 0 auto; margin: 0 0 14px; color: #9ca3af; transform: none; }
     #request-error-state > svg { width: 42px; height: 42px; margin: 0 0 12px; color: #9ca3af; transform: none; }
     #request-error-state {
@@ -764,7 +773,7 @@
     .sched-mail-account:focus-visible { outline: 2px solid #15803d; outline-offset: 2px; }
     .sched-mail-account svg { width: 18px; height: 18px; flex-shrink: 0; color: #6b7280; }
     .sched-mail-account span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .sched-time-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; grid-column: 1 / -1; min-width: 0; }
+    .sched-time-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 92px; gap: 16px; grid-column: 1 / -1; min-width: 0; }
     .sched-time-fields .cmp-field { min-width: 0; width: 100%; }
     .sched-editor-title { font-size: 22px; font-weight: 700; color: #111827; letter-spacing: -0.01em; margin: 0; line-height: 1.25; }
     .sched-editor-sub { margin-top: 4px; font-size: 13px; color: #6b7280; line-height: 1.45; }
@@ -800,39 +809,31 @@
     .sheet-plan-summary-copy { margin: 4px 0 0; color: #6b7280; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
     .sheet-plan-summary-list { display: grid; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; color: #374151; font-size: 12px; overflow-wrap: anywhere; }
     .sheet-plan-summary-list:empty { display: none; }
-    .sheet-picker-overlay { position: fixed; inset: 0; z-index: 4300; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(17,24,39,.66); backdrop-filter: blur(4px); }
+    .sheet-picker-overlay { position: fixed; inset: 0; z-index: 4300; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(17,24,39,.52); }
     .sheet-picker-overlay.open { display: flex; }
-    .sheet-picker-card { width: min(660px, calc(100vw - 32px)); max-height: min(820px, calc(100vh - 32px)); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #e5e7eb; border-radius: 14px; background: #fff; box-shadow: 0 24px 70px rgba(0,0,0,.3); }
+    .sheet-picker-card { width: min(480px, calc(100vw - 32px)); max-height: min(560px, calc(100vh - 32px)); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #e5e7eb; border-radius: 14px; background: #fff; box-shadow: 0 20px 55px rgba(0,0,0,.2); }
     .sheet-picker-header, .sheet-picker-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; }
     .sheet-picker-header { border-bottom: 1px solid #e5e7eb; }
     .sheet-picker-footer { border-top: 1px solid #e5e7eb; justify-content: flex-end; }
     .sheet-picker-header h2 { margin: 0; color: #111827; font-size: 18px; }
     .sheet-picker-header p { margin: 4px 0 0; color: #6b7280; font-size: 13px; }
-    .sheet-picker-body { display: grid; gap: 14px; min-height: 0; overflow-y: auto; padding: 18px 20px; }
+    .sheet-picker-body { display: grid; gap: 16px; min-height: 0; overflow-y: auto; padding: 22px 20px; }
     .sheet-picker-field { display: grid; gap: 6px; min-width: 0; color: #374151; font-size: 12px; font-weight: 600; }
     .sheet-picker-field input, .sheet-picker-field select { width: 100%; min-width: 0; height: 40px; padding: 0 10px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #111827; font: inherit; font-size: 13px; font-weight: 400; }
     .sheet-picker-field input:focus, .sheet-picker-field select:focus { outline: 2px solid #15803d; outline-offset: 1px; border-color: #15803d; }
-    .sheet-picker-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-    .sheet-picker-mappings { display: grid; gap: 10px; }
-    .sheet-picker-mapping { display: grid; grid-template-columns: minmax(0, 1fr) minmax(150px, .8fr); gap: 12px; align-items: center; }
-    .sheet-picker-mapping code { overflow-wrap: anywhere; color: #111827; font-size: 12px; }
     .sheet-picker-message { margin: 0; color: #6b7280; font-size: 12px; line-height: 1.5; }
     .sheet-picker-message[data-error="true"] { color: #b91c1c; }
-    .sheet-picker-chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
-    .sheet-picker-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border: 1px solid #d1d5db; border-radius: 999px; background: #f9fafb; color: #374151; font-size: 11px; }
-    .sheet-picker-chip button { padding: 0; border: 0; background: none; color: #6b7280; font: inherit; cursor: pointer; }
-    .sheet-picker-manual-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-    .sheet-picker-manual-row input { flex: 1 1 140px; min-width: 0; height: 36px; padding: 0 8px; border: 1px solid #d1d5db; border-radius: 6px; font: inherit; font-size: 12px; }
-    .sheet-picker-row-input { flex: 1; min-width: 0; height: 38px; padding: 0 10px; border: 1px solid #d1d5db; border-radius: 7px; font: inherit; font-size: 13px; }
     .sheet-picker-secondary { padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #374151; font: inherit; font-size: 12px; cursor: pointer; }
     .sheet-picker-primary { padding: 8px 13px; border: 1px solid #111827; border-radius: 7px; background: #111827; color: #fff; font: inherit; font-size: 13px; cursor: pointer; }
     .sheet-picker-primary:disabled, .sheet-picker-secondary:disabled { opacity: .55; cursor: wait; }
     .sheet-picker-section-title { margin: 0; color: #111827; font-size: 13px; font-weight: 650; }
+    .sheet-picker-connect-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 9px; background: #f9fafb; }
+    .sheet-picker-connect-row p { margin: 0; color: #374151; font-size: 12px; line-height: 1.45; }
+    .sheet-picker-confirm:disabled { opacity: .5; cursor: not-allowed; }
     @media (max-width: 600px) {
       .sheet-picker-overlay { padding: 0; }
       .sheet-picker-card { width: 100%; height: 100%; max-height: none; border: 0; border-radius: 0; }
       .sheet-picker-header, .sheet-picker-body, .sheet-picker-footer { padding-left: 16px; padding-right: 16px; }
-      .sheet-picker-columns, .sheet-picker-mapping { grid-template-columns: 1fr; }
     }
     .sched-editor-body .cmp-code { min-height: 350px; }
     .sched-editor-body .cmp-editor { border-radius: 10px; }
@@ -851,7 +852,7 @@
       .sched-editor-card { width: 100%; height: 100%; border-radius: 0; }
       .sched-editor-head, .sched-editor-body, .sched-editor-foot { padding-left: 16px; padding-right: 16px; }
       .sched-fields { grid-template-columns: 1fr; }
-      .sched-time-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+      .sched-time-fields { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 76px; gap: 10px; }
       .sched-time-fields .cmp-field { min-width: 0; }
       .sched-time-fields .cmp-input { padding-left: 8px; padding-right: 8px; font-size: 12px; }
       .sched-editor-head { gap: 8px; }
@@ -940,15 +941,17 @@
     .schedule-detail-footer button { padding: 8px 13px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #374151; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
     .schedule-detail-footer [data-detail-edit] { border-color: #111827; background: #111827; color: #fff; }
     @media (max-width: 767px) {
-      .schedule-list-shell { flex: 1 1 auto; min-height: 390px; border: 1px solid #d1d5db; border-radius: 10px; background: #fff; overflow: visible; }
+      .schedule-list-shell { flex: 1 0 320px; min-height: 320px; border: 1.5px solid #374151; border-radius: 12px; background: #fff; overflow: hidden; }
       .schedule-list-shell #job-rows { flex: 1 1 auto; min-height: 0; }
       .schedule-table-scroll { display: none; }
       .schedule-mobile-list { display: flex; flex-direction: column; }
-      .task-list-footer { min-height: 46px; margin-top: auto; padding: 6px 12px; border-top: 1px solid #e5e7eb; }
+      .task-list-footer { min-height: 48px; margin-top: 0; padding: 5px 10px; border: 1px solid #374151; border-radius: 10px; }
       .schedule-footer-add { font-size: 11px; }
-      .page-current { min-width: 18px; text-align: center; }
+      .page-current { display: none; }
+      .page-mobile-current { display: inline; min-width: 42px; color: #111827; font-size: 12px; font-weight: 700; text-align: center; }
       .page-summary { display: none; }
-      .task-pagination { margin-left: auto; }
+      .page-mobile-summary { display: inline; color: #6b7280; font-size: 11px; white-space: nowrap; }
+      .task-pagination { margin-left: auto; gap: 7px; }
       .schedule-detail-overlay { padding: 12px; }
       .schedule-detail-card { max-height: 94vh; }
       .schedule-detail-header, .schedule-detail-body { padding-left: 16px; padding-right: 16px; }
@@ -1276,25 +1279,25 @@
                       <p id="cmp-settings-title" class="sched-panel-title" style="margin:0 0 14px;">Schedule settings</p>
                       <div class="sched-fields">
                         <label class="cmp-field full">
-                          <span class="cmp-label">Job title</span>
-                          <input id="cmp-name" class="cmp-input" name="name" maxlength="120" autocomplete="off" placeholder="Welcome series">
+                          <span class="cmp-label">Schedule name</span>
+                          <input id="cmp-name" class="cmp-input" name="name" maxlength="120" autocomplete="off" placeholder="Welcome Series" required>
                         </label>
                         <label class="cmp-field">
                           <span class="cmp-label">How often</span>
                           <select id="cmp-how" class="cmp-input">
                             <option value="now">Now (immediately)</option>
                             <option value="once" selected>Once</option>
-                            <option value="hourly">Every hour</option>
                             <option value="daily">Daily</option>
-                            <option value="weekdays">Every weekday (Mon–Fri)</option>
+                            <option value="weekday">Every weekday (Mon–Fri)</option>
                             <option value="weekends">Every weekend (Sat–Sun)</option>
                             <option value="weekly">Weekly</option>
-                            <option value="biweekly">Every 2 weeks</option>
                             <option value="monthly">Monthly</option>
-                            <option value="quarterly">Every 3 months</option>
                             <option value="yearly">Yearly</option>
-                            <option value="christmas">Christmas (Dec 25)</option>
-                            <option value="new_year">New Year (Jan 1)</option>
+                            <option value="christmas">Christmas</option>
+                            <option value="christmas-eve">Christmas Eve</option>
+                            <option value="new year">New Year's Day</option>
+                            <option value="new years-eve">New Year's Eve</option>
+                            <option value="valentines">Valentine's Day</option>
                           </select>
                         </label>
                         <label class="cmp-field">
@@ -1327,54 +1330,17 @@
                             <span class="cmp-label">Time</span>
                             <input id="cmp-time" class="cmp-input" type="time" value="09:00">
                           </label>
-                          <label class="cmp-field">
-                            <span class="cmp-label">UTC / Time zone</span>
-                            <select id="cmp-tz" class="cmp-input" name="timezone">
-                            <option value="UTC">UTC</option>
-                            <option value="Africa/Lagos">Africa/Lagos (WAT, UTC+1)</option>
-                            <option value="Africa/Nairobi">Africa/Nairobi (EAT, UTC+3)</option>
-                            <option value="Africa/Johannesburg">Africa/Johannesburg (SAST, UTC+2)</option>
-                            <option value="Africa/Accra">Africa/Accra (GMT, UTC+0)</option>
-                            <option value="America/New_York">America/New_York (EST/EDT)</option>
-                            <option value="America/Chicago">America/Chicago (CST/CDT)</option>
-                            <option value="America/Denver">America/Denver (MST/MDT)</option>
-                            <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
-                            <option value="America/Sao_Paulo">America/Sao_Paulo (BRT)</option>
-                            <option value="America/Toronto">America/Toronto (EST/EDT)</option>
-                            <option value="Europe/London">Europe/London (GMT/BST)</option>
-                            <option value="Europe/Paris">Europe/Paris (CET/CEST)</option>
-                            <option value="Europe/Berlin">Europe/Berlin (CET/CEST)</option>
-                            <option value="Europe/Amsterdam">Europe/Amsterdam (CET/CEST)</option>
-                            <option value="Europe/Madrid">Europe/Madrid (CET/CEST)</option>
-                            <option value="Europe/Rome">Europe/Rome (CET/CEST)</option>
-                            <option value="Europe/Moscow">Europe/Moscow (MSK, UTC+3)</option>
-                            <option value="Asia/Dubai">Asia/Dubai (GST, UTC+4)</option>
-                            <option value="Asia/Kolkata">Asia/Kolkata (IST, UTC+5:30)</option>
-                            <option value="Asia/Dhaka">Asia/Dhaka (BST, UTC+6)</option>
-                            <option value="Asia/Bangkok">Asia/Bangkok (ICT, UTC+7)</option>
-                            <option value="Asia/Singapore">Asia/Singapore (SGT, UTC+8)</option>
-                            <option value="Asia/Shanghai">Asia/Shanghai (CST, UTC+8)</option>
-                            <option value="Asia/Tokyo">Asia/Tokyo (JST, UTC+9)</option>
-                            <option value="Asia/Seoul">Asia/Seoul (KST, UTC+9)</option>
-                            <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
-                            <option value="Pacific/Auckland">Pacific/Auckland (NZST/NZDT)</option>
-                            </select>
+                          <label class="cmp-field sched-timezone-field">
+                            <span class="cmp-label">Timezone</span>
+                            <input class="cmp-input" value="UTC" aria-label="Timezone UTC" disabled>
                           </label>
                         </div>
                         <section class="sheet-plan-summary cmp-field full" aria-labelledby="sheet-plan-summary-title">
                           <div class="sheet-plan-summary-head">
                             <div>
                               <h3 id="sheet-plan-summary-title" class="sheet-plan-summary-title">Spreadsheet recipients</h3>
-                              <p id="sheet-plan-summary-copy" class="sheet-plan-summary-copy">No spreadsheet selected. Choose a sheet to map recipients and message variables.</p>
+                              <p id="sheet-plan-summary-copy" class="sheet-plan-summary-copy">No spreadsheet selected. Choose a spreadsheet and sheet tab to use for this schedule.</p>
                             </div>
-                            <button type="button" class="sheet-picker-secondary" id="cmp-connect-database-summary" aria-label="Choose a Google spreadsheet">
-                              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                                <path fill="#188038" d="M5 2h9l5 5v15H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
-                                <path fill="#34a853" d="M14 2v5h5z"/>
-                                <path fill="#fff" d="M7 10h10v1.5H7zm0 3h10v1.5H7zm0 3h10v1.5H7z"/>
-                              </svg>
-                              Choose spreadsheet
-                            </button>
                           </div>
                           <ul class="sheet-plan-summary-list" id="sheet-plan-summary-list"></ul>
                         </section>
@@ -1455,15 +1421,14 @@
             <!-- Schedules Render Container -->
             <div class="schedule-list-shell" id="schedule-list-shell">
               <div class="job-rows" id="job-rows" hidden style="display: none;"></div>
+            </div>
 
-              <!-- Short, background-free pager at the end of the schedule list -->
-              <div class="task-list-footer" id="task-list-footer" hidden>
-                <button type="button" class="schedule-footer-add" id="footer-add-schedule">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                  Add a new task
-                </button>
-                <div class="task-pagination" id="task-pagination" aria-label="Schedule pages"></div>
-              </div>
+            <div class="task-list-footer" id="task-list-footer" hidden>
+              <button type="button" class="schedule-footer-add" id="footer-add-schedule">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                Add a new task
+              </button>
+              <div class="task-pagination" id="task-pagination" aria-label="Schedule pages"></div>
             </div>
 
             <!-- Empty State: No schedules found -->
@@ -1533,17 +1498,19 @@
     <section class="sheet-picker-card" role="dialog" aria-modal="true" aria-labelledby="sheet-picker-title">
       <div class="sheet-picker-header">
         <div>
-          <h2 id="sheet-picker-title">Choose a spreadsheet</h2>
-          <p>Map recipient and personalization columns. Google access stays on the server.</p>
+          <h2 id="sheet-picker-title">Connect a spreadsheet</h2>
+          <p>Choose the spreadsheet and sheet tab for this schedule.</p>
         </div>
-        <button type="button" class="cmp-cancel" id="sheet-picker-close" aria-label="Close spreadsheet picker">Close</button>
+        <button type="button" class="schedule-detail-close" id="sheet-picker-close" aria-label="Close spreadsheet picker">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg>
+        </button>
       </div>
       <div class="sheet-picker-body">
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-          <p class="sheet-picker-section-title">Google Sheets connection</p>
+        <div class="sheet-picker-connect-row">
+          <p>Google account access is securely managed for this project.</p>
           <button type="button" class="sheet-picker-secondary" id="sheet-picker-connect">Connect Google Sheets</button>
         </div>
-        <p class="sheet-picker-message" id="sheet-picker-message" role="status">Connect Google Sheets or load the spreadsheets available to this project.</p>
+        <p class="sheet-picker-message" id="sheet-picker-message" role="status">Loading spreadsheets…</p>
         <label class="sheet-picker-field">
           Spreadsheet
           <select id="sheet-picker-file"><option value="">Select a spreadsheet</option></select>
@@ -1552,49 +1519,10 @@
           Sheet tab
           <select id="sheet-picker-tab" disabled><option value="">Select a sheet tab</option></select>
         </label>
-        <div class="sheet-picker-columns">
-          <label class="sheet-picker-field">
-            Header row
-            <input id="sheet-picker-header-row" type="number" min="1" max="1000000" value="1">
-          </label>
-          <label class="sheet-picker-field">
-            First data row
-            <input id="sheet-picker-start-row" type="number" min="1" max="1000000" value="2">
-          </label>
-        </div>
-        <div class="sheet-picker-columns">
-          <label class="sheet-picker-field">
-            Recipient email column
-            <select id="sheet-picker-email-column" disabled><option value="">Select a column</option></select>
-          </label>
-          <div class="sheet-picker-field">
-            <span>Message variable columns</span>
-            <div class="sheet-picker-mappings" id="sheet-picker-mappings">
-              <p class="sheet-picker-message">Insert a variable into the email design to map its spreadsheet column.</p>
-            </div>
-          </div>
-        </div>
-        <div>
-          <p class="sheet-picker-section-title">Skip rows</p>
-          <p class="sheet-picker-message">Add row numbers or ranges, for example 25 or 40-50.</p>
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <input class="sheet-picker-row-input" id="sheet-picker-skip-input" type="text" inputmode="numeric" placeholder="Row or range">
-            <button type="button" class="sheet-picker-secondary" id="sheet-picker-skip-add">Add skip</button>
-          </div>
-          <div class="sheet-picker-chip-list" id="sheet-picker-skip-list" aria-live="polite"></div>
-        </div>
-        <div>
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-            <p class="sheet-picker-section-title">Additional recipients</p>
-            <button type="button" class="sheet-picker-secondary" id="sheet-picker-row-add">Add row</button>
-          </div>
-          <p class="sheet-picker-message">Every added recipient row needs a value for each message variable.</p>
-          <div class="sheet-picker-mappings" id="sheet-picker-manual-rows"></div>
-        </div>
       </div>
       <footer class="sheet-picker-footer">
         <button type="button" class="cmp-cancel" id="sheet-picker-cancel">Cancel</button>
-        <button type="button" class="sheet-picker-primary" id="sheet-picker-apply">Use spreadsheet</button>
+        <button type="button" class="sheet-picker-primary sheet-picker-confirm" id="sheet-picker-apply" disabled>Use selected sheet</button>
       </footer>
     </section>
   </div>
@@ -1701,6 +1629,17 @@
   let mode = "create";
   let editingId = null;
   let submitLabel = "Create task";
+  const capitalizeScheduleName = (value) => String(value || "")
+    .trim()
+    .replace(/(^|[\s'-])([a-z])/gi, (match, separator, letter) => `${separator}${letter.toUpperCase()}`);
+  const capitalizeScheduleNameWhileTyping = (value) =>
+    String(value || "").replace(/(^|[\s'-])([a-z])/gi, (match, separator, letter) => `${separator}${letter.toUpperCase()}`);
+
+  nameInput.addEventListener("input", () => {
+    const caret = nameInput.selectionStart;
+    nameInput.value = capitalizeScheduleNameWhileTyping(nameInput.value);
+    nameInput.setSelectionRange(caret, caret);
+  });
 
   window.bzComposer = window.bzComposer || {};
   window.bzComposer.onSubmit = window.bzComposer.onSubmit || (async () => {
@@ -1723,8 +1662,7 @@
     row: '<div style="display:flex;flex-direction:row;align-items:center;gap:12px;">\n  |\n</div>',
   };
 
-  const pad = (n) => String(n).padStart(2, "0");
-  const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const ymd = (d) => d.toISOString().slice(0, 10);
 
   function showError(message) {
     errorBox.textContent = message;
@@ -1846,32 +1784,31 @@
     assetsBox.hidden = !assetsBox.hidden;
   });
 
-  function timeParts() {
-    const [h, m] = (timeInput.value || "09:00").split(":").map(Number);
-    return { h, m };
-  }
-
-  function nextFixedDate(how) {
-    const { h, m } = timeParts();
-    const now = new Date();
-    const isChristmas = how === "christmas";
-    const month = isChristmas ? 11 : 0;
-    const day = isChristmas ? 25 : 1;
-
-    let next = new Date(now.getFullYear(), month, day, h, m);
-    if (next <= now) next = new Date(now.getFullYear() + 1, month, day, h, m);
-    return ymd(next);
-  }
-
   function syncHow() {
     const how = howSelect.value;
     const isNow = how === "now";
-    const isFixed = how === "christmas" || how === "new_year";
+    const fixedDateOptions = new Set(["christmas", "christmas-eve", "new year", "new years-eve", "valentines"]);
+    const isFixedDate = fixedDateOptions.has(how);
 
     timeInput.disabled = isNow;
-    dateInput.disabled = isNow || isFixed;
+    dateInput.disabled = isNow || isFixedDate;
+    if (isFixedDate) dateInput.value = nextFixedDate(how);
+  }
 
-    if (isFixed) dateInput.value = nextFixedDate(how);
+  function nextFixedDate(how) {
+    const fixedDates = {
+      christmas: [11, 25],
+      "christmas-eve": [11, 24],
+      "new year": [0, 1],
+      "new years-eve": [11, 31],
+      valentines: [1, 14],
+    };
+    const [month, day] = fixedDates[how];
+    const [hour, minute] = (timeInput.value || "09:00").split(":").map(Number);
+    const now = new Date();
+    let target = new Date(Date.UTC(now.getUTCFullYear(), month, day, hour, minute));
+    if (target <= now) target = new Date(Date.UTC(now.getUTCFullYear() + 1, month, day, hour, minute));
+    return ymd(target);
   }
 
   function resetForm() {
@@ -1885,7 +1822,7 @@
     const config = schedule.config || {};
     const [datePart, timePart] = String(schedule.scheduled_for || "").split("T");
 
-    nameInput.value = schedule.name || "";
+    nameInput.value = capitalizeScheduleName(schedule.name || "");
     recipientsInput.value = (config.recipients || []).join(", ");
     subjectInput.value = config.subject || "";
     bodyInput.value = config.body || "";
@@ -1953,7 +1890,7 @@
     mode = "create";
     editingId = null;
     resetForm();
-    nameInput.value = draft.name || "";
+    nameInput.value = capitalizeScheduleName(draft.name || "");
     subjectInput.value = draft.subject || "";
     bodyInput.value = draft.body || "";
     window.bzComposer.setSheetPlan?.(draft.spreadsheet || null);
@@ -1978,7 +1915,8 @@
   });
 
   saveDraftButton?.addEventListener("click", () => {
-    const name = nameInput.value.trim() || "Untitled draft";
+    const name = capitalizeScheduleName(nameInput.value) || "Untitled draft";
+    nameInput.value = name;
     const subject = subjectInput.value.trim();
 
     try {
@@ -2018,7 +1956,8 @@
     clearError();
 
     const data = new FormData(form);
-    const name = String(data.get("name") || "").trim();
+    const name = capitalizeScheduleName(data.get("name"));
+    nameInput.value = name;
     const recipients = String(data.get("recipients") || "")
       .split(",")
       .map((item) => item.trim())
@@ -2056,7 +1995,7 @@
         draft.schedule_type = "one_time";
       } else {
         draft.schedule_type = "recurring";
-        draft.schedule_rule = { every: how === "christmas" || how === "new_year" ? "yearly" : how };
+        draft.schedule_rule = { every: how };
       }
     }
 

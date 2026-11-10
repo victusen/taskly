@@ -17,6 +17,7 @@ router.post(
   scheduleController.createSchedule
 );
 
+router.post("/send-now", authMiddleware, scheduleController.sendNow);
 router.patch("/:id", authMiddleware, scheduleController.updateSchedule);
 router.post("/:id/pause", authMiddleware, scheduleController.pauseSchedule);
 router.post("/:id/resume", authMiddleware, scheduleController.resumeSchedule);

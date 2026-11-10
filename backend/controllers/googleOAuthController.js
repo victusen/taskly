@@ -169,9 +169,16 @@ export async function googleOAuthCallback(req, res) {
     client.setCredentials(tokens);
     const account = await getGoogleAccount(client);
 
-    await assertProjectCanConnect(oauthState.user_id, projectIdFromState.value, {
+    const existingConnection = await assertProjectCanConnect(oauthState.user_id, projectIdFromState.value, {
       allowExistingGoogle: databaseProjectId !== null,
     });
+    if (
+      databaseProjectId &&
+      existingConnection?.provider === "google" &&
+      existingConnection.email_address?.toLowerCase() !== account.email.toLowerCase()
+    ) {
+      return res.redirect(resultUrl("database_account_mismatch"));
+    }
     const connection = await createGoogleConnection({
       projectId: projectIdFromState.value,
       email: account.email,

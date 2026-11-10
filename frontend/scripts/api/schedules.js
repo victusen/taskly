@@ -32,7 +32,7 @@ export function cancelSchedule(id) {
 }
 
 export function sendNow(payload) {
-  return authenticatedFetch("/api/send-now", {
+  return authenticatedFetch("/api/schedules/send-now", {
     method: "POST",
     body: JSON.stringify(payload),
   });

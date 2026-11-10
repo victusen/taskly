@@ -431,6 +431,7 @@
     .cmp-form { display: flex; flex-direction: column; gap: 18px; }
     .cmp-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
     .cmp-field { display: flex; flex-direction: column; gap: 6px; min-width: 160px; }
+    .cmp-field.cmp-timezone-field { flex: 0 0 76px; min-width: 76px; }
     .cmp-grow { flex: 1 1 260px; }
     .cmp-label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6b6b6b; }
     .cmp-input { width: 100%; min-width: 0; box-sizing: border-box; padding: 10px 12px; font: inherit; font-size: 14px; color: #111111; background: #ffffff; border: 1px solid #3a3a3a; border-radius: 0; }
@@ -639,7 +640,7 @@
               <div class="cmp-row">
                 <label class="cmp-field cmp-grow">
                   <span class="cmp-label">Job name</span>
-                  <input id="cmp-name" class="cmp-input" name="name" maxlength="120" autocomplete="off" placeholder="Welcome series">
+                  <input id="cmp-name" class="cmp-input" name="name" maxlength="120" autocomplete="off" placeholder="Welcome series" required>
                 </label>
                 <label class="cmp-field">
                   <span class="cmp-label">Send type</span>
@@ -674,17 +675,26 @@
                   <span class="cmp-label">Time</span>
                   <input id="cmp-time" class="cmp-input" type="time" value="09:00">
                 </label>
+                <label class="cmp-field cmp-timezone-field">
+                  <span class="cmp-label">Timezone</span>
+                  <input class="cmp-input" value="UTC" aria-label="Timezone UTC" disabled>
+                </label>
                 <label class="cmp-field">
                   <span class="cmp-label">How often</span>
                   <select id="cmp-how" class="cmp-input">
                     <option value="now">Now</option>
                     <option value="once" selected>Once</option>
                     <option value="daily">Daily</option>
+                    <option value="weekday">Every weekday</option>
+                    <option value="weekends">Every weekend</option>
                     <option value="weekly">Weekly</option>
                     <option value="monthly">Monthly</option>
                     <option value="yearly">Yearly</option>
                     <option value="christmas">Christmas</option>
-                    <option value="new_year">New year</option>
+                    <option value="christmas-eve">Christmas Eve</option>
+                    <option value="new year">New Year's Day</option>
+                    <option value="new years-eve">New Year's Eve</option>
+                    <option value="valentines">Valentine's Day</option>
                   </select>
                 </label>
               </div>
@@ -768,6 +778,10 @@
         <select name="email_connection_id" id="email-connection" required></select>
       </label>
 
+      <label>Schedule name
+        <input type="text" name="name" maxlength="120" autocomplete="off" placeholder="Welcome Series" required>
+      </label>
+
       <label>To (separate with commas)
         <input type="text" name="recipient" autocomplete="off" required>
       </label>
@@ -776,13 +790,13 @@
         <input type="text" name="subject" maxlength="200" required>
       </label>
 
-      <label>Message (plain text)
+      <label>Email HTML
         <textarea name="body" rows="5" maxlength="20000" required></textarea>
       </label>
 
       <label>Schedule type
         <select name="schedule_type" id="schedule-type">
-          <option value="once">One time</option>
+          <option value="one_time">One time</option>
           <option value="recurring">Repeating</option>
         </select>
       </label>
@@ -800,11 +814,16 @@
             <option value="weekly">Every week</option>
             <option value="monthly">Every month</option>
             <option value="yearly">Every year</option>
+            <option value="christmas">Christmas</option>
+            <option value="christmas-eve">Christmas Eve</option>
+            <option value="new year">New Year's Day</option>
+            <option value="new years-eve">New Year's Eve</option>
+            <option value="valentines">Valentine's Day</option>
           </select>
         </label>
       </div>
 
-      <input type="hidden" name="timezone" value="Africa/Lagos">
+      <input type="hidden" name="timezone" value="UTC">
 
       <button type="submit" id="schedule-submit" style="font-weight:500; border:none; border-radius:6px; background-color:green; color:white; width:100%; margin-top:14px; padding:12px; cursor:pointer;">Write this Schedule</button>
     </form>
@@ -965,8 +984,7 @@
     row: '<div style="display:flex;flex-direction:row;align-items:center;gap:12px;">\n  |\n</div>',
   };
 
-  const pad = (n) => String(n).padStart(2, "0");
-  const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const ymd = (d) => d.toISOString().slice(0, 10);
 
   function showError(message) {
     errorBox.textContent = message;
@@ -1084,27 +1102,26 @@
   });
 
   /* How often and dates */
-  function timeParts() {
-    const [h, m] = (timeInput.value || "09:00").split(":").map(Number);
-    return { h, m };
-  }
-
   function nextFixedDate(how) {
-    const { h, m } = timeParts();
+    const [h, m] = (timeInput.value || "09:00").split(":").map(Number);
     const now = new Date();
-    const isChristmas = how === "christmas";
-    const month = isChristmas ? 11 : 0;
-    const day = isChristmas ? 25 : 1;
-
-    let next = new Date(now.getFullYear(), month, day, h, m);
-    if (next <= now) next = new Date(now.getFullYear() + 1, month, day, h, m);
+    const fixedDates = {
+      christmas: [11, 25],
+      "christmas-eve": [11, 24],
+      "new year": [0, 1],
+      "new years-eve": [11, 31],
+      valentines: [1, 14],
+    };
+    const [month, day] = fixedDates[how];
+    let next = new Date(Date.UTC(now.getUTCFullYear(), month, day, h, m));
+    if (next <= now) next = new Date(Date.UTC(now.getUTCFullYear() + 1, month, day, h, m));
     return ymd(next);
   }
 
   function syncHow() {
     const how = howSelect.value;
     const isNow = how === "now";
-    const isFixed = how === "christmas" || how === "new_year";
+    const isFixed = ["christmas", "christmas-eve", "new year", "new years-eve", "valentines"].includes(how);
 
     timeInput.disabled = isNow;
     dateInput.disabled = isNow || isFixed;
@@ -1250,7 +1267,7 @@
         draft.schedule_type = "one_time";
       } else {
         draft.schedule_type = "recurring";
-        draft.schedule_rule = { every: how === "christmas" || how === "new_year" ? "yearly" : how };
+        draft.schedule_rule = { every: how };
       }
     }
 

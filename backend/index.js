@@ -8,6 +8,7 @@ import accountRoute from "./routes/accountRoute.js";
 import scheduleRoute from './routes/scheduleRoute.js';
 import projectRoute from "./routes/projectRoute.js";
 import emailConnectionRoute from './routes/emailConnectionRoute.js';
+import googleSheetsRoute from './routes/googleSheetsRoute.js';
 import { startScheduler } from "./workers/startScheduler.js";
 
 
@@ -82,6 +83,7 @@ app.use("/api/account", accountRoute);
 app.use('/api/schedules', scheduleRoute);
 app.use('/api/projects', projectRoute);
 app.use('/api/email-connections', emailConnectionRoute);
+app.use('/api/google-sheets', googleSheetsRoute);
 
 app.use((err, req, res, next) => {
   console.error("[UNHANDLED]", err);
@@ -98,3 +100,29 @@ app.listen(PORT, () => {
     startScheduler();
   }
 });
+
+function generateNumber(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
+async function pingAlways() {
+  const randomDelay = generateNumber(360000, 660000);
+
+  try {
+    console.log("Pinging server");
+    const res = await fetch('https://api.bzade.app');
+
+    if (res.ok) {
+      console.log("Server1 pinged. Status is", res.status);
+    } else {
+      console.log(`Server1 responded with ${res.status}`);
+    }
+  } catch (err) {
+    console.log("A server is down\n", err.message, "\n");
+  }
+
+  console.log("pinging in: " + randomDelay / (1000 * 60) + " mins");
+  setTimeout(() => pingAlways(), randomDelay);
+}
+
+pingAlways();

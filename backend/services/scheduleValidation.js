@@ -6,7 +6,6 @@ import {
   ONE_TIME,
   RECURRING,
   computeNextRun,
-  isValidTimezone,
   parseRule,
 } from "./scheduleRule.js";
 
@@ -97,16 +96,13 @@ export function validateScheduleInput(input, now = new Date()) {
 
   const name = typeof input.name === "string" ? input.name.trim() : "";
 
-  if (name.length > LIMITS.MAX_NAME || CONTROL_CHARS.test(name)) {
+  if (!name) {
+    errors.name = "Add a schedule name.";
+  } else if (name.length > LIMITS.MAX_NAME || CONTROL_CHARS.test(name)) {
     errors.name = `Name must be ${LIMITS.MAX_NAME} characters or fewer.`;
   }
 
-  const timezone =
-    typeof input.timezone === "string" ? input.timezone.trim() : "";
-
-  if (!isValidTimezone(timezone)) {
-    errors.timezone = "That timezone is not recognised.";
-  }
+  const timezone = "UTC";
 
   let recipients = [];
 
@@ -158,13 +154,13 @@ export function validateScheduleInput(input, now = new Date()) {
     errors.body = "This message is too large. Shorten it or remove images.";
   }
 
-  /* When. scheduled_for arrives as local wall time ("2026-10-19T09:00") and is read in the user's timezone. */
+  /* The frontend sends wall-clock fields interpreted as UTC. */
   const storedType = requestedType === RECURRING ? RECURRING : ONE_TIME;
   let first = null;
 
   if (requestedType === "immediate") {
     first = DateTime.fromJSDate(now);
-  } else if (REQUESTED_TYPES.has(requestedType) && !errors.timezone) {
+  } else if (REQUESTED_TYPES.has(requestedType)) {
     const raw =
       typeof input.scheduled_for === "string"
         ? input.scheduled_for.trim()
@@ -173,7 +169,7 @@ export function validateScheduleInput(input, now = new Date()) {
     if (!raw || raw.length > 40) {
       errors.scheduled_for = "Pick the date and time.";
     } else {
-      const parsed = DateTime.fromISO(raw, { zone: timezone });
+      const parsed = DateTime.fromISO(raw, { zone: "UTC" });
 
       if (!parsed.isValid) {
         errors.scheduled_for = "That date and time is not valid.";

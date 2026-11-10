@@ -15,6 +15,10 @@ function getOAuthClient() {
   );
 }
 
+export function createGoogleOAuthClient() {
+  return getOAuthClient();
+}
+
 export function createGoogleAuthorizationUrl(state, { includeSheets = false } = {}) {
   const client = getOAuthClient();
   const scopes = [...GOOGLE_SCOPES];

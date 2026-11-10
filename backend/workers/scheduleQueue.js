@@ -21,6 +21,21 @@ export function armAt(key, fireAt, fn) {
   armed.set(key, job);
 }
 
+export function armCronAt(key, expression, fireAt, fn) {
+  if (armed.has(key)) return "already_armed";
+
+  const job = new Cron(expression, { timezone: "UTC", maxRuns: 1 }, fn);
+  const nextRun = job.nextRun();
+  if (!nextRun || Math.abs(nextRun.getTime() - new Date(fireAt).getTime()) > 1000) {
+    job.stop();
+    armAt(key, fireAt, fn);
+    return "one_time_fallback";
+  }
+
+  armed.set(key, job);
+  return "cron";
+}
+
 // Remove an occurrence from the registry after it has run (or been skipped/cancelled).
 export function release(key) {
   const job = armed.get(key);

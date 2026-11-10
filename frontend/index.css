@@ -1,12 +1,12 @@
 .hero-actions .btn-primary {
   background-color: #ffffff;
-  color: #111111;
+  color: #6b7280;
   border: 1px solid #d1d5db;
   transition: color 0.2s ease, background-color 0.15s ease, gap 0.2s ease;
 }
 .hero-actions .btn-primary:hover {
   background-color: transparent;
-  color: #111111;
+  color: #6b7280;
   border: 1px solid #d1d5db;
   transition: color 0.15s ease 0.2s, background-color 0.15s ease, gap 0.2s ease;
 }
@@ -686,7 +686,7 @@ a {
 .btn-secondary {
   padding: 12px 24px;
   background-color: #ffffff;
-  color: #111111;
+  color: #6b7280;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   font-size: 15px;
@@ -702,6 +702,7 @@ a {
 .btn-secondary:hover {
   background-color: #f9fafb;
   border-color: #999999;
+  color: #6b7280;
   gap: 14px;
 }
 
@@ -1511,12 +1512,12 @@ a {
     text-align: center;
     width: 100%;
     background-color: #ffffff;
-    color: #111111;
+    color: #6b7280;
     border-color: #d1d5db;
   }
   .hero-actions .btn-primary:hover {
     background-color: transparent;
-    color: #111111;
+    color: #6b7280;
     border-color: #d1d5db;
   }
   .header-right .login-link {
@@ -1591,7 +1592,7 @@ a {
     grid-template-columns: 1fr 1fr;
   }
   .main-footer {
-    padding: 40px 16px 24px;
+    padding: 40px 24px 24px;
   }
   .zade-two-col {
     grid-template-columns: 1fr;

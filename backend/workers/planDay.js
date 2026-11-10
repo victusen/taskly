@@ -1,11 +1,14 @@
 // backend/workers/planDay.js
-// Reads all schedules due today from Supabase and arms each one in the in-memory queue.
+// Reads schedules due by the end of today (including overdue runs) and arms each
+// one in the in-memory queue.
 // Called at boot and at midnight. Also called directly by syncSchedule when a
 // schedule is created or edited mid-day.
 
 import { createClient } from "@supabase/supabase-js";
-import { armAt, disarmSchedule, occurrenceKey, summary } from "./scheduleQueue.js";
+import { armAt, armCronAt, disarmSchedule, occurrenceKey, summary } from "./scheduleQueue.js";
 import { runOccurrence } from "./runSchedule.js";
+import { getScheduleReadiness } from "../services/scheduleRunService.js";
+import { buildCronExpression } from "../services/scheduleRule.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -22,16 +25,15 @@ export function utcDayWindow(now = new Date()) {
   return { start, end };
 }
 
-// Fetch all active schedules due in the given time window.
+// Fetch active schedules due before the end of the given time window.
 // Retries once after FETCH_RETRY_MS on network failure (Render cold start).
-async function fetchWithRetry(start, end) {
+async function fetchWithRetry(end) {
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
       const { data, error } = await supabase
         .from("schedules")
         .select("*")
         .eq("status", "active")
-        .gte("next_run_at", start.toISOString())
         .lt("next_run_at", end.toISOString());
       if (error) throw error;
       return data;
@@ -44,12 +46,32 @@ async function fetchWithRetry(start, end) {
 }
 
 // Arm one schedule occurrence. Idempotent: calling it twice arms once.
-function armSchedule(schedule) {
+async function armSchedule(candidate, end) {
+  const readiness = await getScheduleReadiness(candidate.id, candidate.project_id);
+  if (!readiness.eligible) {
+    console.warn(`[PLAN] not arming schedule ${candidate.id}: ${readiness.reason}`);
+    return;
+  }
+
+  const schedule = readiness.schedule;
+  const fireAt = new Date(schedule.next_run_at);
+  if (!Number.isFinite(fireAt.getTime()) || fireAt >= end) return;
+
   const runFor = schedule.next_run_at;
   const key = occurrenceKey(schedule.id, runFor);
-  const fireAt = new Date(runFor);
+  const run = () => runOccurrence(schedule, runFor);
+  if (fireAt.getTime() > Date.now()) {
+    const expression = buildCronExpression(schedule);
+    if (!expression) {
+      throw new Error("Could not build the recurring schedule's UTC cron expression.");
+    }
+    const armedAs = armCronAt(key, expression, fireAt, run);
+    console.info(`[PLAN] schedule ${schedule.id} armed as ${armedAs} (${expression}) for ${runFor}.`);
+    return;
+  }
 
-  armAt(key, fireAt, () => runOccurrence(schedule, runFor));
+  armAt(key, fireAt, run);
+  console.info(`[PLAN] schedule ${schedule.id} armed for ${runFor}.`);
 }
 
 // Guard against concurrent planDay() calls (e.g. midnight cron + re-plan timer firing together).
@@ -65,8 +87,14 @@ export async function planDay() {
       const { start, end } = utcDayWindow();
       console.log("[PLAN] planning", start.toISOString(), "to", end.toISOString());
 
-      const rows = await fetchWithRetry(start, end);
-      for (const row of rows) armSchedule(row);
+      const rows = await fetchWithRetry(end);
+      await Promise.all(rows.map(async (row) => {
+        try {
+          await armSchedule(row, end);
+        } catch (error) {
+          console.error(`[PLAN] could not check schedule ${row.id}:`, error.message);
+        }
+      }));
 
       console.log("[PLAN] done.", summary());
     } finally {
@@ -85,14 +113,15 @@ export function syncSchedule(schedule) {
     return;
   }
 
+  disarmSchedule(schedule.id);
   const { start, end } = utcDayWindow();
   const runAt = new Date(schedule.next_run_at);
 
   // Only arm occurrences that fall inside today. Tomorrow's occurrences will be
   // armed by the midnight planner.
   if (runAt >= start && runAt < end) {
-    // Disarm first so an edited time replaces the old alarm.
-    disarmSchedule(schedule.id);
-    armSchedule(schedule);
+    armSchedule(schedule, end).catch((error) =>
+      console.error(`[PLAN] could not arm schedule ${schedule.id}:`, error.message),
+    );
   }
 }
