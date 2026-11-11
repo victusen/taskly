@@ -77,10 +77,17 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // 4. Upgrade Buttons to initiate Paystack checkout
+  const selectedPlanKey = (tier) => {
+    const billingPeriod = yearlyBtn?.classList.contains('active') ? 'yearly' : 'monthly';
+    return `${tier}_${billingPeriod}`;
+  };
+
   document.querySelectorAll('[data-paystack-btn]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      startPayment();
+      const tier = btn.dataset.planTier;
+      if (tier !== 'paid' && tier !== 'business') return;
+      startPayment(selectedPlanKey(tier));
     });
   });
 

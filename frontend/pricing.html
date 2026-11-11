@@ -450,9 +450,10 @@
               </li>
             </ul>
           </div>
-          <div class="plan-info-badge">
-            <span>Most Popular</span>
-          </div>
+          <button type="button" class="plan-cta-btn" data-paystack-btn data-plan-tier="paid">
+            <span>Upgrade to Paid</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
         </div>
 
         <!-- Plan 3: Business $4.99 -->
@@ -501,9 +502,10 @@
               </li>
             </ul>
           </div>
-          <div class="plan-info-badge">
-            <span>High-Volume Teams</span>
-          </div>
+          <button type="button" class="plan-cta-btn" data-paystack-btn data-plan-tier="business">
+            <span>Upgrade to Business</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
         </div>
 
         <!-- Plan 4: Custom -->
@@ -896,6 +898,23 @@
     </div>
   </div>
 
+  <script type="module">
+    import { startPayment } from "./scripts/payments/payment.js";
+
+    document.querySelectorAll("[data-paystack-btn]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        const tier = button.dataset.planTier;
+        if (tier !== "paid" && tier !== "business") return;
+        const billingPeriod = document
+          .getElementById("billing-yearly")
+          ?.classList.contains("active")
+          ? "yearly"
+          : "monthly";
+        startPayment(`${tier}_${billingPeriod}`);
+      });
+    });
+  </script>
   <script>
     // Billing Toggle for pricing.html
     const monthlyBtn = document.getElementById('billing-monthly');

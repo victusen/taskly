@@ -4,6 +4,7 @@ import { startPayment } from "../scripts/payments/payment.js";
 import { showToast } from "../scripts/ui/toast.js";
 import { loadProjects } from "../scripts/data/source.js";
 import { initInviteModal } from "../scripts/ui/inviteModal.js";
+import { authenticatedFetch } from "../scripts/auth/api.js";
 
 // Clean any leftover tokens / hash from browser address bar
 if (window.location.hash || window.location.search.includes("code=") || window.location.search.includes("access_token")) {
@@ -18,37 +19,34 @@ applyUserAvatar(initial);
 
 initInviteModal();
 
-const user = session.user;
-const meta = user?.user_metadata || {};
-const email = user?.email || "Victor@bzade.app";
-
 const emailEl = document.getElementById("user-billing-email");
-if (emailEl) emailEl.textContent = email;
+if (emailEl) emailEl.textContent = session.user?.email || "—";
 
-// Keep the displayed status aligned with the user's account plan.
-const userPlan = String(meta.plan || meta.subscription_plan || "free").trim().toLowerCase().replace(/[_-]+/g, " ");
-const normalizedPlan = userPlan === "custom organization" ? "custom organisation" : userPlan;
-const planLabels = {
-  free: "Free",
-  starter: "Free",
-  hobby: "Free",
-  paid: "Paid",
-  pro: "Paid",
-  business: "Business",
-  "custom organisation": "Custom Organisation",
-};
-const planLabel = planLabels[normalizedPlan] || userPlan.replace(/\b\w/g, (letter) => letter.toUpperCase());
-const isPaid = !["free", "starter", "hobby", ""].includes(userPlan);
+async function loadBillingPlan() {
+  const planDisplayEl = document.getElementById("plan-title-display");
+  const pmStatusEl = document.getElementById("pm-status-text");
+  if (!planDisplayEl) return;
 
-const planDisplayEl = document.getElementById("plan-title-display");
-if (planDisplayEl) {
-  planDisplayEl.textContent = planLabel;
+  try {
+    const response = await authenticatedFetch("/api/account");
+    const plan = String(response.data?.plan || "free").toLowerCase();
+    const planLabels = {
+      free: "Free",
+      paid: "Paid",
+      business: "Business",
+      custom: "Custom",
+    };
+    planDisplayEl.textContent = planLabels[plan] || "Free";
+    if (pmStatusEl && plan !== "free") {
+      pmStatusEl.textContent = `${planLabels[plan] || "Active"} plan via Paystack`;
+    }
+  } catch (error) {
+    console.error("Could not load billing plan:", error);
+    planDisplayEl.textContent = "Unavailable";
+  }
 }
 
-const pmStatusEl = document.getElementById("pm-status-text");
-if (pmStatusEl && isPaid) {
-  pmStatusEl.innerHTML = `<strong style="color: #111827;">•••• 4242</strong> <span style="color: #6b7280;">(Visa) — Active via Paystack</span>`;
-}
+void loadBillingPlan();
 
 // Sign out handlers
 document.querySelectorAll("[data-logout]").forEach((btn) => {
@@ -65,7 +63,7 @@ document.querySelectorAll("[data-logout]").forEach((btn) => {
 // Upgrade plan / Add Card handlers with Paystack
 const launchCheckout = () => {
   try {
-    startPayment();
+    startPayment("paid_monthly");
   } catch (err) {
     showToast("error", err.message || "Could not launch checkout.");
   }

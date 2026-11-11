@@ -109,8 +109,9 @@ export function initInviteModal(options = {}) {
     }
     .invite-field {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
+      flex-direction: row;
+      align-items: center;
+      gap: 12px 24px;
     }
     .invite-label {
       font-size: 13px;
@@ -207,7 +208,7 @@ export function initInviteModal(options = {}) {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 5px 25px;
+      padding: 5px 16px;
       background: #16a34a;
       color: #ffffff;
       border: none;
@@ -239,7 +240,7 @@ export function initInviteModal(options = {}) {
     <aside class="invite-drawer" id="invite-drawer">
       <div class="invite-drawer-header">
         <div>
-          <h3 class="invite-drawer-title" id="invite-drawer-title">Invite a team member</h3>
+          <h3 class="invite-drawer-title" id="invite-drawer-title">Invite team members</h3>
           <p class="invite-drawer-sub">Collaborate on email schedules, review dispatches, or manage mail connections together.</p>
         </div>
         <button type="button" class="invite-close-btn" id="invite-drawer-close" aria-label="Close invite modal">
@@ -270,17 +271,11 @@ export function initInviteModal(options = {}) {
 
         <!-- Access Scope -->
         <div class="invite-field">
-          <label class="invite-label">Access scope</label>
-          <div class="invite-scope-toggle">
-            <div class="invite-scope-pill" id="scope-account" role="button" tabindex="0">
-              <span class="invite-scope-title">Account access</span>
-              <span class="invite-scope-desc">All current & future projects</span>
-            </div>
-            <div class="invite-scope-pill active" id="scope-project" role="button" tabindex="0">
-              <span class="invite-scope-title">Project access</span>
-              <span class="invite-scope-desc">Specific project only</span>
-            </div>
-          </div>
+          <label class="invite-label" for="scope-select">Access scope</label>
+          <select class="invite-select" id="scope-select">
+            <option value="account">Account level [All current & future projects]</option>
+            <option value="project" selected>Project level [Specific project only]</option>
+          </select>
         </div>
 
         <!-- Project selection (shows when Project access is picked) -->

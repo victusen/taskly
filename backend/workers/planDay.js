@@ -17,6 +17,12 @@ const supabase = createClient(
 
 // How long to wait between Supabase fetch retries at boot.
 const FETCH_RETRY_MS = 30_000;
+let planState = {
+  startedAt: null,
+  completedAt: null,
+  candidates: 0,
+  error: null,
+};
 
 // Returns the start and end of today in UTC (midnight to midnight).
 export function utcDayWindow(now = new Date()) {
@@ -25,15 +31,16 @@ export function utcDayWindow(now = new Date()) {
   return { start, end };
 }
 
-// Fetch active schedules due before the end of the given time window.
+// Fetch only active schedules whose next occurrence falls within this UTC day.
 // Retries once after FETCH_RETRY_MS on network failure (Render cold start).
-async function fetchWithRetry(end) {
+async function fetchWithRetry(start, end) {
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
       const { data, error } = await supabase
         .from("schedules")
         .select("*")
         .eq("status", "active")
+        .gte("next_run_at", start.toISOString())
         .lt("next_run_at", end.toISOString());
       if (error) throw error;
       return data;
@@ -66,12 +73,16 @@ async function armSchedule(candidate, end) {
       throw new Error("Could not build the recurring schedule's UTC cron expression.");
     }
     const armedAs = armCronAt(key, expression, fireAt, run);
-    console.info(`[PLAN] schedule ${schedule.id} armed as ${armedAs} (${expression}) for ${runFor}.`);
+    if (armedAs !== "already_armed") {
+      console.info(`[PLAN] schedule ${schedule.id} armed as ${armedAs} (${expression}) for ${runFor}.`);
+    }
     return;
   }
 
-  armAt(key, fireAt, run);
-  console.info(`[PLAN] schedule ${schedule.id} armed for ${runFor}.`);
+  const armedAs = armAt(key, fireAt, run);
+  if (armedAs !== "already_armed") {
+    console.info(`[PLAN] schedule ${schedule.id} armed for ${runFor}.`);
+  }
 }
 
 // Guard against concurrent planDay() calls (e.g. midnight cron + re-plan timer firing together).
@@ -83,11 +94,19 @@ export async function planDay() {
   if (planInProgress) return planInProgress;
 
   planInProgress = (async () => {
+    const plannedAt = new Date();
+    planState = {
+      ...planState,
+      startedAt: plannedAt.toISOString(),
+      candidates: 0,
+      error: null,
+    };
     try {
       const { start, end } = utcDayWindow();
       console.log("[PLAN] planning", start.toISOString(), "to", end.toISOString());
 
-      const rows = await fetchWithRetry(end);
+      const rows = await fetchWithRetry(start, end);
+      planState.candidates = rows.length;
       await Promise.all(rows.map(async (row) => {
         try {
           await armSchedule(row, end);
@@ -97,12 +116,32 @@ export async function planDay() {
       }));
 
       console.log("[PLAN] done.", summary());
+      planState.completedAt = new Date().toISOString();
+    } catch (error) {
+      planState.error = error.message || "Schedule planning failed.";
+      throw error;
     } finally {
       planInProgress = null;
     }
   })();
 
   return planInProgress;
+}
+
+export function getPlannerStatus(now = new Date()) {
+  const { start, end } = utcDayWindow(now);
+  const armedToday = summary().keys.filter((key) => {
+    const runAt = new Date(key.slice(key.lastIndexOf("|") + 1));
+    return runAt >= start && runAt < end;
+  }).length;
+
+  return {
+    last_plan_started_at: planState.startedAt,
+    last_plan_completed_at: planState.completedAt,
+    last_plan_candidates: planState.candidates,
+    last_plan_error: planState.error,
+    schedules_armed_today: armedToday,
+  };
 }
 
 // Called from scheduleService.js when a schedule is created, edited, paused or cancelled.

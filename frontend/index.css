@@ -1544,6 +1544,10 @@ a {
     padding: 0 16px;
     height: 60px;
   }
+  .main-header .header-left > .brand-logo {
+    height: 38px;
+    width: auto;
+  }
   .header-center {
     display: none;
   }

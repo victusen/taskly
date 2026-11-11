@@ -5,19 +5,28 @@
 import { Cron } from "croner";
 import { planDay } from "./planDay.js";
 import { stopAll } from "./scheduleQueue.js";
+import { expireBillingPlans } from "./expireBillingPlans.js";
 
 const plannerJobs = [];
+
+function checkExpiredPlans(trigger) {
+  expireBillingPlans(new Date(), trigger).catch((error) =>
+    console.error(`[BILLING] ${trigger} expiry check failed:`, error.message),
+  );
+}
 
 export function startScheduler() {
   console.log("[SCHEDULER] starting");
 
   // Boot: arm everything due today.
   planDay().catch((err) => console.error("[SCHEDULER] boot plan failed:", err.message));
+  checkExpiredPlans("startup");
 
-  // Midnight UTC: re-plan the new day.
+  // Midnight UTC: re-plan the new day and reset expired subscriptions.
   plannerJobs.push(new Cron("0 0 * * *", { timezone: "UTC" }, () => {
     console.log("[SCHEDULER] midnight re-plan");
     planDay().catch((err) => console.error("[SCHEDULER] midnight plan failed:", err.message));
+    checkExpiredPlans("midnight");
   }));
 
   // 5-minute catch-up: arms schedules created or edited during the day that were
@@ -25,9 +34,6 @@ export function startScheduler() {
   plannerJobs.push(new Cron("*/5 * * * *", { timezone: "UTC" }, () => {
     planDay().catch((err) => console.error("[SCHEDULER] re-plan failed:", err.message));
   }));
-
-  // 00:05 UTC: clean up plan_expires_at records from yesterday (if you add that column later).
-  // new Cron("5 0 * * *", { timezone: "UTC" }, cleanupExpiredRuns);
 
   console.log("[SCHEDULER] running");
 }

@@ -7,6 +7,7 @@ import { initInviteModal } from "./scripts/ui/inviteModal.js";
 import { initAccountMenu } from "./scripts/ui/accountMenu.js";
 import { openConnectModal } from "./scripts/ui/connectModal.js";
 import { showGoogleResult } from "./scripts/ui/shell.js";
+import { authenticatedFetch } from "./scripts/auth/api.js";
 
 // Stub navigations for Audiences and Team members (real pages come later)
 window.bzShowAudiences = () => showToast("info", "Audiences — coming soon. Track subscriber segments here.");
@@ -53,15 +54,21 @@ showGoogleResult();
 const initial = resolveUserInitial(session);
 applyUserAvatar(initial);
 
-// Conditionally show or hide the "Upgrade to paid" link.
-// A paid user has plan info in user_metadata. If none, assume free.
-(function applyPlanVisibility() {
-  const meta = session?.user?.user_metadata || {};
-  const plan = (meta.plan || meta.subscription_plan || "free").toLowerCase();
-  const isPaid = plan !== "free" && plan !== "starter" && plan !== "";
+async function updateUpgradeLink() {
   const upgradeLink = document.getElementById("upgrade-to-paid-link");
-  if (upgradeLink) upgradeLink.style.display = isPaid ? "none" : "";
-})();
+  if (!upgradeLink) return;
+
+  try {
+    const response = await authenticatedFetch("/api/account");
+    const plan = String(response.data?.plan || "free").toLowerCase();
+    upgradeLink.hidden = plan !== "free";
+  } catch (error) {
+    console.error("Could not load the account plan for the dashboard:", error);
+    upgradeLink.hidden = false;
+  }
+}
+
+void updateUpgradeLink();
 
 // Initialize right-side team member invite drawer modal
 const inviteModal = initInviteModal();
@@ -85,7 +92,7 @@ document.querySelectorAll("[data-logout]").forEach((button) => {
 
 /* Every Billing and Upgrade button starts payment or navigates to billing */
 document.querySelectorAll("[data-upgrade]").forEach((button) => {
-  button.addEventListener("click", () => startPayment());
+  button.addEventListener("click", () => startPayment("paid_monthly"));
 });
 
 function escapeHtml(str) {
@@ -143,20 +150,70 @@ function renderProjectInsight(card) {
   const label = card.querySelector("[data-project-info]");
   if (!label) return;
   const connection = projectMailConnections.get(projectId);
-  const mailMessage = connection?.status === "active"
-    ? `Mail connected: ${connection.email_address}`
-    : connection ? "Mail account needs attention" : "No mail account connected";
   const todayCount = projectScheduleCounts.get(projectId);
-  const messages = [mailMessage];
-  if (Number.isInteger(todayCount)) {
-    messages.push(todayCount === 1
-      ? "1 schedule set to run today"
-      : `${todayCount} schedules set to run today`);
+  
+  // Priority notifications array - ordered by priority
+  const priorityNotifications = [];
+  
+  // 1. Highest priority: schedules ready to run today
+  if (Number.isInteger(todayCount) && todayCount > 0) {
+    priorityNotifications.push({
+      text: todayCount === 1 ? "1 schedule set to run today" : `${todayCount} schedules set to run today`,
+      priority: 1,
+      bgColor: "rgb(0, 128, 0)",
+      isCritical: true
+    });
   }
-  const currentIndex = Number(card.dataset.projectInfoIndex || 0) % messages.length;
-  card.dataset.projectInfoIndex = String(currentIndex);
-  label.textContent = messages[currentIndex];
-  label.dataset.messages = JSON.stringify(messages);
+  
+  // 2. High priority: email send failures
+  const emailFailure = projectEmailFailures.get(projectId);
+  if (emailFailure && emailFailure > 0) {
+    priorityNotifications.push({
+      text: `${emailFailure} schedules recipient email failed`,
+      priority: 2,
+      bgColor: "#dc2626",
+      isCritical: true
+    });
+  }
+  
+  // 3. Medium priority: mail connection status
+  if (connection?.status === "active") {
+    priorityNotifications.push({
+      text: `Mail connected: ${connection.email_address}`,
+      priority: 3,
+      bgColor: "#059669",
+      isCritical: false
+    });
+  } else if (connection) {
+    priorityNotifications.push({
+      text: "No email account connected",
+      priority: 3,
+      bgColor: "#dc2626",
+      isCritical: true
+    });
+  } else {
+    // 4. Low priority: new project, ready to launch
+    priorityNotifications.push({
+      text: "Ready to launch a schedule",
+      priority: 4,
+      bgColor: "#6b7280",
+      isCritical: false
+    });
+  }
+  
+  // Display the highest priority message
+  const currentPriority = priorityNotifications[0];
+  if (currentPriority) {
+    label.textContent = currentPriority.text;
+    // Apply background color consistent with hero page badge rgb(0, 128, 0)
+    label.style.backgroundColor = currentPriority.bgColor;
+    label.style.color = "white";
+    label.style.padding = "4px 8px";
+    label.style.borderRadius = "4px";
+    label.style.fontSize = "12px";
+    label.style.fontWeight = "500";
+    label.dataset.messages = JSON.stringify(priorityNotifications);
+  }
 }
 
 async function refreshProjectScheduleInsights() {

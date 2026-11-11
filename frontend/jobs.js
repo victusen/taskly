@@ -1390,3 +1390,164 @@ await init();
    inline layout script in schedules.html, so only the invite modal is left. */
 inviteModal = initInviteModal();
 initAccountMenu({ onInvite: () => inviteModal.open() });
+
+
+/* Payment Modal Logic */
+const paymentModal = document.getElementById("payment-modal");
+const paymentModalClose = document.getElementById("payment-modal-close");
+const paymentCancelBtn = document.getElementById("payment-cancel");
+const paymentSubscribeBtn = document.getElementById("payment-subscribe");
+const planOptions = document.getElementById("plan-options");
+const paymentDetails = document.getElementById("payment-details");
+const planTypeEl = document.getElementById("plan-type");
+const pricingInfoEl = document.getElementById("pricing-info");
+const billingCycleText = document.getElementById("billing-cycle-text");
+const endDateText = document.getElementById("end-date-text");
+const endDateEl = document.getElementById("end-date");
+
+let currentPlan = null; // {type, name, price, period, endDate}
+
+// Plan data with Naira prices
+const plans = {
+  paid_monthly: { name: "Paid Monthly", price: 2999, period: "monthly", naira_monthly: 2999, naira_yearly: 29999 * 12 / 12, is_business: false },
+  paid_yearly: { name: "Paid Yearly", price: 29999, period: "yearly", naira_monthly: 2999, naira_yearly: 29999, is_business: false },
+  business_monthly: { name: "Business Monthly", price: 4999, period: "monthly", naira_monthly: 4999, naira_yearly: 49999 * 12 / 12, is_business: true },
+  business_yearly: { name: "Business Yearly", price: 49999, period: "yearly", naira_monthly: 4999, naira_yearly: 49999, is_business: true }
+};
+
+function openPaymentModal() {
+  paymentModal.classList.add("open");
+  document.body.style.overflow = "hidden";
+  renderPlans();
+}
+
+function closePaymentModal() {
+  paymentModal.classList.remove("open");
+  document.body.style.overflow = "";
+  resetModal();
+}
+
+function renderPlans() {
+  // Show plan options, hide details initially
+  planOptions.innerHTML = '';
+  paymentDetails.style.display = 'none';
+  
+  for (const key in plans) {
+    const plan = plans[key];
+    const isSelected = currentPlan && currentPlan.key === key;
+    const card = document.createElement('div');
+    card.className = 'plan-option ' + (isSelected ? 'selected' : '');
+    card.innerHTML = \`
+      <div class="plan-name">\${plan.name}</div>
+      <div class="plan-desc">\${plan.period}</div>
+      <div class="plan-price">\${plan.naira_monthly < plan.naira_yearly ? \`\${plan.naira_monthly} <s>\${plan.naira_yearly}</s>\` : \`\${plan.naira_yearly} <s>\${plan.naira_monthly * 12}</s>\`}</div>
+    \`;
+    card.onclick = () => selectPlan(key, plan);
+    planOptions.appendChild(card);
+  }
+}
+
+function selectPlan(key, plan) {
+  currentPlan = { key, ...plan };
+  
+  // Update selected visual state
+  document.querySelectorAll('.plan-option').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  
+  // Show payment details
+  planTypeEl.innerHTML = \`<strong>\${plan.name}</strong> - \${plan.period}\`;
+  pricingInfoEl.innerHTML = \`
+    <div class="price">\${plan.naira_monthly}</div>
+    <div class="currency">NGN</div>
+    <div class="period">\${plan.period}</div>
+  \`;
+  
+  // Calculate end date (31 days from today for monthly, 365 for yearly)
+  const today = new Date();
+  let endDate;
+  if (plan.period === 'monthly') {
+    // Simple: add 31 days
+    endDate = new Date(today);
+    endDate.setDate(today.getDate() + 31);
+    billingCycleText.textContent = "Monthly";
+  } else {
+    endDate = new Date(today);
+    endDate.setFullYear(today.getFullYear() + 1);
+    billingCycleText.textContent = "Yearly";
+  }
+  
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  endDateText.textContent = endDate.toLocaleDateString('en-US', options);
+  
+  endDateEl.style.display = 'block';
+  paymentDetails.style.display = 'block';
+}
+
+function resetModal() {
+  currentPlan = null;
+  planOptions.innerHTML = '';
+  paymentDetails.style.display = 'none';
+  endDateEl.style.display = 'none';
+}
+
+// Wire up event listeners
+if (paymentModal) {
+  paymentModalClose.addEventListener('click', closePaymentModal);
+  paymentCancelBtn.addEventListener('click', closePaymentModal);
+  paymentSubscribeBtn.addEventListener('click', () => {
+    if (currentPlan) {
+      // Start payment edge function
+      startPaymentEdge(currentPlan);
+    }
+    closePaymentModal();
+  });
+  // Close on overlay click
+  paymentModal.addEventListener('click', (e) => {
+    if (e.target === paymentModal) closePaymentModal();
+  });
+}
+
+// Start payment edge function
+function startPaymentEdge(plan) {
+  // Show loading state
+  paymentSubscribeBtn.disabled = true;
+  paymentSubscribeBtn.textContent = "Processing...";
+  
+  // Call the edge function
+  fetch('/.netlify/functions/api-start-payment', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      plan_type: plan.key,
+      plan_name: plan.name,
+      amount: plan.price,
+      currency: 'NGN',
+      period: plan.period
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showToast('success', 'Payment started successfully for ' + plan.name);
+      // Redirect or handle success
+      setTimeout(() => {
+        closePaymentModal();
+        // Could redirect to success page or reload
+      }, 1000);
+    } else {
+      showToast('error', data.message || 'Payment failed. Please try again.');
+      paymentSubscribeBtn.disabled = false;
+      paymentSubscribeBtn.textContent = "Subscribe";
+    }
+  })
+  .catch(error => {
+    showToast('error', 'Network error. Please try again.');
+    paymentSubscribeBtn.disabled = false;
+    paymentSubscribeBtn.textContent = "Subscribe";
+  });
+}
+
+// Make openPaymentModal available globally if needed
+window.openPaymentModal = openPaymentModal;

@@ -16,17 +16,32 @@ router.get("/", authMiddleware, async (req, res) => {
     return res.status(500).json({ success: false, code: "SERVER_ERROR", message: "Could not load your account." });
   }
 
-  const paid =
-    data?.plan_tier === "paid" &&
-    Boolean(data.billing_cycle_ends_at) &&
-    new Date(data.billing_cycle_ends_at) > new Date();
+  const storedPlan = String(data?.plan_tier || "free").toLowerCase();
+  const isTimeLimitedPlan = storedPlan === "paid" || storedPlan === "business";
+  const cycleEnd = data?.billing_cycle_ends_at
+    ? new Date(data.billing_cycle_ends_at)
+    : null;
+  const cycleIsCurrent =
+    cycleEnd !== null &&
+    Number.isFinite(cycleEnd.getTime()) &&
+    cycleEnd.getTime() > Date.now();
+  const plan =
+    isTimeLimitedPlan && !cycleIsCurrent
+      ? "free"
+      : ["free", "paid", "business", "custom"].includes(storedPlan)
+        ? storedPlan
+        : "free";
 
   return res.status(200).json({
     success: true,
     data: {
       email: data?.email ?? null,
-      plan: paid ? "paid" : "free",
-      billing_cycle_ends_at: paid ? data.billing_cycle_ends_at : null,
+      plan,
+      plan_tier: plan,
+      billing_cycle_ends_at:
+        isTimeLimitedPlan && cycleIsCurrent
+          ? data.billing_cycle_ends_at
+          : null,
     },
   });
 });

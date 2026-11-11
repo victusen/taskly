@@ -16,9 +16,10 @@ export function occurrenceKey(scheduleId, runFor) {
 // If the time is already past, croner fires on the next tick.
 // If the key already exists, this is a no-op — the original alarm stays.
 export function armAt(key, fireAt, fn) {
-  if (armed.has(key)) return;
+  if (armed.has(key)) return "already_armed";
   const job = new Cron(new Date(fireAt), { maxRuns: 1 }, fn);
   armed.set(key, job);
+  return "armed";
 }
 
 export function armCronAt(key, expression, fireAt, fn) {
