@@ -323,21 +323,25 @@ export function initInviteModal(options = {}) {
   document.body.appendChild(overlay);
 
   // References
-  const closeBtn = document.getElementById("invite-drawer-close");
-  const emailsInput = document.getElementById("invite-emails-input");
-  const roleSelect = document.getElementById("invite-role-select");
-  const scopeSelect = document.getElementById("scope-select");
-  const projectGroup = document.getElementById("invite-project-group");
-  const projectSelect = document.getElementById("invite-project-select");
-  const noteInput = document.getElementById("invite-note-input");
-  const submitBtn = document.getElementById("btn-submit-invite");
+  const closeBtn = overlay.querySelector("#invite-drawer-close");
+  const emailsInput = overlay.querySelector("#invite-emails-input");
+  const roleSelect = overlay.querySelector("#invite-role-select");
+  const scopeSelect = overlay.querySelector("#scope-select");
+  const projectGroup = overlay.querySelector("#invite-project-group");
+  const projectSelect = overlay.querySelector("#invite-project-select");
+  const noteInput = overlay.querySelector("#invite-note-input");
+  const submitBtn = overlay.querySelector("#btn-submit-invite");
 
-  let activeScope = scopeSelect.value;
+  if (!scopeSelect) {
+    console.error("Invite modal is missing its access-scope selector.");
+  }
+
+  let activeScope = scopeSelect?.value || "project";
   const updateScope = () => {
-    activeScope = scopeSelect.value;
-    projectGroup.hidden = activeScope === "account";
+    activeScope = scopeSelect?.value || "project";
+    if (projectGroup) projectGroup.hidden = activeScope === "account";
   };
-  scopeSelect.addEventListener("change", updateScope);
+  scopeSelect?.addEventListener("change", updateScope);
   updateScope();
 
   // Load Projects into Select
