@@ -3,7 +3,8 @@
 // closes the attempt, and moves the schedule forward.
 
 import { computeNextRun } from "../services/scheduleRule.js";
-import { sendScheduledEmail } from "../services/sendService.js";
+import { sendPersonalizedEmails, sendScheduledEmail } from "../services/sendService.js";
+import { buildSpreadsheetMessages } from "../services/spreadsheetDelivery.js";
 import { decryptJson } from "../utils/credentialCrypto.js";
 import { release, occurrenceKey } from "./scheduleQueue.js";
 import {
@@ -115,8 +116,24 @@ async function send({ current, connection, runFor, key, runId, number, retryFail
 
   try {
     const credentials = decryptJson(connection.credentials);
-    const result = await sendScheduledEmail({ connection, credentials, config: current.config });
-    emailSent = true;
+    let result;
+    if (current.config.spreadsheet) {
+      const { messages, failures: rowFailures } = await buildSpreadsheetMessages(
+        connection,
+        current.config,
+      );
+      result = await sendPersonalizedEmails({ connection, credentials, messages });
+      result.failures.unshift(...rowFailures);
+      emailSent = result.sentCount > 0;
+      if (!emailSent) {
+        const error = new Error(summarize(result.failures) || "No spreadsheet messages were accepted.");
+        error.failures = result.failures;
+        throw error;
+      }
+    } else {
+      result = await sendScheduledEmail({ connection, credentials, config: current.config });
+      emailSent = true;
+    }
 
     const partial = result.failures.length ? summarize(result.failures) : null;
     await closeAttempt(runId, { status: "succeeded", error: partial });

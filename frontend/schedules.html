@@ -389,7 +389,7 @@
 
     .task-list {
       display: flex; flex: 1 1 auto; flex-direction: column; gap: 0;
-      width: 100%; min-width: 0; margin: 0; min-height: 0; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 0;
+      width: 100%; min-width: 0; margin: 0; min-height: 0; border-radius: 8px;
     }
     .task-list > #task-loader { flex: 1; }
     .no-job {
@@ -823,6 +823,14 @@
     .sheet-picker-field input:focus, .sheet-picker-field select:focus { outline: 2px solid #15803d; outline-offset: 1px; border-color: #15803d; }
     .sheet-picker-message { margin: 0; color: #6b7280; font-size: 12px; line-height: 1.5; }
     .sheet-picker-message[data-error="true"] { color: #b91c1c; }
+    .sheet-picker-column-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .sheet-picker-variable-add { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end; }
+    .sheet-picker-variable-list, .sheet-variable-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+    .sheet-picker-variable-list:empty, .sheet-variable-tags:empty { display: none; }
+    .sheet-variable-tag { display: inline-flex; align-items: center; gap: 7px; border: 1px solid #bbf7d0; border-radius: 999px; padding: 4px 9px; background: #f0fdf4; color: #166534; font: inherit; font-size: 12px; cursor: pointer; }
+    .sheet-variable-tag:hover { background: #dcfce7; }
+    .sheet-variable-remove { border: 0; padding: 0; background: transparent; color: inherit; font: inherit; font-size: 15px; line-height: 1; cursor: pointer; }
+    body[data-theme="dark"] .sheet-variable-tag { border-color: #166534; background: #052e16; color: #bbf7d0; }
     .sheet-picker-secondary { padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #374151; font: inherit; font-size: 12px; cursor: pointer; }
     .sheet-picker-primary { padding: 8px 13px; border: 1px solid #111827; border-radius: 7px; background: #111827; color: #fff; font: inherit; font-size: 13px; cursor: pointer; }
     .sheet-picker-primary:disabled, .sheet-picker-secondary:disabled { opacity: .55; cursor: wait; }
@@ -884,16 +892,18 @@
     .schedule-table th { background: #f8fafc; color: #111827; font-size: 12px; font-weight: 750; letter-spacing: .035em; text-transform: uppercase; }
     .schedule-table tbody tr:last-child td { border-bottom: 0; }
     .schedule-table th:first-child, .schedule-table td:first-child { display: none; }
-    .schedule-table th:nth-child(2) { width: 19%; }
+    .schedule-table th:nth-child(2) { width: 17%; }
     .schedule-table th:nth-child(3) { width: 8%; }
-    .schedule-table th:nth-child(4) { width: 16%; }
-    .schedule-table th:nth-child(5) { width: 16%; }
+    .schedule-table th:nth-child(4) { width: 12%; }
+    .schedule-table th:nth-child(5) { width: 15%; }
     .schedule-table th:nth-child(6) { width: 15%; }
-    .schedule-table th:nth-child(7) { width: 8%; }
-    .schedule-table th:nth-child(8) { width: 10%; }
-    .schedule-table th:nth-child(9) { width: 44px; }
+    .schedule-table th:nth-child(7) { width: 15%; }
+    .schedule-table th:nth-child(8) { width: 7%; }
+    .schedule-table th:nth-child(9) { width: 8%; }
+    .schedule-table th:nth-child(10) { width: 44px; }
     .schedule-table tbody tr { cursor: pointer; }
     .schedule-name-cell { color: #111827; font-size: 14px; font-weight: 700; }
+    .schedule-type-cell, .schedule-frequency-cell { color: #111827; font-weight: 700; }
     .schedule-date-time { display: flex; flex-direction: column; line-height: 1.35; }
     .schedule-date-time strong { color: #1f2937; font-size: 13px; font-weight: 650; }
     .schedule-date-time span { color: #4b5563; font-size: 12px; }
@@ -910,20 +920,21 @@
     .schedule-row-menu button:hover { background: #f3f4f6; }
     .schedule-row-menu button[data-delete-schedule] { color: #b91c1c; }
     .schedule-mobile-list { display: none; }
-    .schedule-mobile-card { min-width: 0; padding: 14px; border-bottom: 1px solid #e5e7eb; background: #fff; cursor: pointer; }
+    .schedule-mobile-card { display: grid; grid-template-columns: 28px minmax(0,1fr) minmax(0,1.25fr); align-items: stretch; gap: 0 12px; min-width: 0; padding: 12px; border-bottom: 1px solid #e5e7eb; background: #fff; cursor: pointer; }
     .schedule-mobile-card:last-child { border-bottom: 0; }
-    .schedule-mobile-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .schedule-mobile-select { grid-column: 1; grid-row: 1 / span 2; display: flex; justify-content: center; align-items: flex-start; padding-top: 6px; }
+    .schedule-mobile-header { grid-column: 2 / 4; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; min-width: 0; }
     .schedule-mobile-title { min-width: 0; color: #111827; font-size: 16px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
-    .schedule-mobile-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
-    .schedule-mobile-actions .schedule-select-cell { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; }
-    .schedule-mobile-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; margin-top: 16px; }
-    .schedule-mobile-field { display: grid; gap: 2px; min-width: 0; }
-    .schedule-mobile-label { color: #4b5563; font-size: 11px; font-weight: 700; letter-spacing: .045em; text-transform: uppercase; }
-    .schedule-mobile-value { min-width: 0; color: #1f2937; font-size: 13px; font-weight: 500; line-height: 1.45; overflow-wrap: anywhere; }
+    .schedule-mobile-meta { grid-column: 2 / 4; display: grid; grid-template-columns: minmax(92px,.8fr) minmax(0,1.2fr); gap: 0; margin-top: 7px; }
+    .schedule-mobile-field { display: contents; min-width: 0; }
+    .schedule-mobile-label, .schedule-mobile-value { display: flex; align-items: center; min-width: 0; padding: 7px 4px; border-bottom: 1px solid #e5e7eb; }
+    .schedule-mobile-label { color: #374151; font-size: 10px; font-weight: 700; letter-spacing: .045em; text-transform: uppercase; }
+    .schedule-mobile-value { color: #111827; font-size: 12px; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
+    .schedule-mobile-value.schedule-type-cell, .schedule-mobile-value.schedule-frequency-cell { font-weight: 700; }
     .schedule-mobile-date { display: flex; flex-direction: column; }
-    .schedule-mobile-date strong { color: #1f2937; font-size: 13px; font-weight: 650; }
-    .schedule-mobile-date span { color: #4b5563; font-size: 12px; }
-    .schedule-mobile-actions .schedule-row-menu { top: calc(100% + 2px); }
+    .schedule-mobile-date strong { color: #111827; font-size: 12px; font-weight: 650; }
+    .schedule-mobile-date span { color: #4b5563; font-size: 11px; }
+    .schedule-mobile-meta .schedule-mobile-field:last-child > * { border-bottom: 0; }
     .schedule-detail-overlay { position: fixed; inset: 0; z-index: 4200; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(17,24,39,.52); }
     .schedule-detail-overlay.open { display: flex; }
     .schedule-detail-card { width: min(660px,100%); max-height: min(760px,90vh); overflow: auto; border: 1px solid #e5e7eb; border-radius: 14px; background: #fff; box-shadow: 0 24px 70px rgba(0,0,0,.2); }
@@ -945,7 +956,7 @@
       .schedule-list-shell #job-rows { flex: 1 1 auto; min-height: 0; }
       .schedule-table-scroll { display: none; }
       .schedule-mobile-list { display: flex; flex-direction: column; }
-      .task-list-footer { min-height: 48px; margin-top: 0; padding: 5px 10px; border: 1px solid #374151; border-radius: 10px; }
+      .task-list-footer { min-height: 48px; margin-top: 0; padding: 5px 10px; border-radius: 10px; }
       .schedule-footer-add { font-size: 11px; }
       .page-current { display: none; }
       .page-mobile-current { display: inline; min-width: 42px; color: #111827; font-size: 12px; font-weight: 700; text-align: center; }
@@ -1529,12 +1540,14 @@
                             <input class="cmp-input" value="UTC" aria-label="Timezone UTC" disabled>
                           </label>
                         </div>
+                        <div id="sheet-variable-tags" class="sheet-variable-tags cmp-field full" aria-label="Spreadsheet template variables"></div>
                         <section class="sheet-plan-summary cmp-field full" aria-labelledby="sheet-plan-summary-title">
                           <div class="sheet-plan-summary-head">
                             <div>
                               <h3 id="sheet-plan-summary-title" class="sheet-plan-summary-title">Spreadsheet recipients</h3>
                               <p id="sheet-plan-summary-copy" class="sheet-plan-summary-copy">No spreadsheet selected. Choose a spreadsheet and sheet tab to use for this schedule.</p>
                             </div>
+                            <button type="button" class="sheet-picker-secondary" id="sheet-plan-clear" hidden>Remove spreadsheet</button>
                           </div>
                           <ul class="sheet-plan-summary-list" id="sheet-plan-summary-list"></ul>
                         </section>
@@ -1713,6 +1726,36 @@
           Sheet tab
           <select id="sheet-picker-tab" disabled><option value="">Select a sheet tab</option></select>
         </label>
+        <div class="sheet-picker-column-grid">
+          <label class="sheet-picker-field">
+            Header row
+            <input id="sheet-picker-header-row" type="number" min="1" max="1000000" value="1">
+          </label>
+          <label class="sheet-picker-field">
+            First data row
+            <input id="sheet-picker-start-row" type="number" min="2" max="1000000" value="2">
+          </label>
+        </div>
+        <label class="sheet-picker-field">
+          Last data row (optional)
+          <input id="sheet-picker-end-row" type="number" min="2" max="1000000" placeholder="All populated rows">
+        </label>
+        <label class="sheet-picker-field">
+          Recipient email column
+          <select id="sheet-picker-email-column" disabled><option value="">Choose a column</option></select>
+        </label>
+        <div class="sheet-picker-variable-add">
+          <label class="sheet-picker-field">
+            Variable name
+            <input id="sheet-picker-variable-name" maxlength="64" placeholder="first_name">
+          </label>
+          <label class="sheet-picker-field">
+            Spreadsheet column
+            <select id="sheet-picker-variable-column" disabled><option value="">Choose a column</option></select>
+          </label>
+          <button type="button" class="sheet-picker-secondary" id="sheet-picker-add-variable" disabled>Add variable</button>
+        </div>
+        <div id="sheet-picker-variable-list" class="sheet-picker-variable-list" aria-label="Selected variable columns"></div>
       </div>
       <footer class="sheet-picker-footer">
         <button type="button" class="cmp-cancel" id="sheet-picker-cancel">Cancel</button>
@@ -2163,10 +2206,12 @@
 
     if (!name) return showError("Give this task a job name.");
     if (recipients.length === 0 && !spreadsheet) return showError("Add at least one recipient or choose a spreadsheet.");
+    if (spreadsheet && recipients.length > 0) return showError("Use direct recipients or spreadsheet recipients, not both.");
     if (!subject) return showError("Add a subject.");
     if (!html) return showError("Write the message in the editor.");
     const spreadsheetErrors = window.bzComposer.validateSheetPlan?.(subject, html) || [];
     if (spreadsheetErrors.length) return showError(spreadsheetErrors[0]);
+    if (spreadsheet && how === "now") return showError("Spreadsheet emails must be scheduled for a date and time.");
 
     const draft = {
       name,

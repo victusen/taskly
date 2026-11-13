@@ -204,16 +204,59 @@ function renderProjectInsight(card) {
   // Display the highest priority message
   const currentPriority = priorityNotifications[0];
   if (currentPriority) {
-    label.textContent = currentPriority.text;
-    // Apply background color consistent with hero page badge rgb(0, 128, 0)
-    label.style.backgroundColor = currentPriority.bgColor;
-    label.style.color = "white";
-    label.style.padding = "4px 8px";
-    label.style.borderRadius = "4px";
-    label.style.fontSize = "12px";
-    label.style.fontWeight = "500";
     label.dataset.messages = JSON.stringify(priorityNotifications);
+    const activeIndex = Number(card.dataset.projectInfoIndex || 0) % priorityNotifications.length;
+    showProjectInsight(card, priorityNotifications[activeIndex]);
+    startProjectInsightCarousel(card);
   }
+}
+
+function showProjectInsight(card, message) {
+  const label = card.querySelector("[data-project-info]");
+  if (!label || !message) return;
+  label.textContent = message.text;
+  label.style.backgroundColor = message.bgColor || "rgb(0, 128, 0)";
+  label.style.color = "white";
+  label.style.padding = "4px 8px";
+  label.style.borderRadius = "0";
+  label.style.fontSize = "12px";
+  label.style.fontWeight = "600";
+}
+
+function rotateProjectInsights(card) {
+  const label = card.querySelector("[data-project-info]");
+  if (!label) return;
+  let messages = [];
+  try {
+    messages = JSON.parse(label.dataset.messages || "[]");
+  } catch (error) {
+    console.error("Could not read project insight messages:", error);
+    return;
+  }
+  if (messages.length < 2) return;
+  const index = (Number(card.dataset.projectInfoIndex || 0) + 1) % messages.length;
+  card.dataset.projectInfoIndex = String(index);
+  showProjectInsight(card, messages[index]);
+}
+
+function startProjectInsightCarousel(card) {
+  if (card.dataset.projectCarouselStarted) return;
+  card.dataset.projectCarouselStarted = "true";
+  const cards = [...document.querySelectorAll(".proj-card-wrapper[data-project-id]")];
+  const position = Math.max(0, cards.indexOf(card));
+  const initialDelay = 900 + (position % 6) * 850;
+
+  window.setTimeout(() => {
+    if (!card.isConnected) return;
+    rotateProjectInsights(card);
+    const interval = window.setInterval(() => {
+      if (!card.isConnected) {
+        window.clearInterval(interval);
+        return;
+      }
+      rotateProjectInsights(card);
+    }, 5200);
+  }, initialDelay);
 }
 
 async function refreshProjectScheduleInsights() {
@@ -418,9 +461,7 @@ async function renderDashboardProjects({ fallbackProject = null, useFallback = f
                   <h4 class="title">${escapeHtml(pName)}</h4>
                   ${p.business_name && p.business_name !== pName ? `<p style="font-size: 13px; color: #6b7280; margin-top: 4px;">${escapeHtml(p.business_name)}</p>` : ""}
                 </div>
-                <p class="project-tag" data-project-info aria-live="polite">${projectMailConnections.get(p.id)?.status === "active"
-                  ? `Mail connected: ${escapeHtml(projectMailConnections.get(p.id).email_address)}`
-                  : projectMailConnections.has(p.id) ? "Mail account needs attention" : "No mail account connected"}</p>
+                <p class="project-tag" data-project-info aria-live="polite">Checking project activity...</p>
               </div>
             </a>
 
@@ -472,24 +513,6 @@ async function renderDashboardProjects({ fallbackProject = null, useFallback = f
   if (mFail) mFail.textContent = "0%";
   void refreshProjectMailConnections({ notify: true }).then(() => refreshProjectScheduleInsights());
 }
-
-function rotateProjectInsights() {
-  document.querySelectorAll(".proj-card-wrapper[data-project-id]").forEach((card) => {
-    const label = card.querySelector("[data-project-info]");
-    if (!label) return;
-    let messages = [];
-    try {
-      messages = JSON.parse(label.dataset.messages || "[]");
-    } catch (error) {
-      console.error("Could not read project insight messages:", error);
-    }
-    if (messages.length < 2) return;
-    card.dataset.projectInfoIndex = String((Number(card.dataset.projectInfoIndex || 0) + 1) % messages.length);
-    label.textContent = messages[Number(card.dataset.projectInfoIndex)];
-  });
-}
-
-window.setInterval(rotateProjectInsights, 4500);
 
 // 3-dots popover toggles
 document.addEventListener("click", async (e) => {

@@ -7,7 +7,9 @@ import { startGoogleConnection } from "./scripts/api/emailConnections.js";
 import {
   listProjectSpreadsheets,
   listSpreadsheetSheets,
+  listSpreadsheetColumns,
 } from "./scripts/api/googleSheets.js";
+import { inspectTemplateVariables } from "./scripts/utils/scheduleSheets.js";
 import { openConnectModal } from "./scripts/ui/connectModal.js";
 import { sendNow } from "./scripts/api/schedules.js"
 import {
@@ -57,6 +59,14 @@ const connectDatabaseBtns = document.querySelectorAll("#cmp-connect-database");
 const sheetPicker = document.getElementById("sheet-picker-overlay");
 const sheetPickerFile = document.getElementById("sheet-picker-file");
 const sheetPickerTab = document.getElementById("sheet-picker-tab");
+const sheetPickerHeaderRow = document.getElementById("sheet-picker-header-row");
+const sheetPickerStartRow = document.getElementById("sheet-picker-start-row");
+const sheetPickerEndRow = document.getElementById("sheet-picker-end-row");
+const sheetPickerEmailColumn = document.getElementById("sheet-picker-email-column");
+const sheetPickerVariableName = document.getElementById("sheet-picker-variable-name");
+const sheetPickerVariableColumn = document.getElementById("sheet-picker-variable-column");
+const sheetPickerVariableList = document.getElementById("sheet-picker-variable-list");
+const sheetVariableTags = document.getElementById("sheet-variable-tags");
 const sheetPickerMessage = document.getElementById("sheet-picker-message");
 const sheetPlanSummaryCopy = document.getElementById("sheet-plan-summary-copy");
 const sheetPlanSummaryList = document.getElementById("sheet-plan-summary-list");
@@ -81,6 +91,7 @@ let projectConnectionKnown = false;
 let sheetPlan = null;
 let spreadsheetFiles = [];
 let spreadsheetSheets = [];
+let spreadsheetColumns = [];
 if (connectGmailBtn) connectGmailBtn.disabled = true;
 if (mailAccountBtn) mailAccountBtn.disabled = true;
 
@@ -140,38 +151,119 @@ function selectedSheetTab() {
 function renderSheetSummary() {
   if (!sheetPlanSummaryCopy || !sheetPlanSummaryList) return;
   sheetPlanSummaryList.replaceChildren();
+  const clearButton = document.getElementById("sheet-plan-clear");
+  if (clearButton) clearButton.hidden = !sheetPlan;
   if (!sheetPlan?.file || !sheetPlan?.sheet) {
     sheetPlanSummaryCopy.textContent = "No spreadsheet selected.";
     return;
   }
 
-  sheetPlanSummaryCopy.textContent = "Spreadsheet and sheet selected";
+  const range = sheetPlan.endRow
+    ? `Rows ${sheetPlan.startRow}-${sheetPlan.endRow}`
+    : `From row ${sheetPlan.startRow}; all populated recipients`;
+  sheetPlanSummaryCopy.textContent = "Spreadsheet recipients selected";
   sheetPlanSummaryList.append(
-    el("li", "", `Spreadsheet: ${sheetPlan.file.name} · ID: ${sheetPlan.file.id}`),
-    el("li", "", `Sheet: ${sheetPlan.sheet.title} · ID: ${sheetPlan.sheet.id}`)
+    el("li", "", `Spreadsheet: ${sheetPlan.file.name}`),
+    el("li", "", `Sheet: ${sheetPlan.sheet.title}`),
+    el("li", "", `Email column: ${sheetPlan.emailColumn || "Choose in spreadsheet setup"}`),
+    el("li", "", range),
   );
+}
+
+function renderVariableTags() {
+  if (!sheetVariableTags) return;
+  sheetVariableTags.replaceChildren();
+  for (const [name, column] of Object.entries(sheetPlan?.variableColumns || {})) {
+    const tag = el("span", "sheet-variable-tag");
+    const insert = el("button", "sheet-variable-tag", `{${name}}`);
+    insert.type = "button";
+    insert.setAttribute("aria-label", `Insert {${name}} into the email body`);
+    insert.addEventListener("click", () => {
+      const body = document.getElementById("cmp-body");
+      if (!body) return;
+      const start = body.selectionStart;
+      const end = body.selectionEnd;
+      const token = `{${name}}`;
+      body.value = `${body.value.slice(0, start)}${token}${body.value.slice(end)}`;
+      body.focus();
+      body.setSelectionRange(start + token.length, start + token.length);
+      body.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+
+    const remove = el("button", "sheet-variable-remove", "×");
+    remove.type = "button";
+    remove.setAttribute("aria-label", `Remove spreadsheet variable ${name}`);
+    remove.addEventListener("click", () => {
+      delete sheetPlan.variableColumns[name];
+      renderVariableTags();
+      renderSheetSummary();
+      renderPickerVariables();
+    });
+    tag.append(insert, remove);
+    tag.title = `Column ${column}`;
+    sheetVariableTags.append(tag);
+  }
+}
+
+function renderPickerVariables() {
+  if (!sheetPickerVariableList) return;
+  sheetPickerVariableList.replaceChildren();
+  for (const [name, column] of Object.entries(sheetPlan?.variableColumns || {})) {
+    const item = el("span", "sheet-variable-tag", `{${name}} · ${column}`);
+    sheetPickerVariableList.append(item);
+  }
+}
+
+function setColumnOptions(select, placeholder, columns, selected = "") {
+  setSelectOptions(select, placeholder, columns.map((column) => ({
+    value: column.letter,
+    label: `${column.letter} — ${column.header}`,
+  })), selected);
+}
+
+function updateSheetPlanFromInputs() {
+  if (!sheetPlan) return;
+  sheetPlan.headerRow = Number(sheetPickerHeaderRow?.value);
+  sheetPlan.startRow = Number(sheetPickerStartRow?.value);
+  sheetPlan.endRow = sheetPickerEndRow?.value ? Number(sheetPickerEndRow.value) : null;
+  renderSheetSummary();
 }
 
 function setSheetPlan(plan) {
   sheetPlan = plan ? JSON.parse(JSON.stringify(plan)) : null;
   if (!sheetPlan) {
     spreadsheetSheets = [];
+    spreadsheetColumns = [];
     setSelectOptions(sheetPickerTab, "Select a sheet tab", []);
+    setSelectOptions(sheetPickerEmailColumn, "Choose a column", []);
+    setSelectOptions(sheetPickerVariableColumn, "Choose a column", []);
+    const addVariableButton = document.getElementById("sheet-picker-add-variable");
+    if (addVariableButton) addVariableButton.disabled = true;
   }
-  spreadsheetFiles = sheetPlan?.file ? [sheetPlan.file] : spreadsheetFiles;
-  spreadsheetSheets = sheetPlan?.sheet ? [sheetPlan.sheet] : spreadsheetSheets;
+  spreadsheetFiles = sheetPlan?.file ? [sheetPlan.file] : [];
+  spreadsheetSheets = sheetPlan?.sheet ? [sheetPlan.sheet] : [];
+  spreadsheetColumns = sheetPlan?.columns || [];
   setSelectOptions(sheetPickerFile, "Select a spreadsheet", spreadsheetFiles.map((file) => ({
     value: file.id,
     label: file.name || file.title || "Untitled spreadsheet",
-  })), sheetPlan?.file?.id || "");
+  })), sheetPlan?.file?.id ?? "");
   setSelectOptions(sheetPickerTab, "Select a sheet tab", spreadsheetSheets.map((sheet) => ({
     value: sheet.id,
     label: sheet.title || sheet.name || "Untitled sheet",
-  })), sheetPlan?.sheet?.id || "");
+  })), sheetPlan?.sheet?.id ?? "");
   if (sheetPickerTab) sheetPickerTab.disabled = !sheetPlan?.file;
+  if (sheetPickerHeaderRow) sheetPickerHeaderRow.value = String(sheetPlan?.headerRow || 1);
+  if (sheetPickerStartRow) sheetPickerStartRow.value = String(sheetPlan?.startRow || Number(sheetPlan?.headerRow || 1) + 1);
+  if (sheetPickerEndRow) sheetPickerEndRow.value = sheetPlan?.endRow ? String(sheetPlan.endRow) : "";
+  setColumnOptions(sheetPickerEmailColumn, "Choose a column", spreadsheetColumns, sheetPlan?.emailColumn || "");
+  setColumnOptions(sheetPickerVariableColumn, "Choose a column", spreadsheetColumns);
+  if (sheetPickerEmailColumn) sheetPickerEmailColumn.disabled = !spreadsheetColumns.length;
+  if (sheetPickerVariableColumn) sheetPickerVariableColumn.disabled = !spreadsheetColumns.length;
   const applyButton = document.getElementById("sheet-picker-apply");
-  if (applyButton) applyButton.disabled = !sheetPlan?.file || !sheetPlan?.sheet;
+  if (applyButton) applyButton.disabled = !sheetPlan?.file || !sheetPlan?.sheet || !sheetPlan?.emailColumn;
   renderSheetSummary();
+  renderVariableTags();
+  renderPickerVariables();
 }
 
 async function loadSheetFiles() {
@@ -183,14 +275,13 @@ async function loadSheetFiles() {
       label: file.name || file.title || "Untitled spreadsheet",
     })), sheetPlan?.file?.id || "");
     setSheetPickerMessage(spreadsheetFiles.length
-      ? "Choose a spreadsheet, then choose its sheet tab."
+      ? "Choose a spreadsheet and sheet tab, then select the recipient column."
       : "No spreadsheets are available to this Google connection. Files must be shared with or opened by this app.");
     if (sheetPlan?.file?.id) {
       await loadSheetTabs(sheetPlan.file.id);
-      if (sheetPlan.sheet?.id && sheetPickerTab) {
+      if (sheetPlan.sheet?.id !== undefined && sheetPickerTab) {
         sheetPickerTab.value = String(sheetPlan.sheet.id);
-        const applyButton = document.getElementById("sheet-picker-apply");
-        if (applyButton) applyButton.disabled = !selectedSheetTab();
+        await loadSheetColumns(sheetPlan.file.id, sheetPlan.sheet.id, sheetPlan.headerRow || 1);
       }
     }
   } catch (error) {
@@ -219,6 +310,40 @@ async function loadSheetTabs(spreadsheetId) {
   }
 }
 
+async function loadSheetColumns(spreadsheetId, sheetId, headerRow) {
+  spreadsheetColumns = [];
+  setColumnOptions(sheetPickerEmailColumn, "Loading columns…", []);
+  setColumnOptions(sheetPickerVariableColumn, "Loading columns…", []);
+  if (sheetPickerEmailColumn) sheetPickerEmailColumn.disabled = true;
+  if (sheetPickerVariableColumn) sheetPickerVariableColumn.disabled = true;
+  const row = Number(headerRow);
+  if (!spreadsheetId || sheetId === undefined || !Number.isSafeInteger(row) || row < 1) return;
+
+  try {
+    const columns = await listSpreadsheetColumns(projectId, spreadsheetId, sheetId, row);
+    if (
+      sheetPickerFile?.value !== String(spreadsheetId) ||
+      sheetPickerTab?.value !== String(sheetId) ||
+      Number(sheetPickerHeaderRow?.value) !== row
+    ) return;
+    spreadsheetColumns = columns;
+    if (sheetPlan) sheetPlan.columns = spreadsheetColumns;
+    setColumnOptions(sheetPickerEmailColumn, "Choose a column", spreadsheetColumns, sheetPlan?.emailColumn || "");
+    setColumnOptions(sheetPickerVariableColumn, "Choose a column", spreadsheetColumns);
+    if (sheetPickerEmailColumn) sheetPickerEmailColumn.disabled = !spreadsheetColumns.length;
+    if (sheetPickerVariableColumn) sheetPickerVariableColumn.disabled = !spreadsheetColumns.length;
+    const addVariableButton = document.getElementById("sheet-picker-add-variable");
+    if (addVariableButton) addVariableButton.disabled = !spreadsheetColumns.length;
+    const applyButton = document.getElementById("sheet-picker-apply");
+    if (applyButton) applyButton.disabled = !sheetPlan?.emailColumn;
+    setSheetPickerMessage(spreadsheetColumns.length
+      ? "Choose the recipient email column. Add columns for any email variables."
+      : "No column headers were found in this row.", !spreadsheetColumns.length);
+  } catch (error) {
+    setSheetPickerMessage(`Could not load spreadsheet columns: ${error.message}`, true);
+  }
+}
+
 function openSheetPicker() {
   if (!sheetPicker) return;
   sheetPicker.classList.add("open");
@@ -234,10 +359,33 @@ function closeSheetPicker() {
 
 function validateCurrentSheetPlan(subject, body) {
   if (!sheetPlan) return [];
-  if (!sheetPlan.file?.id || !sheetPlan.sheet?.id) {
-    return ["Choose a spreadsheet and sheet tab, or clear the spreadsheet selection."];
+  const errors = [];
+  if (!sheetPlan.file?.id || sheetPlan.sheet?.id === undefined) errors.push("Choose a spreadsheet and sheet tab.");
+  if (!sheetPlan.emailColumn) errors.push("Choose the spreadsheet column containing recipient email addresses.");
+  const headerRow = Number(sheetPlan.headerRow);
+  const startRow = Number(sheetPlan.startRow);
+  const endRow = sheetPlan.endRow === null || sheetPlan.endRow === undefined || sheetPlan.endRow === ""
+    ? null
+    : Number(sheetPlan.endRow);
+  if (!Number.isSafeInteger(headerRow) || !Number.isSafeInteger(startRow) || headerRow < 1 || startRow <= headerRow || startRow > 1_000_000) {
+    errors.push("Choose a valid header row and first data row.");
   }
-  return ["Spreadsheet-based delivery is not supported by the schedule service yet. Save this setup as a draft until backend row processing is available."];
+  if (endRow !== null && (!Number.isSafeInteger(endRow) || endRow < startRow || endRow > 1_000_000 || endRow - startRow + 1 > 500)) {
+    errors.push("The selected spreadsheet range can contain at most 500 rows.");
+  }
+
+  const mappings = sheetPlan.variableColumns || {};
+  const required = inspectTemplateVariables(subject, body).variables;
+  const missing = required.filter((name) => !mappings[name]);
+  if (missing.length) {
+    errors.push(`Choose a spreadsheet column for ${missing.map((name) => `{${name}}`).join(", ")}.`);
+  }
+  const usedVariables = new Set(inspectTemplateVariables(subject, body).variables);
+  const unused = Object.keys(mappings).filter((name) => !usedVariables.has(name));
+  if (unused.length) {
+    errors.push(`Use each selected variable in the subject or email body: ${unused.map((name) => `{${name}}`).join(", ")}.`);
+  }
+  return errors;
 }
 
 window.bzComposer = window.bzComposer || {};
@@ -249,6 +397,7 @@ window.bzComposer.validateSheetPlan = validateCurrentSheetPlan;
 connectDatabaseBtns.forEach((button) => button.addEventListener("click", openSheetPicker));
 document.getElementById("sheet-picker-close")?.addEventListener("click", closeSheetPicker);
 document.getElementById("sheet-picker-cancel")?.addEventListener("click", closeSheetPicker);
+document.getElementById("sheet-plan-clear")?.addEventListener("click", () => setSheetPlan(null));
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && sheetPicker?.classList.contains("open")) closeSheetPicker();
 });
@@ -259,8 +408,21 @@ document.getElementById("sheet-picker-connect")?.addEventListener("click", async
   const button = event.currentTarget;
   button.disabled = true;
   try {
+    sessionStorage.setItem("bzResumeSheetsPicker", projectId);
+    sessionStorage.setItem("bzResumeSheetsComposer", JSON.stringify({
+      name: document.getElementById("cmp-name")?.value || "",
+      recipients: document.getElementById("cmp-recipients")?.value || "",
+      subject: document.querySelector('#cmp-form [name="subject"]')?.value || "",
+      body: document.getElementById("cmp-body")?.value || "",
+      how: document.getElementById("cmp-how")?.value || "once",
+      date: document.getElementById("cmp-date")?.value || "",
+      time: document.getElementById("cmp-time")?.value || "09:00",
+      spreadsheet: window.bzComposer.getSheetPlan?.() || null,
+    }));
     await startGoogleConnection(projectId, "database");
   } catch (error) {
+    sessionStorage.removeItem("bzResumeSheetsPicker");
+    sessionStorage.removeItem("bzResumeSheetsComposer");
     setSheetPickerMessage(error.message || "Could not start the Google Sheets connection.", true);
     button.disabled = false;
   }
@@ -268,27 +430,98 @@ document.getElementById("sheet-picker-connect")?.addEventListener("click", async
 sheetPickerFile?.addEventListener("change", async () => {
   const selectedId = sheetPickerFile.value;
   sheetPlan = null;
+  spreadsheetColumns = [];
+  setColumnOptions(sheetPickerEmailColumn, "Choose a column", []);
+  setColumnOptions(sheetPickerVariableColumn, "Choose a column", []);
+  if (sheetPickerEmailColumn) sheetPickerEmailColumn.disabled = true;
+  if (sheetPickerVariableColumn) sheetPickerVariableColumn.disabled = true;
+  const addVariableButton = document.getElementById("sheet-picker-add-variable");
+  if (addVariableButton) addVariableButton.disabled = true;
   const applyButton = document.getElementById("sheet-picker-apply");
   if (applyButton) applyButton.disabled = true;
   renderSheetSummary();
+  renderVariableTags();
+  renderPickerVariables();
   await loadSheetTabs(selectedId);
 });
 sheetPickerTab?.addEventListener("change", () => {
   const file = selectedSheetFile();
   const sheet = selectedSheetTab();
   if (!file || !sheet) return;
-  sheetPlan = { version: 1, provider: "google_sheets", file, sheet };
-  console.info("Selected spreadsheet metadata:", { id: file.id, name: file.name });
-  console.info("Selected sheet metadata:", { id: sheet.id, title: sheet.title });
-  const applyButton = document.getElementById("sheet-picker-apply");
-  if (applyButton) applyButton.disabled = false;
-  setSheetPickerMessage("Spreadsheet and sheet selected. Selection details are logged in the browser console.");
+  const headerRow = Number(sheetPickerHeaderRow?.value || 1);
+  const startRow = Math.max(headerRow + 1, Number(sheetPickerStartRow?.value || headerRow + 1));
+  if (sheetPickerStartRow) sheetPickerStartRow.value = String(startRow);
+  if (sheetPickerEndRow) sheetPickerEndRow.value = "";
+  sheetPlan = {
+    version: 1,
+    provider: "google_sheets",
+    file,
+    sheet,
+    headerRow,
+    startRow,
+    endRow: null,
+    emailColumn: "",
+    variableColumns: {},
+  };
+  void loadSheetColumns(file.id, sheet.id, headerRow);
 });
-document.getElementById("sheet-picker-apply")?.addEventListener("click", () => {
-  if (!sheetPlan?.file?.id || !sheetPlan?.sheet?.id) {
-    setSheetPickerMessage("Choose a spreadsheet and sheet tab first.", true);
+sheetPickerHeaderRow?.addEventListener("change", () => {
+  if (!sheetPlan?.file || sheetPlan.sheet?.id === undefined) return;
+  const headerRow = Number(sheetPickerHeaderRow.value);
+  if (Number.isSafeInteger(headerRow) && headerRow >= 1) {
+    sheetPlan.headerRow = headerRow;
+    if (Number(sheetPickerStartRow.value) <= headerRow) {
+      sheetPickerStartRow.value = String(headerRow + 1);
+      sheetPlan.startRow = headerRow + 1;
+    }
+    updateSheetPlanFromInputs();
+    void loadSheetColumns(sheetPlan.file.id, sheetPlan.sheet.id, headerRow);
+  }
+});
+[sheetPickerStartRow, sheetPickerEndRow].forEach((input) => {
+  input?.addEventListener("input", updateSheetPlanFromInputs);
+});
+sheetPickerEmailColumn?.addEventListener("change", () => {
+  if (!sheetPlan) return;
+  sheetPlan.emailColumn = sheetPickerEmailColumn.value;
+  renderSheetSummary();
+  const applyButton = document.getElementById("sheet-picker-apply");
+  if (applyButton) applyButton.disabled = !sheetPlan.emailColumn;
+});
+document.getElementById("sheet-picker-add-variable")?.addEventListener("click", () => {
+  if (!sheetPlan) return;
+  const name = String(sheetPickerVariableName?.value || "").trim();
+  const column = sheetPickerVariableColumn?.value || "";
+  if (!/^[A-Za-z_][A-Za-z0-9_]{0,63}$/.test(name)) {
+    setSheetPickerMessage("Use a variable name with letters, numbers, or underscores; it must start with a letter or underscore.", true);
     return;
   }
+  if (!column) {
+    setSheetPickerMessage("Choose the spreadsheet column for this variable.", true);
+    return;
+  }
+  if (Object.hasOwn(sheetPlan.variableColumns || {}, name)) {
+    setSheetPickerMessage(`The variable {${name}} already has a column.`, true);
+    return;
+  }
+  sheetPlan.variableColumns = { ...(sheetPlan.variableColumns || {}), [name]: column };
+  if (sheetPickerVariableName) sheetPickerVariableName.value = "";
+  renderVariableTags();
+  renderPickerVariables();
+  setSheetPickerMessage(`Added {${name}} from column ${column}.`);
+});
+document.getElementById("sheet-picker-apply")?.addEventListener("click", () => {
+  if (!sheetPlan?.file?.id || sheetPlan.sheet?.id === undefined || !sheetPlan.emailColumn) {
+    setSheetPickerMessage("Choose a spreadsheet, sheet tab, and recipient email column first.", true);
+    return;
+  }
+  const errors = validateCurrentSheetPlan("", "");
+  const rangeErrors = errors.filter((message) => message.includes("header row") || message.includes("range"));
+  if (rangeErrors.length) {
+    setSheetPickerMessage(rangeErrors[0], true);
+    return;
+  }
+  updateSheetPlanFromInputs();
   renderSheetSummary();
   closeSheetPicker();
 });
@@ -412,6 +645,10 @@ function renderRows() {
     const tableRows = schedules.map((row) => {
       const recipients = Array.isArray(row.config?.recipients) ? row.config.recipients : [];
       const name = row.name || row.config?.subject || "Untitled task";
+      const type = String(row.job_type || "email").replace(/^./, (letter) => letter.toUpperCase());
+      const frequency = row.schedule_type === "recurring"
+        ? String(row.schedule_rule?.every || "Repeating").replace(/\b\w/g, (letter) => letter.toUpperCase())
+        : "One time";
       const createdAt = formatScheduleDateTime(row.created_at);
       const nextRun = formatScheduleDateTime(row.next_run_at);
       const lastRun = formatScheduleDateTime(row.last_run_at);
@@ -420,7 +657,8 @@ function renderRows() {
         <tr data-id="${esc(row.id)}" data-schedule='${esc(JSON.stringify(row))}' tabindex="0" aria-label="View schedule ${esc(name)}">
           <td class="schedule-select-cell"><input type="checkbox" aria-label="Select ${esc(name)}"></td>
           <td class="schedule-name-cell" title="${esc(name)}">${esc(name)}</td>
-          <td>${esc(row.job_type || "email")}</td>
+          <td class="schedule-type-cell">${esc(type)}</td>
+          <td class="schedule-frequency-cell">${esc(frequency)}</td>
           <td><div class="schedule-date-time"><strong>${esc(createdAt.split(" · ")[0])}</strong><span>${esc(createdAt.split(" · ")[1] || "")}</span></div></td>
           <td><div class="schedule-date-time"><strong>${esc(nextRun.split(" · ")[0])}</strong><span>${esc(nextRun.split(" · ")[1] || "—")}</span></div></td>
           <td><div class="schedule-date-time"><strong>${esc(lastRun.split(" · ")[0])}</strong><span>${esc(lastRun.split(" · ")[1] || "—")}</span></div></td>
@@ -443,6 +681,10 @@ function renderRows() {
     const mobileCards = schedules.map((row) => {
       const recipients = Array.isArray(row.config?.recipients) ? row.config.recipients : [];
       const name = row.name || row.config?.subject || "Untitled task";
+      const type = String(row.job_type || "email").replace(/^./, (letter) => letter.toUpperCase());
+      const frequency = row.schedule_type === "recurring"
+        ? String(row.schedule_rule?.every || "Repeating").replace(/\b\w/g, (letter) => letter.toUpperCase())
+        : "One time";
       const createdAt = formatScheduleDateTime(row.created_at).split(" · ");
       const nextRun = formatScheduleDateTime(row.next_run_at).split(" · ");
       const lastRun = formatScheduleDateTime(row.last_run_at).split(" · ");
@@ -450,25 +692,26 @@ function renderRows() {
       const dateValue = (parts) => `<span class="schedule-mobile-date"><strong>${esc(parts[0] || "—")}</strong><span>${esc(parts[1] || "")}</span></span>`;
       return `
         <article class="schedule-mobile-card" data-schedule='${esc(JSON.stringify(row))}' tabindex="0" aria-label="View schedule ${esc(name)}">
+          <label class="schedule-select-cell schedule-mobile-select" aria-label="Select ${esc(name)}">
+            <input type="checkbox" aria-label="Select ${esc(name)}">
+          </label>
           <div class="schedule-mobile-header">
             <h3 class="schedule-mobile-title">${esc(name)}</h3>
-            <div class="schedule-mobile-actions">
-              <label class="schedule-select-cell" aria-label="Select ${esc(name)}"><input type="checkbox" aria-label="Select ${esc(name)}"></label>
-              <div class="schedule-row-actions">
-                <button type="button" class="schedule-menu-trigger" aria-label="Schedule actions" aria-expanded="false">
-                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
-                </button>
-                <div class="schedule-row-menu" hidden>
-                  <button type="button" data-edit="${esc(row.id)}">Edit</button>
-                  ${statusAction ? `<button type="button" data-schedule-action="${statusAction.toLowerCase()}" data-id="${esc(row.id)}">${statusAction}</button>` : ""}
-                  <button type="button" data-delete-schedule="${esc(row.id)}">Delete</button>
-                </div>
+            <div class="schedule-row-actions">
+              <button type="button" class="schedule-menu-trigger" aria-label="Schedule actions" aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+              </button>
+              <div class="schedule-row-menu" hidden>
+                <button type="button" data-edit="${esc(row.id)}">Edit</button>
+                ${statusAction ? `<button type="button" data-schedule-action="${statusAction.toLowerCase()}" data-id="${esc(row.id)}">${statusAction}</button>` : ""}
+                <button type="button" data-delete-schedule="${esc(row.id)}">Delete</button>
               </div>
             </div>
           </div>
           <div class="schedule-mobile-meta">
-            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Type</span><span class="schedule-mobile-value">${esc(row.job_type || "email")}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Type</span><span class="schedule-mobile-value schedule-type-cell">${esc(type)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Status</span><span class="schedule-mobile-value">${statusBadge(row.status)}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Repeat frequency</span><span class="schedule-mobile-value schedule-frequency-cell">${esc(frequency)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Created at</span><span class="schedule-mobile-value">${dateValue(createdAt)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Next run</span><span class="schedule-mobile-value">${dateValue(nextRun)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Last run</span><span class="schedule-mobile-value">${dateValue(lastRun)}</span></div>
@@ -481,7 +724,7 @@ function renderRows() {
         <table class="schedule-table">
           <thead><tr>
             <th class="schedule-select-cell">Select</th>
-            <th>Name</th><th>Type</th><th>Created at</th><th>Next run</th><th>Last run</th>
+            <th>Name</th><th>Type</th><th>Repeat frequency</th><th>Created at</th><th>Next run</th><th>Last run</th>
             <th>Recipients</th><th>Status</th><th aria-label="More actions"></th>
           </tr></thead>
           <tbody>${tableRows}</tbody>
@@ -1170,7 +1413,7 @@ function payloadFor(draft, sender) {
       subject: draft.subject,
       body: draft.body,
       body_type: "html",
-      ...(draft.spreadsheet ? { spreadsheet: draft.spreadsheet } : {}),
+      spreadsheet: draft.spreadsheet || null,
     },
   };
 
@@ -1385,6 +1628,36 @@ async function init() {
 }
 
 await init();
+const sheetPickerResumeProject = sessionStorage.getItem("bzResumeSheetsPicker");
+if (
+  sheetPickerResumeProject === projectId &&
+  Boolean(urlParams.get("google"))
+) {
+  sessionStorage.removeItem("bzResumeSheetsPicker");
+  const savedComposer = sessionStorage.getItem("bzResumeSheetsComposer");
+  sessionStorage.removeItem("bzResumeSheetsComposer");
+  if (savedComposer) {
+    try {
+      const state = JSON.parse(savedComposer);
+      window.bzComposer.openCreate?.();
+      document.getElementById("cmp-name").value = state.name || "";
+      document.getElementById("cmp-recipients").value = state.recipients || "";
+      document.querySelector('#cmp-form [name="subject"]').value = state.subject || "";
+      document.getElementById("cmp-body").value = state.body || "";
+      document.getElementById("cmp-date").value = state.date || "";
+      document.getElementById("cmp-time").value = state.time || "09:00";
+      const howSelect = document.getElementById("cmp-how");
+      howSelect.value = state.how || "once";
+      howSelect.dispatchEvent(new Event("change", { bubbles: true }));
+      window.bzComposer.setSheetPlan?.(state.spreadsheet || null);
+    } catch (error) {
+      showToast("error", `Could not restore the schedule draft: ${error.message}`);
+    }
+  } else {
+    window.bzComposer.openCreate?.();
+  }
+  openSheetPicker();
+}
 
 /* The sidebar drawer, project sub-list and help dropdown are wired by the
    inline layout script in schedules.html, so only the invite modal is left. */

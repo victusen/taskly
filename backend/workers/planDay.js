@@ -1,6 +1,5 @@
 // backend/workers/planDay.js
-// Reads schedules due by the end of today (including overdue runs) and arms each
-// one in the in-memory queue.
+// Reads schedules whose next occurrence falls today in UTC and arms each one.
 // Called at boot and at midnight. Also called directly by syncSchedule when a
 // schedule is created or edited mid-day.
 
@@ -53,7 +52,7 @@ async function fetchWithRetry(start, end) {
 }
 
 // Arm one schedule occurrence. Idempotent: calling it twice arms once.
-async function armSchedule(candidate, end) {
+async function armSchedule(candidate, start, end) {
   const readiness = await getScheduleReadiness(candidate.id, candidate.project_id);
   if (!readiness.eligible) {
     console.warn(`[PLAN] not arming schedule ${candidate.id}: ${readiness.reason}`);
@@ -62,7 +61,16 @@ async function armSchedule(candidate, end) {
 
   const schedule = readiness.schedule;
   const fireAt = new Date(schedule.next_run_at);
-  if (!Number.isFinite(fireAt.getTime()) || fireAt >= end) return;
+  if (!Number.isFinite(fireAt.getTime())) {
+    console.warn(`[PLAN] skipped schedule ${candidate.id}: invalid next run time.`);
+    return;
+  }
+  if (fireAt < start || fireAt >= end) {
+    console.warn(
+      `[PLAN] skipped schedule ${candidate.id}: next run ${schedule.next_run_at} is outside today's UTC window.`,
+    );
+    return;
+  }
 
   const runFor = schedule.next_run_at;
   const key = occurrenceKey(schedule.id, runFor);
@@ -88,8 +96,8 @@ async function armSchedule(candidate, end) {
 // Guard against concurrent planDay() calls (e.g. midnight cron + re-plan timer firing together).
 let planInProgress = null;
 
-// Plan the whole day. Fetches today's schedules and arms all of them.
-// Schedules already past due fire on the next tick (croner handles that).
+// Plan today's schedules. Readiness is re-checked before arming in case a schedule
+// changed after the initial query.
 export async function planDay() {
   if (planInProgress) return planInProgress;
 
@@ -109,13 +117,26 @@ export async function planDay() {
       planState.candidates = rows.length;
       await Promise.all(rows.map(async (row) => {
         try {
-          await armSchedule(row, end);
+          await armSchedule(row, start, end);
         } catch (error) {
           console.error(`[PLAN] could not check schedule ${row.id}:`, error.message);
         }
       }));
 
-      console.log("[PLAN] done.", summary());
+      const armedTodayIds = summary().keys
+        .map((key) => {
+          const separator = key.lastIndexOf("|");
+          const runAt = new Date(key.slice(separator + 1));
+          return runAt >= start && runAt < end ? key.slice(0, separator) : null;
+        })
+        .filter(Boolean);
+      const uniqueArmedIds = [...new Set(armedTodayIds)];
+      console.info(
+        `[PLAN] completed: ${uniqueArmedIds.length} schedule(s) armed for ${start.toISOString().slice(0, 10)} UTC.`,
+      );
+      if (uniqueArmedIds.length) {
+        console.info(`[PLAN] schedule IDs: ${uniqueArmedIds.join(", ")}`);
+      }
       planState.completedAt = new Date().toISOString();
     } catch (error) {
       planState.error = error.message || "Schedule planning failed.";
@@ -130,17 +151,20 @@ export async function planDay() {
 
 export function getPlannerStatus(now = new Date()) {
   const { start, end } = utcDayWindow(now);
-  const armedToday = summary().keys.filter((key) => {
+  const armedTodayIds = summary().keys.map((key) => {
+    const separator = key.lastIndexOf("|");
     const runAt = new Date(key.slice(key.lastIndexOf("|") + 1));
-    return runAt >= start && runAt < end;
-  }).length;
+    return runAt >= start && runAt < end ? key.slice(0, separator) : null;
+  }).filter(Boolean);
+  const uniqueArmedIds = [...new Set(armedTodayIds)];
 
   return {
     last_plan_started_at: planState.startedAt,
     last_plan_completed_at: planState.completedAt,
     last_plan_candidates: planState.candidates,
     last_plan_error: planState.error,
-    schedules_armed_today: armedToday,
+    schedules_armed_today: uniqueArmedIds.length,
+    schedule_ids_armed_today: uniqueArmedIds,
   };
 }
 
@@ -159,7 +183,7 @@ export function syncSchedule(schedule) {
   // Only arm occurrences that fall inside today. Tomorrow's occurrences will be
   // armed by the midnight planner.
   if (runAt >= start && runAt < end) {
-    armSchedule(schedule, end).catch((error) =>
+    armSchedule(schedule, start, end).catch((error) =>
       console.error(`[PLAN] could not arm schedule ${schedule.id}:`, error.message),
     );
   }

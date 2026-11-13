@@ -11,12 +11,16 @@ import emailConnectionRoute from './routes/emailConnectionRoute.js';
 import googleSheetsRoute from './routes/googleSheetsRoute.js';
 import { startScheduler } from "./workers/startScheduler.js";
 import { getPlannerStatus } from "./workers/planDay.js";
+import { getBillingExpiryStatus } from "./workers/expireBillingPlans.js";
+import { getTodayScheduleRunCounts } from "./services/scheduleRunService.js";
+import { startSelfPing, stopSelfPing } from "./workers/selfPing.js";
 
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const SERVER_STARTED_AT = new Date();
 
 const isProduction =
   process.env.NODE_ENV === "production" || Boolean(process.env.RENDER);
@@ -75,16 +79,33 @@ app.use(helmet());
 app.use("/api", rateLimit({ windowMs: 60_000, limit: 120 }));
 app.use(express.json({ limit: "512kb" }));
 
-app.get('/', (req, res) => {
-  const uptimeSeconds = Math.floor(process.uptime());
-  res.json({
-    status: "ok",
-    service: "bzade-backend",
-    uptime_seconds: uptimeSeconds,
-    started_at: new Date(Date.now() - uptimeSeconds * 1000).toISOString(),
-    scheduler_enabled: process.env.ENABLE_SCHEDULER === "true",
-    scheduler: getPlannerStatus(),
-  });
+app.get('/', async (req, res) => {
+  try {
+    const uptimeSeconds = Math.floor(process.uptime());
+    const [scheduleRunsToday] = await Promise.all([getTodayScheduleRunCounts()]);
+    const health = {
+      status: "ok",
+      service: "Bzade backend",
+      server: {
+        started_at: SERVER_STARTED_AT.toISOString(),
+        uptime_seconds: uptimeSeconds,
+      },
+      scheduler: {
+        enabled: process.env.ENABLE_SCHEDULER === "true",
+        ...getPlannerStatus(),
+      },
+      billing: getBillingExpiryStatus(),
+      schedule_runs_today: scheduleRunsToday,
+    };
+    return res.type("application/json").send(JSON.stringify(health, null, 2));
+  } catch (error) {
+    console.error("[HEALTH] Could not build server health details:", error.message);
+    return res.status(503).type("application/json").send(JSON.stringify({
+      status: "degraded",
+      service: "Bzade backend",
+      error: "Could not load live schedule run counts.",
+    }, null, 2));
+  }
 });
 
 app.use("/api/auth", authRoute);
@@ -99,13 +120,21 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, code: "SERVER_ERROR", message: "Something went wrong. Please try again." });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 
   // Start the email scheduler only when explicitly enabled.
   // Set ENABLE_SCHEDULER=true on Render for the worker service.
   // Do not enable on the API-only instance.
   if (process.env.ENABLE_SCHEDULER === "true") {
-    startScheduler();
+    startScheduler().catch((error) =>
+      console.error("[SCHEDULER] startup failed:", error.message),
+    );
+  }
+  if (process.env.RENDER || process.env.ENABLE_SELF_PING === "true") {
+    startSelfPing();
   }
 });
+
+server.on("close", stopSelfPing);
+process.once("SIGTERM", stopSelfPing);

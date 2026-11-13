@@ -42,9 +42,10 @@ export function initInviteModal(options = {}) {
       top: 0;
       right: 0;
       bottom: 0;
-      width: 600px;
-      max-width: 92vw;
+      width: min(520px, 100vw);
+      max-width: 100vw;
       background: #ffffff;
+      border-left: 1px solid #e5e7eb;
       box-shadow: -8px 0 30px rgba(0, 0, 0, 0.15);
       display: flex;
       flex-direction: column;
@@ -55,7 +56,7 @@ export function initInviteModal(options = {}) {
       transform: translateX(0);
     }
     .invite-drawer-header {
-      padding: 24px 28px 18px 28px;
+      padding: 22px 24px 18px;
       border-bottom: 1px solid #f3f4f6;
       display: flex;
       justify-content: space-between;
@@ -63,7 +64,7 @@ export function initInviteModal(options = {}) {
       flex-shrink: 0;
     }
     .invite-drawer-title {
-      font-size: 20px;
+      font-size: 21px;
       font-weight: 700;
       color: #111827;
       margin: 0;
@@ -71,7 +72,7 @@ export function initInviteModal(options = {}) {
     }
     @media (max-width: 640px) {
       .invite-drawer-title {
-        font-size: 22px;
+        font-size: 20px;
       }
     }
     .invite-drawer-sub {
@@ -100,19 +101,21 @@ export function initInviteModal(options = {}) {
       color: #111827;
     }
     .invite-drawer-body {
-      padding: 24px 28px;
+      padding: 22px 24px;
       overflow-y: auto;
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
     }
     .invite-field {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      gap: 12px 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+      gap: 7px;
+      min-width: 0;
     }
+    .invite-field[hidden] { display: none; }
     .invite-label {
       font-size: 13px;
       font-weight: 600;
@@ -135,6 +138,7 @@ export function initInviteModal(options = {}) {
       box-sizing: border-box;
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
+    .invite-hint { line-height: 1.4; }
     .invite-input::placeholder, .invite-textarea::placeholder {
       font-weight: 300 !important;
       color: #c4c8d0;
@@ -175,7 +179,7 @@ export function initInviteModal(options = {}) {
       color: #6b7280;
     }
     .invite-drawer-footer {
-      padding: 15px 28px;
+      padding: 15px 24px;
       border-top: 1px solid #e5e7eb;
       display: flex;
       justify-content: space-between;
@@ -224,6 +228,11 @@ export function initInviteModal(options = {}) {
     .btn-invite-cta:disabled {
       background: #9ca3af;
       cursor: not-allowed;
+    }
+    @media (max-width: 480px) {
+      .invite-drawer-header, .invite-drawer-body { padding-left: 18px; padding-right: 18px; }
+      .invite-drawer-footer { padding-left: 18px; padding-right: 18px; }
+      .btn-hollow-doc { padding-left: 10px; padding-right: 10px; }
     }
   `;
   document.head.appendChild(style);
@@ -279,7 +288,7 @@ export function initInviteModal(options = {}) {
         </div>
 
         <!-- Project selection (shows when Project access is picked) -->
-        <div class="invite-field" id="invite-project-group" style="display: flex;">
+        <div class="invite-field" id="invite-project-group">
           <label class="invite-label" for="invite-project-select">Project to invite them to</label>
           <select class="invite-select" id="invite-project-select">
             <option value="">Loading projects...</option>
@@ -317,29 +326,19 @@ export function initInviteModal(options = {}) {
   const closeBtn = document.getElementById("invite-drawer-close");
   const emailsInput = document.getElementById("invite-emails-input");
   const roleSelect = document.getElementById("invite-role-select");
-  const scopeAccount = document.getElementById("scope-account");
-  const scopeProject = document.getElementById("scope-project");
+  const scopeSelect = document.getElementById("scope-select");
   const projectGroup = document.getElementById("invite-project-group");
   const projectSelect = document.getElementById("invite-project-select");
   const noteInput = document.getElementById("invite-note-input");
   const submitBtn = document.getElementById("btn-submit-invite");
 
-  let activeScope = "project";
-
-  // Toggle Access Scope
-  scopeAccount.addEventListener("click", () => {
-    activeScope = "account";
-    scopeAccount.classList.add("active");
-    scopeProject.classList.remove("active");
-    projectGroup.style.display = "none";
-  });
-
-  scopeProject.addEventListener("click", () => {
-    activeScope = "project";
-    scopeProject.classList.add("active");
-    scopeAccount.classList.remove("active");
-    projectGroup.style.display = "flex";
-  });
+  let activeScope = scopeSelect.value;
+  const updateScope = () => {
+    activeScope = scopeSelect.value;
+    projectGroup.hidden = activeScope === "account";
+  };
+  scopeSelect.addEventListener("change", updateScope);
+  updateScope();
 
   // Load Projects into Select
   async function populateProjects() {

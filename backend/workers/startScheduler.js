@@ -9,24 +9,32 @@ import { expireBillingPlans } from "./expireBillingPlans.js";
 
 const plannerJobs = [];
 
-function checkExpiredPlans(trigger) {
-  expireBillingPlans(new Date(), trigger).catch((error) =>
-    console.error(`[BILLING] ${trigger} expiry check failed:`, error.message),
-  );
+async function checkExpiredPlans(trigger) {
+  try {
+    await expireBillingPlans(new Date(), trigger);
+  } catch (error) {
+    console.error(`[BILLING] ${trigger} expiry check failed:`, error.message);
+  }
 }
 
-export function startScheduler() {
+export async function startScheduler() {
   console.log("[SCHEDULER] starting");
 
-  // Boot: arm everything due today.
-  planDay().catch((err) => console.error("[SCHEDULER] boot plan failed:", err.message));
-  checkExpiredPlans("startup");
+  try {
+    await planDay();
+  } catch (error) {
+    console.error("[SCHEDULER] boot plan failed:", error.message);
+  }
 
   // Midnight UTC: re-plan the new day and reset expired subscriptions.
-  plannerJobs.push(new Cron("0 0 * * *", { timezone: "UTC" }, () => {
+  plannerJobs.push(new Cron("0 0 * * *", { timezone: "UTC" }, async () => {
     console.log("[SCHEDULER] midnight re-plan");
-    planDay().catch((err) => console.error("[SCHEDULER] midnight plan failed:", err.message));
-    checkExpiredPlans("midnight");
+    try {
+      await planDay();
+    } catch (error) {
+      console.error("[SCHEDULER] midnight plan failed:", error.message);
+    }
+    await checkExpiredPlans("midnight");
   }));
 
   // 5-minute catch-up: arms schedules created or edited during the day that were
@@ -36,6 +44,7 @@ export function startScheduler() {
   }));
 
   console.log("[SCHEDULER] running");
+  await checkExpiredPlans("startup");
 }
 
 export function stopScheduler() {

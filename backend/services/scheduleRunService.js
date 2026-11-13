@@ -133,6 +133,36 @@ export async function closeAttempt(runId, { status, error }) {
   if (err) throw err;
 }
 
+export async function getTodayScheduleRunCounts(now = new Date()) {
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  const startAt = start.toISOString();
+  const endAt = end.toISOString();
+
+  async function countRuns(status) {
+    const { count, error } = await supabase
+      .from("schedule_runs")
+      .select("id", { count: "exact", head: true })
+      .eq("status", status)
+      .gte("started_at", startAt)
+      .lt("started_at", endAt);
+    if (error) throw error;
+    return count || 0;
+  }
+
+  const [succeeded, failed, running] = await Promise.all([
+    countRuns("succeeded"),
+    countRuns("failed"),
+    countRuns("running"),
+  ]);
+  return {
+    utc_date: startAt.slice(0, 10),
+    succeeded,
+    failed,
+    running,
+  };
+}
+
 // Read the most recent attempt row for an occurrence.
 // Used on restart to decide whether to retry, skip or finish.
 export async function getLatestAttempt(scheduleId, runFor) {

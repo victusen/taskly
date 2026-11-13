@@ -88,10 +88,10 @@ async function getOwnedProjectIds(userId) {
 }
 
 /* The mail account must belong to this user's project and be usable. */
-async function assertConnection(userId, projectId, connectionId) {
+async function assertConnection(userId, projectId, connectionId, requiresGoogle = false) {
   const { data, error } = await supabase
     .from("email_connections")
-    .select("id, project_id, status")
+    .select("id, project_id, provider, connection_type, status")
     .eq("id", connectionId)
     .maybeSingle();
 
@@ -105,6 +105,14 @@ async function assertConnection(userId, projectId, connectionId) {
 
   if (data.status !== "active") {
     throw new ValidationError({ email_connection_id: "This mail account needs to be reconnected." });
+  }
+  if (
+    requiresGoogle &&
+    (data.provider !== "google" || data.connection_type !== "oauth2")
+  ) {
+    throw new ValidationError({
+      email_connection_id: "Spreadsheet delivery requires this project's Google mail account.",
+    });
   }
 }
 
@@ -239,7 +247,12 @@ export const scheduleService = {
     const value = validateScheduleInput(input);
 
     await assertProject(userId, value.project_id);
-    await assertConnection(userId, value.project_id, value.email_connection_id);
+    await assertConnection(
+      userId,
+      value.project_id,
+      value.email_connection_id,
+      Boolean(value.config.spreadsheet),
+    );
     await assertUnderPlanLimit(userId);
 
     const data = await insertSchedule(value);
@@ -301,9 +314,16 @@ export const scheduleService = {
       schedule_rule: patch.schedule_rule,
     };
 
-    const value = validateScheduleInput(merged);
+    const value = validateScheduleInput(merged, new Date(), {
+      allowImmediateSpreadsheet: !changesTiming,
+    });
 
-    await assertConnection(userId, row.project_id, value.email_connection_id);
+    await assertConnection(
+      userId,
+      row.project_id,
+      value.email_connection_id,
+      Boolean(value.config.spreadsheet),
+    );
 
     const changes = {
       name: value.name,
