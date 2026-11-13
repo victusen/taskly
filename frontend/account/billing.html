@@ -96,6 +96,9 @@
     button.nav-item { width: 100%; background: none; border: 0; text-align: left; cursor: pointer; }
     .nav-item:hover { background-color: #f3f4f6; color: #111827; }
     .nav-item.active { background-color: #f3f4f6; color: #111827; font-weight: 600; }
+    .nav-item[data-soon] { color: #aaa; }
+    .nav-item[data-soon]:hover { background: transparent; color: #aaa; }
+    .soon { margin-left: auto; font-size: 11px; color: #888; border: 1px solid #ddd; padding: 1px 6px; border-radius: 4px; }
     .nav-item-collapsible { cursor: pointer; user-select: none; justify-content: space-between; }
     .projects-toggle-icon { transition: transform 0.2s ease; }
     .nav-item-collapsible.collapsed .projects-toggle-icon { transform: rotate(-90deg); }
@@ -836,14 +839,15 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6.5 8-6.5s8 2.5 8 6.5"/></svg>
           <span>Team members</span>
         </a>
-        <a href="#" class="nav-item" id="nav-notifications" onclick="event.preventDefault(); typeof showToast !== 'undefined' && showToast('info', 'No new notifications.');" style="position: relative;">
+        <a href="#" class="nav-item" id="nav-notifications" data-soon aria-disabled="true" onclick="event.preventDefault(); typeof showToast !== 'undefined' && showToast('info', 'Notifications are coming soon.');">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span>Notifications</span>
-          <span id="notif-badge" style="margin-left: auto; min-width: 18px; height: 18px; background: #dc2626; color: white; border-radius: 9999px; font-size: 11px; font-weight: 700; display: none; align-items: center; justify-content: center; padding: 0 5px;">0</span>
+          <span class="soon">Soon</span>
         </a>
-        <a href="../smtp.html" class="nav-item">
+        <a href="#" class="nav-item" data-soon aria-disabled="true" onclick="event.preventDefault(); typeof showToast !== 'undefined' && showToast('info', 'API keys are coming soon.');">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
           <span>API keys</span>
+          <span class="soon">Soon</span>
         </a>
         <a href="billing.html" class="nav-item active">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>

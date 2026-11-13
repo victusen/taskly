@@ -165,18 +165,7 @@ function renderProjectInsight(card) {
     });
   }
   
-  // 2. High priority: email send failures
-  const emailFailure = projectEmailFailures.get(projectId);
-  if (emailFailure && emailFailure > 0) {
-    priorityNotifications.push({
-      text: `${emailFailure} schedules recipient email failed`,
-      priority: 2,
-      bgColor: "#dc2626",
-      isCritical: true
-    });
-  }
-  
-  // 3. Medium priority: mail connection status
+  // 2. Medium priority: mail connection status
   if (connection?.status === "active") {
     priorityNotifications.push({
       text: `Mail connected: ${connection.email_address}`,
@@ -192,7 +181,7 @@ function renderProjectInsight(card) {
       isCritical: true
     });
   } else {
-    // 4. Low priority: new project, ready to launch
+    // 3. Low priority: new project, ready to launch
     priorityNotifications.push({
       text: "Ready to launch a schedule",
       priority: 4,
@@ -461,7 +450,7 @@ async function renderDashboardProjects({ fallbackProject = null, useFallback = f
                   <h4 class="title">${escapeHtml(pName)}</h4>
                   ${p.business_name && p.business_name !== pName ? `<p style="font-size: 13px; color: #6b7280; margin-top: 4px;">${escapeHtml(p.business_name)}</p>` : ""}
                 </div>
-                <p class="project-tag" data-project-info aria-live="polite">Checking project activity...</p>
+                <p class="project-tag" data-project-info aria-live="polite">Open this project to view schedules.</p>
               </div>
             </a>
 
@@ -574,20 +563,6 @@ document.addEventListener("click", async (e) => {
   if (!e.target.closest("[data-menu-dropdown]")) {
     allDropdowns.forEach((d) => (d.style.display = "none"));
     document.querySelectorAll("[data-dots-trigger]").forEach((b) => b.classList.remove("active"));
-  }
-});
-
-// Sidebar Settings link click
-document.addEventListener("click", (e) => {
-  const settingsLink = e.target.closest("[data-sidebar-settings]");
-  if (settingsLink) {
-    e.preventDefault();
-    const firstProject = activeProjects[0];
-    if (firstProject) {
-      openSettingsModal(firstProject.id, firstProject.project_name || firstProject.business_name);
-    } else {
-      showToast("info", "Create a project first to configure settings.");
-    }
   }
 });
 

@@ -1147,7 +1147,8 @@ window.addEventListener("resize", () => {
 
 const NAV_TOASTS = {
   audiences: "Audiences — coming soon. Track subscriber segments here.",
-  notifications: "No new notifications.",
+  notifications: "Notifications — coming soon.",
+  "api-keys": "API keys — coming soon.",
   "email-template": "Email templates — coming soon. Save and reuse your best emails here.",
 };
 
