@@ -6,7 +6,7 @@ import { computeNextRun } from "../services/scheduleRule.js";
 import { sendPersonalizedEmails, sendScheduledEmail } from "../services/sendService.js";
 import { buildSpreadsheetMessages } from "../services/spreadsheetDelivery.js";
 import { decryptJson } from "../utils/credentialCrypto.js";
-import { release, occurrenceKey } from "./scheduleQueue.js";
+import { armAt, release, occurrenceKey } from "./scheduleQueue.js";
 import {
   getScheduleStatus,
   getScheduleReadiness,
@@ -256,4 +256,10 @@ async function finishOccurrence(current, outcome, failureReason, attemptsUsed) {
     next_run_at: next,
     status: next ? "active" : outcome === "sent" ? "completed" : "failed",
   });
+
+  if (next) {
+    const nextKey = occurrenceKey(current.id, next);
+    const nextSchedule = { ...current, status: "active", next_run_at: next };
+    armAt(nextKey, new Date(next), () => runOccurrence(nextSchedule, next));
+  }
 }

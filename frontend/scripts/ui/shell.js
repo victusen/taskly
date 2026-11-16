@@ -1,6 +1,7 @@
 import { signOut } from "../auth/auth.js";
-import { startPayment } from "../payments/payment.js";
+import { initPaymentModal } from "../payments/paymentModal.js";
 import { showToast } from "./toast.js";
+import { applyUserAvatar } from "../auth/session.js";
 
 const GOOGLE_RESULTS = {
   connected: ["success", "Gmail connected."],
@@ -33,6 +34,7 @@ export function showGoogleResult() {
 
 /* Wires what every signed in page shares: the sidebar, the avatar, log out, upgrade. */
 export function initShell(session) {
+  initPaymentModal();
   const drawer = document.getElementById("drawer");
   const scrim = document.getElementById("scrim");
   const openBtn = document.getElementById("menu-open");
@@ -60,7 +62,7 @@ export function initShell(session) {
   const full = meta.full_name || meta.name || "";
   const name = meta.first_name || full.split(" ")[0] || email.split("@")[0] || "B";
 
-  document.getElementById("avatar").textContent = name.charAt(0).toUpperCase();
+  applyUserAvatar(name.charAt(0).toUpperCase(), meta.avatar_url, { userId: user.id });
 
   const emailLabel = document.getElementById("user-email");
   if (emailLabel) emailLabel.textContent = email;
@@ -76,11 +78,8 @@ export function initShell(session) {
     });
   });
 
-  document.querySelectorAll("[data-upgrade]").forEach((button) => {
-    button.addEventListener("click", () => {
-      setMenu(false);
-      startPayment();
-    });
+  drawer.querySelectorAll("[data-upgrade]").forEach((button) => {
+    button.addEventListener("click", () => setMenu(false));
   });
 
   document.querySelectorAll("[data-sheet]").forEach((button) => {

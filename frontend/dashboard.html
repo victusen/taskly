@@ -7,6 +7,7 @@
   <link rel="icon" type="image/png" href="logo-2.png" />
   <link rel="stylesheet" href="scripts/ui/toast.css">
   <link rel="stylesheet" href="scripts/ui/states.css">
+  <link rel="stylesheet" href="scripts/ui/closeButtons.css">
   <script>
     (function() {
       try {
@@ -398,6 +399,14 @@
       .dp-metrics-bar { width: 100%; min-width: 0; }
     }
     .business-overviews { display: flex; flex-direction: column; gap: 20px; width: 100%; margin-top: 20px; margin-bottom: 30px; }
+    .free-plan-banner {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      min-height: 42px; padding: 9px 16px; background: #f3f4f6; color: #374151;
+      border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;
+      font-size: 13px; line-height: 1.45;
+    }
+    .free-plan-banner[hidden] { display: none; }
+    .free-plan-banner a { color: #166534; font-weight: 600; text-decoration: underline; white-space: nowrap; }
     .project-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
     .project-list > a { display: block; width: 100%; min-width: 0; }
     .projs {
@@ -477,17 +486,7 @@
       box-shadow: none;
     }
     #business-modal #business-form > button:hover { background: #1f2937; }
-    #business-modal #business-form[hidden], #business-create-state[hidden] { display: none !important; }
-    #business-create-state { min-height: 190px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; }
-    #business-create-state strong { color: #111827; font-size: 15px; }
-    #business-create-message { max-width: 360px; color: #6b7280; font-size: 13px; line-height: 1.5; }
-    .business-progress-spinner { width: 28px; height: 28px; border: 3px solid #e5e7eb; border-top-color: #111827; border-radius: 50%; animation: business-spin .75s linear infinite; }
-    #business-create-state[data-state="error"] .business-progress-spinner { display: none; }
-    .business-progress-close { position: absolute; top: 0; right: 0; width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #9ca3af; cursor: pointer; }
-    .business-progress-close:hover { background: #f3f4f6; color: #4b5563; }
-    .business-progress-actions { display: flex; gap: 8px; margin-top: 4px; }
-    .business-progress-actions button { padding: 7px 12px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #374151; font: inherit; font-size: 13px; cursor: pointer; }
-    .business-progress-actions #business-create-retry { background: #111827; border-color: #111827; color: #fff; }
+    #business-modal #business-form[hidden] { display: none !important; }
     @keyframes business-spin { to { transform: rotate(360deg); } }
 
     .add-hidden { display: none; }
@@ -673,6 +672,14 @@
         max-height: calc(100vh - auto);
       }
       .col-empty-third { display: none !important; }
+      body.has-free-plan-banner .free-plan-banner {
+        position: fixed; top: 50px; left: 0; right: 0; z-index: 45;
+        border-radius: 0; border-left: 0; border-right: 0;
+      }
+      body.has-free-plan-banner .asymmetric-wrapper { margin-top: 112px; }
+    }
+    @media (max-width: 767px) {
+      .free-plan-banner { margin-bottom: 18px; }
     }
 
     /* Desktop (>= 1200px): sidebar wider, main takes all remaining width */
@@ -823,19 +830,17 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6.5 8-6.5s8 2.5 8 6.5"/></svg>
           <span>Team members</span>
         </a>
-        <a href="#" class="nav-item" id="nav-notifications" data-soon aria-disabled="true" onclick="event.preventDefault(); typeof showToast !== 'undefined' && showToast('info', 'Notifications are coming soon.');">
+        <a href="#" class="nav-item" data-nav-toast="notifications">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span>Notifications</span>
-          <span class="soon">Soon</span>
         </a>
         <a href="./account/settings/" class="nav-item">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           <span>Settings</span>
         </a>
-        <a href="#" class="nav-item" data-soon aria-disabled="true" onclick="event.preventDefault(); typeof showToast !== 'undefined' && showToast('info', 'API keys are coming soon.');">
+        <a href="#" class="nav-item" data-nav-toast="api-keys">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
           <span>API keys</span>
-          <span class="soon">Soon</span>
         </a>
         <a href="account/billing.html" class="nav-item">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
@@ -885,17 +890,20 @@
 
     <!-- Main column (middle) -->
     <main>
+      <div class="free-plan-banner" id="free-plan-banner" hidden>
+        <span>You are using our free plan. If you want more projects or schedules, we'd like you to upgrade.</span>
+        <a href="account/billing.html" data-upgrade>Upgrade</a>
+      </div>
       <div class="dash-header-strip">
       <div style="display: flex; flex-direction: column;">
         <div class="dash-top">
           <h2>Overview</h2>
         </div>
-        <p>The overview of business schedules running on this Bzade profile.</p>
+        <p>A summary of your projects and their scheduled work.</p>
       </div>
-      <a id="upgrade-to-paid-link" hidden style="padding-right: 40px; color:#166534; text-decoration: underline; align-self: center;" href="account/billing.html">Upgrade to paid</a>
       </div>
       <div class="business-overviews">
-        <h3>Businesses</h3>
+        <h3>Projects</h3>
         <div class="project-list" id="project-list">
           <!-- Dynamically populated by dashboard.js with real project cards or pre no-result state -->
           <div class="skeleton-nav-group" style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 8px;">
@@ -1031,39 +1039,27 @@
     </div>
   </div>-->|
 
-  <!-- Business Creation Modal (unchanged markup, so dashboard.js still works) -->
+  <!-- Project creation modal -->
   <div class="modal-backdrop" id="business-modal">
     <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="business-modal-title">
       <div class="modal-header">
-        <h3 id="business-modal-title">Create a new <span style="color:green;">Business</span></h3>
+        <h3 id="business-modal-title">Create a new <span style="color:green;">Project</span></h3>
         <div class="close-btn" id="modal-close" role="button" aria-label="Close">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </div>
       </div>
       <form id="business-form">
-        <label class="business-field-label">Business Name <span style="font-weight: 400; color: #6b7280;">(optional)</span>
-          <input class="business-field-input" type="text" name="business_name" placeholder="e.g. Acme Corporation" autocomplete="off">
-        </label>
         <label class="business-field-label">Project Name <span style="font-weight: 400; color: #6b7280;">(optional)</span>
           <input class="business-field-input" type="text" name="project_name" placeholder="e.g. Customer Welcome Campaign" autocomplete="off">
         </label>
-        <p style="font-size: 13px; margin-top: 16px;">Enter a business name, a project name, or both. Each project has its own mail account.</p>
-        <button type="submit">Create business</button>
+        <label class="business-field-label">Business Name <span style="font-weight: 400; color: #6b7280;">(optional)</span>
+          <input class="business-field-input" type="text" name="business_name" placeholder="e.g. Acme Corporation" autocomplete="off">
+        </label>
+        <p style="font-size: 13px; margin-top: 16px;">Enter a project name, a business name, or both. Each project has its own mail account.</p>
+        <button type="submit">Create project</button>
       </form>
-      <div id="business-create-state" data-state="loading" role="status" aria-live="polite" hidden>
-        <button type="button" class="business-progress-close" id="business-create-close" aria-label="Close creation status">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg>
-        </button>
-        <span class="business-progress-spinner" aria-hidden="true"></span>
-        <strong id="business-create-title">Creating your business</strong>
-        <p id="business-create-message"></p>
-        <div class="business-progress-actions">
-          <button type="button" id="business-create-edit" hidden>Back to form</button>
-          <button type="button" id="business-create-retry" hidden>Retry</button>
-        </div>
-      </div>
     </div>
-    <div id="business-loading" class="business-loading" role="status" aria-label="Creating your business" hidden>
+    <div id="business-loading" class="business-loading" role="status" aria-label="Creating your project" hidden>
       <span class="business-loading-spinner" aria-hidden="true"></span>
       <button type="button" class="business-loading-close" id="business-loading-close" aria-label="Close creation status">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg>
@@ -1174,7 +1170,6 @@
         toggle.setAttribute("aria-expanded", String(!collapsed));
         return;
       }
-      if (event.target.closest("[data-soon]")) event.preventDefault();
     });
 
     /* Help dropdown (?) */

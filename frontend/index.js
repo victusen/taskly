@@ -1,6 +1,7 @@
-import { startPayment } from './scripts/payments/payment.js';
+import { initPaymentModal } from './scripts/payments/paymentModal.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+  initPaymentModal();
   // 1. Text Flipper in Hero
   const flipWords = ['close', 'reminded', 'notified', 'updated'];
   const flipElement = document.getElementById('hero-flip-word');
@@ -76,22 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 4. Upgrade Buttons to initiate Paystack checkout
-  const selectedPlanKey = (tier) => {
-    const billingPeriod = yearlyBtn?.classList.contains('active') ? 'yearly' : 'monthly';
-    return `${tier}_${billingPeriod}`;
-  };
-
-  document.querySelectorAll('[data-paystack-btn]').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const tier = btn.dataset.planTier;
-      if (tier !== 'paid' && tier !== 'business') return;
-      startPayment(selectedPlanKey(tier));
-    });
-  });
-
-  // 5. Mobile Nav Toggle
+  // 4. Mobile Nav Toggle
   const mobileToggle = document.getElementById('mobile-nav-toggle');
   const mobileDrawer = document.getElementById('mobile-nav-drawer');
   const closeDrawer = document.getElementById('close-mobile-drawer');

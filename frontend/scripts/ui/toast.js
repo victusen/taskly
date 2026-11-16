@@ -376,6 +376,36 @@ export function showToast(
   return toast.id;
 }
 
+export function showToastAction(type, message, actionLabel, onAction, options = {}) {
+  if (typeof onAction !== "function") {
+    throw new TypeError("Toast actions require a callback.");
+  }
+  const id = showToast(type, message, options);
+  const typeClass = getTypeClass(type);
+  const element = id
+    ? document.querySelector(`[data-toast-id="${id}"]`)
+    : [...document.querySelectorAll(".taskly-toast")].find((toast) =>
+        toast.classList.contains(typeClass) &&
+        toast.querySelector(".toast-content p")?.textContent === String(message)
+      );
+  if (!element) return id;
+
+  const content = element.querySelector(".toast-content");
+  if (!content || content.querySelector(".toast-action")) return id;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "toast-action";
+  button.textContent = actionLabel;
+  button.addEventListener("click", () => {
+    onAction();
+    const toastId = element.dataset.toastId;
+    if (toastId) dismissToast(toastId);
+  });
+  content.append(button);
+  return id;
+}
+
 
 export function updateToast(
   id,

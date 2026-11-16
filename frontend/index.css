@@ -10,6 +10,11 @@
   border: 1px solid #d1d5db;
   transition: color 0.15s ease 0.2s, background-color 0.15s ease, gap 0.2s ease;
 }
+.home-header-logo {
+  display: block;
+  width: auto;
+  height: 30px;
+}
 .bottom-cta-box .hero-actions .btn-primary {
   background-color: transparent;
   color: #ffffff;
@@ -1514,11 +1519,16 @@ a {
     background-color: #ffffff;
     color: #6b7280;
     border-color: #d1d5db;
+    border-radius: 999px;
+    font-weight: 500;
   }
   .hero-actions .btn-primary:hover {
     background-color: transparent;
     color: #6b7280;
     border-color: #d1d5db;
+  }
+  .hero-actions .btn-secondary {
+    border: 0;
   }
   .header-right .login-link {
     display: flex;
@@ -1544,10 +1554,7 @@ a {
     padding: 0 16px;
     height: 60px;
   }
-  .main-header .header-left > .brand-logo {
-    height: 38px;
-    width: auto;
-  }
+  .main-header .header-left > .home-header-logo { height: 36px; }
   .header-center {
     display: none;
   }

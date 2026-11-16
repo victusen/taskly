@@ -1,0 +1,62 @@
+button.close-btn,
+div.close-btn[role="button"],
+button.payment-close-btn,
+button.invite-close-btn,
+button.business-loading-close,
+button.business-progress-close,
+button.mobile-drawer-close,
+button.cmp-icon[aria-label*="Close"],
+button.schedule-detail-close,
+button.careers-mega-close,
+button#sidebar-close-btn,
+button#btn-close-billing-modal,
+button#close-auth-modal[aria-label] {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  padding: 7px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  color: #4b5563 !important;
+  cursor: pointer !important;
+  transition: background-color .15s ease, color .15s ease, padding .15s ease !important;
+}
+
+button.close-btn:hover,
+div.close-btn[role="button"]:hover,
+button.payment-close-btn:hover,
+button.invite-close-btn:hover,
+button.business-loading-close:hover,
+button.business-progress-close:hover,
+button.mobile-drawer-close:hover,
+button.cmp-icon[aria-label*="Close"]:hover,
+button.schedule-detail-close:hover,
+button.careers-mega-close:hover,
+button#sidebar-close-btn:hover,
+button#btn-close-billing-modal:hover,
+button#close-auth-modal[aria-label]:hover {
+  padding: 5px !important;
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+}
+
+button.close-btn svg,
+div.close-btn[role="button"] svg,
+button.payment-close-btn svg,
+button.invite-close-btn svg,
+button.business-loading-close svg,
+button.business-progress-close svg,
+button.mobile-drawer-close svg,
+button.cmp-icon[aria-label*="Close"] svg,
+button.schedule-detail-close svg,
+button.careers-mega-close svg,
+button#sidebar-close-btn svg,
+button#btn-close-billing-modal svg,
+button#close-auth-modal[aria-label] svg {
+  width: 22px !important;
+  height: 22px !important;
+}

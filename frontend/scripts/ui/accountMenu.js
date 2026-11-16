@@ -1,4 +1,4 @@
-import { getCurrentSession, resolveUserInitial } from "../auth/session.js";
+import { getCurrentSession, resolveUserInitial, applyUserAvatar } from "../auth/session.js";
 import { signOut } from "../auth/auth.js";
 import { showToast } from "./toast.js";
 
@@ -48,7 +48,7 @@ function createMenu() {
           <span id="avatar-account-email"></span>
         </div>
       </div>
-      <a class="avatar-menu-action" href="account/billing.html" role="menuitem">Account settings</a>
+      <a class="avatar-menu-action" href="/account/settings/" role="menuitem">Settings</a>
       <button type="button" class="avatar-menu-action" id="avatar-theme-open" role="menuitem"><span>Theme</span><span aria-hidden="true">&gt;</span></button>
       <button type="button" class="avatar-menu-action" id="avatar-invite" role="menuitem">Invite someone</button>
       <button type="button" class="avatar-menu-action" id="avatar-sign-out" role="menuitem">Sign out</button>
@@ -133,7 +133,7 @@ export function initAccountMenu({
       menu.querySelector("#avatar-account-name").textContent = name;
       menu.querySelector("#avatar-account-email").textContent = user.email || "";
       menu.querySelector("#avatar-account-initial").textContent = initial;
-      trigger.textContent = initial;
+      applyUserAvatar(initial, metadata.avatar_url, { userId: user.id });
     } catch (error) {
       console.error("Could not load account information:", error);
       showToast("error", error.message || "Could not load your account information.");
@@ -189,7 +189,7 @@ export function initAccountMenu({
   menu.querySelector("#avatar-sign-out").addEventListener("click", async () => {
     try {
       await signOut();
-      window.location.href = "index.html";
+      window.location.href = new URL("/index.html", window.location.origin).href;
     } catch (error) {
       console.error("[LOGOUT]", error);
       showToast("error", "Could not sign out. Please try again.");

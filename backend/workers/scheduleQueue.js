@@ -22,10 +22,10 @@ export function armAt(key, fireAt, fn) {
   return "armed";
 }
 
-export function armCronAt(key, expression, fireAt, fn) {
+export function armCronAt(key, expression, fireAt, fn, timezone = "UTC") {
   if (armed.has(key)) return "already_armed";
 
-  const job = new Cron(expression, { timezone: "UTC", maxRuns: 1 }, fn);
+  const job = new Cron(expression, { timezone, maxRuns: 1 }, fn);
   const nextRun = job.nextRun();
   if (!nextRun || Math.abs(nextRun.getTime() - new Date(fireAt).getTime()) > 1000) {
     job.stop();

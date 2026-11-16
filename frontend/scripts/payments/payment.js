@@ -67,6 +67,7 @@ export async function startPayment(planKey = "paid_monthly") {
       title: "Opening Paystack",
     });
     window.location.assign(checkoutUrl.href);
+    return true;
   } catch (error) {
     console.error("[PAYSTACK]", error);
     updateToast(
@@ -75,5 +76,6 @@ export async function startPayment(planKey = "paid_monthly") {
       error.message || "Unable to start payment.",
       { title: "Payment unavailable" },
     );
+    return false;
   }
 }

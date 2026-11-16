@@ -42,7 +42,7 @@ export function initInviteModal(options = {}) {
       top: 0;
       right: 0;
       bottom: 0;
-      width: min(520px, 100vw);
+      width: min(560px, 100vw);
       max-width: 100vw;
       background: #ffffff;
       border-left: 1px solid #e5e7eb;
@@ -109,24 +109,28 @@ export function initInviteModal(options = {}) {
       gap: 18px;
     }
     .invite-field {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      align-items: start;
+      display: flex;
+      flex-direction: column;
       gap: 7px;
       min-width: 0;
     }
+    .invite-field-row { display: flex; align-items: center; gap: 14px; min-width: 0; }
     .invite-field[hidden] { display: none; }
     .invite-label {
+      flex: 0 0 35%;
       font-size: 13px;
       font-weight: 600;
       color: #4b5563;
     }
     .invite-hint {
+      padding-left: calc(35% + 14px);
       font-size: 12px;
       color: #9ca3af;
     }
     .invite-input, .invite-select, .invite-textarea {
-      width: 100%;
+      flex: 1 1 0;
+      width: 0;
+      min-width: 0;
       padding: 10px 14px;
       border: 1px solid #d1d5db;
       border-radius: 6px;
@@ -138,9 +142,11 @@ export function initInviteModal(options = {}) {
       box-sizing: border-box;
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
+    .invite-textarea { min-height: 120px; resize: vertical; }
     .invite-hint { line-height: 1.4; }
     .invite-input::placeholder, .invite-textarea::placeholder {
       font-weight: 300 !important;
+      font-family: inherit;
       color: #c4c8d0;
       opacity: 1;
     }
@@ -192,7 +198,7 @@ export function initInviteModal(options = {}) {
       display: inline-flex;
       align-items: center;
       gap: 7px;
-      padding: 5px 16px;
+      padding: 5px 11px;
       border: 1px solid #d1d5db;
       border-radius: 6px;
       background: #ffffff;
@@ -232,6 +238,10 @@ export function initInviteModal(options = {}) {
     @media (max-width: 480px) {
       .invite-drawer-header, .invite-drawer-body { padding-left: 18px; padding-right: 18px; }
       .invite-drawer-footer { padding-left: 18px; padding-right: 18px; }
+      .invite-field-row { gap: 10px; }
+      .invite-hint { padding-left: calc(35% + 10px); }
+      .invite-label { font-size: 12px; }
+      .invite-input, .invite-select, .invite-textarea { padding-left: 10px; padding-right: 10px; }
       .btn-hollow-doc { padding-left: 10px; padding-right: 10px; }
     }
   `;
@@ -249,7 +259,7 @@ export function initInviteModal(options = {}) {
     <aside class="invite-drawer" id="invite-drawer">
       <div class="invite-drawer-header">
         <div>
-          <h3 class="invite-drawer-title" id="invite-drawer-title">Invite team members</h3>
+          <h3 class="invite-drawer-title" id="invite-drawer-title">Invite a Team Member</h3>
           <p class="invite-drawer-sub">Collaborate on email schedules, review dispatches, or manage mail connections together.</p>
         </div>
         <button type="button" class="invite-close-btn" id="invite-drawer-close" aria-label="Close invite modal">
@@ -263,42 +273,52 @@ export function initInviteModal(options = {}) {
       <div class="invite-drawer-body">
         <!-- Emails -->
         <div class="invite-field">
-          <label class="invite-label" for="invite-emails-input">Member email(s)</label>
-          <input type="text" class="invite-input" id="invite-emails-input" placeholder="ada@company.com, tunde@company.com" autocomplete="off" />
+          <div class="invite-field-row">
+            <label class="invite-label" for="invite-emails-input">Member email(s)</label>
+            <input type="text" class="invite-input" id="invite-emails-input" placeholder="ada@company.com, tunde@company.com" autocomplete="off" />
+          </div>
           <span class="invite-hint">Separate multiple team emails with commas.</span>
         </div>
 
         <!-- Role -->
         <div class="invite-field">
-          <label class="invite-label" for="invite-role-select">Role & permissions</label>
-          <select class="invite-select" id="invite-role-select">
-            <option value="Admin">Admin (Full project and settings management)</option>
-            <option value="Editor" selected>Editor (Create, edit & dispatch schedules)</option>
-            <option value="Viewer">Viewer (Read-only status & report views)</option>
-          </select>
+          <div class="invite-field-row">
+            <label class="invite-label" for="invite-role-select">Role & permissions</label>
+            <select class="invite-select" id="invite-role-select">
+              <option value="Admin">Admin (Full project and settings management)</option>
+              <option value="Editor" selected>Editor (Create, edit & dispatch schedules)</option>
+              <option value="Viewer">Viewer (Read-only status & report views)</option>
+            </select>
+          </div>
         </div>
 
         <!-- Access Scope -->
         <div class="invite-field">
-          <label class="invite-label" for="scope-select">Access scope</label>
-          <select class="invite-select" id="scope-select">
-            <option value="account">Account level [All current & future projects]</option>
-            <option value="project" selected>Project level [Specific project only]</option>
-          </select>
+          <div class="invite-field-row">
+            <label class="invite-label" for="scope-select">Access scope</label>
+            <select class="invite-select" id="scope-select">
+              <option value="account">Account level [All current & future projects]</option>
+              <option value="project" selected>Project level [Specific project only]</option>
+            </select>
+          </div>
         </div>
 
         <!-- Project selection (shows when Project access is picked) -->
         <div class="invite-field" id="invite-project-group">
-          <label class="invite-label" for="invite-project-select">Project to invite them to</label>
-          <select class="invite-select" id="invite-project-select">
-            <option value="">Loading projects...</option>
-          </select>
+          <div class="invite-field-row">
+            <label class="invite-label" for="invite-project-select">Project to invite them to</label>
+            <select class="invite-select" id="invite-project-select">
+              <option value="">Loading projects...</option>
+            </select>
+          </div>
         </div>
 
         <!-- Personal note -->
         <div class="invite-field">
-          <label class="invite-label" for="invite-note-input">Personal note (optional)</label>
-          <textarea class="invite-textarea" id="invite-note-input" rows="2" placeholder="Hey! Joining our Bzade workspace to manage our upcoming scheduled campaigns..."></textarea>
+          <div class="invite-field-row">
+            <label class="invite-label" for="invite-note-input">Personal note (optional)</label>
+            <textarea class="invite-textarea" id="invite-note-input" rows="4" placeholder="Hey! Joining our Bzade workspace to manage our upcoming scheduled campaigns..."></textarea>
+          </div>
         </div>
       </div>
 

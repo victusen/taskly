@@ -52,24 +52,17 @@ async function fetchWithRetry(start, end) {
 }
 
 // Arm one schedule occurrence. Idempotent: calling it twice arms once.
-async function armSchedule(candidate, start, end) {
+async function armSchedule(candidate) {
   const readiness = await getScheduleReadiness(candidate.id, candidate.project_id);
   if (!readiness.eligible) {
-    console.warn(`[PLAN] not arming schedule ${candidate.id}: ${readiness.reason}`);
-    return;
+    const message = readiness.reason || "Schedule is not eligible to run.";
+    throw new Error(`Not arming schedule ${candidate.id}: ${message}`);
   }
 
   const schedule = readiness.schedule;
   const fireAt = new Date(schedule.next_run_at);
   if (!Number.isFinite(fireAt.getTime())) {
-    console.warn(`[PLAN] skipped schedule ${candidate.id}: invalid next run time.`);
-    return;
-  }
-  if (fireAt < start || fireAt >= end) {
-    console.warn(
-      `[PLAN] skipped schedule ${candidate.id}: next run ${schedule.next_run_at} is outside today's UTC window.`,
-    );
-    return;
+    throw new Error(`Schedule ${candidate.id} has an invalid next run time.`);
   }
 
   const runFor = schedule.next_run_at;
@@ -78,9 +71,9 @@ async function armSchedule(candidate, start, end) {
   if (fireAt.getTime() > Date.now()) {
     const expression = buildCronExpression(schedule);
     if (!expression) {
-      throw new Error("Could not build the recurring schedule's UTC cron expression.");
+      throw new Error("Could not build the schedule's cron expression.");
     }
-    const armedAs = armCronAt(key, expression, fireAt, run);
+    const armedAs = armCronAt(key, expression, fireAt, run, schedule.timezone || "UTC");
     if (armedAs !== "already_armed") {
       console.info(`[PLAN] schedule ${schedule.id} armed as ${armedAs} (${expression}) for ${runFor}.`);
     }
@@ -117,7 +110,7 @@ export async function planDay() {
       planState.candidates = rows.length;
       await Promise.all(rows.map(async (row) => {
         try {
-          await armSchedule(row, start, end);
+          await armSchedule(row);
         } catch (error) {
           console.error(`[PLAN] could not check schedule ${row.id}:`, error.message);
         }
@@ -170,21 +163,12 @@ export function getPlannerStatus(now = new Date()) {
 
 // Called from scheduleService.js when a schedule is created, edited, paused or cancelled.
 // Arms the new time, or cancels the old alarm if the schedule is no longer active.
-export function syncSchedule(schedule) {
+export async function syncSchedule(schedule) {
   if (schedule.status !== "active" || !schedule.next_run_at) {
     disarmSchedule(schedule.id);
     return;
   }
 
   disarmSchedule(schedule.id);
-  const { start, end } = utcDayWindow();
-  const runAt = new Date(schedule.next_run_at);
-
-  // Only arm occurrences that fall inside today. Tomorrow's occurrences will be
-  // armed by the midnight planner.
-  if (runAt >= start && runAt < end) {
-    armSchedule(schedule, start, end).catch((error) =>
-      console.error(`[PLAN] could not arm schedule ${schedule.id}:`, error.message),
-    );
-  }
+  await armSchedule(schedule);
 }

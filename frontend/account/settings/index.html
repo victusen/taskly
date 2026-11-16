@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bzade - Settings</title>
+  <link rel="icon" type="image/png" href="../../logo-2.png">
+  <link rel="stylesheet" href="../../scripts/ui/toast.css">
+  <link rel="stylesheet" href="../../scripts/ui/closeButtons.css">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; background: #fcfcfd; color: #111827;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+    header {
+      position: fixed; inset: 0 0 auto; z-index: 50; height: 52px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; background: #fff; border-bottom: 1px solid #e5e7eb;
+    }
+    .header-brand, .header-actions { display: flex; align-items: center; gap: 12px; }
+    .header-brand img { width: auto; height: 28px; }
+    .brand { font-size: 17px; font-weight: 650; letter-spacing: -.02em; }
+    .header-action-btn {
+      display: grid; place-items: center; width: 34px; height: 34px;
+      border: 0; border-radius: 50%; background: transparent; color: #4b5563; cursor: pointer;
+    }
+    .header-action-btn:hover { background: #f3f4f6; color: #111827; }
+    .help-menu-container { position: relative; }
+    .header-dropdown-menu {
+      display: none; position: absolute; top: 40px; right: 0; z-index: 60;
+      min-width: 190px; padding: 6px; border: 1px solid #e5e7eb; border-radius: 8px;
+      background: #fff; box-shadow: 0 10px 25px rgba(0,0,0,.1);
+    }
+    .header-dropdown-menu.show { display: block; }
+    .header-dd-item {
+      display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+      border-radius: 6px; color: #374151; font-size: 13px;
+    }
+    .header-dd-item:hover { background: #f3f4f6; color: #111827; }
+    .hamburger {
+      display: none; width: 34px; height: 34px; place-items: center;
+      border: 0; border-radius: 6px; background: transparent; color: #374151; cursor: pointer;
+    }
+    .avatar-initial {
+      display: grid; place-items: center; width: 32px; height: 32px; padding: 0;
+      border: 0; border-radius: 50%; background-color: #ef4444; color: #fff;
+      font-size: 13px; font-weight: 650; cursor: pointer;
+    }
+    .settings-layout {
+      display: flex; align-items: flex-start; gap: 26px;
+      width: min(1440px, calc(100% - 40px)); margin: 76px auto 40px;
+    }
+    .left-sidebar {
+      display: flex; flex: 0 0 232px; position: sticky; top: 68px;
+      height: calc(100vh - 86px);
+    }
+    .sidebar-card {
+      display: flex; flex: 1; flex-direction: column; min-height: 0;
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 9px;
+    }
+    .sidebar-nav { display: flex; flex: 1; flex-direction: column; gap: 4px; padding: 16px 12px; }
+    .sidebar-title {
+      margin: 2px 8px 8px; color: #9ca3af; font-size: 11px; font-weight: 700;
+      letter-spacing: .08em; text-transform: uppercase;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px; min-height: 38px;
+      padding: 8px 10px; border: 0; border-radius: 6px; background: transparent;
+      color: #4b5563; font-size: 13px; text-align: left; cursor: pointer;
+    }
+    .nav-item:hover { background: #f3f4f6; color: #111827; }
+    .nav-item.active { background: #e6f4ea; color: #166534; font-weight: 600; }
+    .nav-item svg { flex: 0 0 16px; }
+    .nav-item-collapsible { justify-content: space-between; cursor: pointer; user-select: none; }
+    .nav-item-collapsible > span:first-of-type { margin-right: auto; }
+    .projects-toggle-icon { transition: transform .2s ease; }
+    .nav-item-collapsible.collapsed .projects-toggle-icon { transform: rotate(-90deg); }
+    .sub-nav {
+      display: flex; flex-direction: column; gap: 2px; padding-left: 12px;
+      margin: 4px 0 0 8px; border-left: 2px solid #e5e7eb;
+    }
+    .sub-nav.collapsed { display: none; }
+    .sub-item { padding: 5px 8px; font-size: 12px; }
+    .skeleton-nav-group {
+      display: flex; flex-direction: column; gap: 5px; padding-left: 12px;
+      margin: 4px 0 0 8px; border-left: 2px solid #e5e7eb;
+    }
+    .skeleton-line {
+      height: 22px; border-radius: 4px;
+      background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+      background-size: 800px 100%; animation: settings-shimmer 1.4s infinite ease-in-out;
+    }
+    @keyframes settings-shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+    .project-nav-empty { padding: 6px 8px; color: #9ca3af; font-size: 12px; }
+    .nav-item[data-logout] { width: 100%; margin-top: auto; color: #dc2626; text-align: left; }
+    main { flex: 1; min-width: 0; }
+    .page-heading { margin: 4px 0 22px; }
+    .page-heading h1 { margin: 0; font-size: 25px; line-height: 1.25; letter-spacing: -.025em; }
+    .page-heading p { margin: 6px 0 0; color: #6b7280; font-size: 14px; }
+    .settings-card {
+      padding: 22px 24px; background: #fff; border: 1px solid #e5e7eb;
+      border-radius: 9px; box-shadow: 0 1px 2px rgba(17,24,39,.03);
+    }
+    .settings-card + .settings-card { margin-top: 16px; }
+    .card-heading { padding-bottom: 18px; border-bottom: 1px solid #f0f1f3; }
+    .card-heading h2 { margin: 0; font-size: 16px; font-weight: 650; }
+    .card-heading p { margin: 5px 0 0; color: #6b7280; font-size: 13px; }
+    .profile-row { display: flex; align-items: center; gap: 18px; padding-top: 20px; }
+    .profile-avatar {
+      display: grid; flex: 0 0 76px; place-items: center; width: 76px; height: 76px;
+      border-radius: 50%; background-color: #ef4444; color: #fff; font-size: 25px; font-weight: 650;
+    }
+    .profile-actions { min-width: 0; }
+    .profile-actions h3 { margin: 0; font-size: 14px; font-weight: 600; }
+    .profile-actions p { margin: 4px 0 12px; color: #6b7280; font-size: 12px; line-height: 1.5; }
+    .button-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .button {
+      display: inline-flex; align-items: center; justify-content: center; min-height: 34px;
+      padding: 7px 12px; border: 1px solid #d1d5db; border-radius: 6px;
+      background: #fff; color: #374151; font-size: 13px; font-weight: 550; cursor: pointer;
+    }
+    .button:hover { background: #f9fafb; }
+    .button.primary { border-color: #111827; background: #111827; color: #fff; }
+    .button.primary:hover { background: #374151; }
+    .button:disabled { cursor: not-allowed; opacity: .55; }
+    .button.danger { color: #b91c1c; }
+    .profile-details { display: grid; grid-template-columns: minmax(150px, .7fr) 1.3fr; gap: 15px; padding-top: 18px; }
+    .detail-label { color: #6b7280; font-size: 12px; }
+    .detail-value { overflow-wrap: anywhere; color: #111827; font-size: 13px; font-weight: 550; }
+    .status-message { min-height: 18px; margin: 12px 0 0; color: #6b7280; font-size: 12px; }
+    .team-member-row {
+      display: flex; align-items: center; gap: 12px; padding: 16px 0;
+      border-bottom: 1px solid #f0f1f3;
+    }
+    .team-member-avatar {
+      display: grid; flex: 0 0 38px; place-items: center; width: 38px; height: 38px;
+      border-radius: 50%; background: #ef4444; color: #fff; font-size: 14px; font-weight: 650;
+    }
+    .team-member-details { min-width: 0; flex: 1; }
+    .team-member-details strong, .team-member-details span { display: block; overflow-wrap: anywhere; }
+    .team-member-details strong { font-size: 13px; font-weight: 600; }
+    .team-member-details span { margin-top: 2px; color: #6b7280; font-size: 12px; }
+    .team-member-role { color: #6b7280; font-size: 12px; }
+    .team-access-note { margin: 12px 0 0; color: #6b7280; font-size: 12px; line-height: 1.5; }
+    .mobile-sidebar-overlay {
+      display: none; position: fixed; inset: 0; z-index: 100; background: rgba(17,24,39,.45);
+    }
+    .mobile-sidebar-overlay.open { display: block; }
+    .mobile-sidebar {
+      display: flex; flex-direction: column; width: min(280px, 85vw); height: 100%;
+      padding: 16px 12px; background: #fff; transform: translateX(-100%); transition: transform .2s ease;
+    }
+    .mobile-sidebar-overlay.open .mobile-sidebar { transform: translateX(0); }
+    .mobile-sidebar-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 6px 14px; border-bottom: 1px solid #e5e7eb;
+    }
+    .mobile-sidebar-header button {
+      width: 32px; height: 32px; border: 0; border-radius: 6px;
+      background: transparent; color: #4b5563; cursor: pointer;
+    }
+    .mobile-sidebar-nav { display: flex; flex: 1; flex-direction: column; gap: 4px; padding-top: 14px; }
+    @media (max-width: 800px) {
+      .settings-layout { width: min(calc(100% - 28px), 700px); margin-top: 70px; }
+      .left-sidebar { display: none; }
+      .hamburger { display: grid; }
+    }
+    @media (max-width: 520px) {
+      header { padding: 0 12px; }
+      .settings-layout { width: calc(100% - 24px); margin-top: 68px; }
+      .page-heading h1 { font-size: 23px; }
+      .settings-card { padding: 18px 16px; }
+      .profile-row { align-items: flex-start; gap: 13px; }
+      .profile-avatar { flex-basis: 60px; width: 60px; height: 60px; font-size: 21px; }
+      .profile-details { grid-template-columns: 1fr; gap: 5px; }
+    }
+    body[data-theme="dark"] { background: #111827; color: #f9fafb; }
+    body[data-theme="dark"] header, body[data-theme="dark"] .sidebar-card,
+    body[data-theme="dark"] .settings-card, body[data-theme="dark"] .mobile-sidebar {
+      background: #1f2937; border-color: #374151; color: #f9fafb;
+    }
+    body[data-theme="dark"] .page-heading p, body[data-theme="dark"] .card-heading p,
+    body[data-theme="dark"] .profile-actions p, body[data-theme="dark"] .detail-label { color: #9ca3af; }
+    body[data-theme="dark"] .detail-value { color: #f9fafb; }
+    body[data-theme="dark"] .team-member-row { border-color: #374151; }
+    body[data-theme="dark"] .team-member-details span, body[data-theme="dark"] .team-member-role,
+    body[data-theme="dark"] .team-access-note { color: #9ca3af; }
+    body[data-theme="dark"] .nav-item { color: #d1d5db; }
+    body[data-theme="dark"] .nav-item:hover { background: #374151; color: #fff; }
+    body[data-theme="dark"] .button { background: #1f2937; border-color: #4b5563; color: #f9fafb; }
+    body[data-theme="dark"] .button.primary { background: #f9fafb; color: #111827; }
+    body[data-theme="dark"] .header-dropdown-menu { background: #1f2937; border-color: #374151; }
+    body[data-theme="dark"] .header-dd-item { color: #d1d5db; }
+    body[data-theme="dark"] .header-dd-item:hover { background: #374151; color: #fff; }
+    body[data-theme="dark"] .skeleton-line { background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%); background-size: 800px 100%; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-brand">
+      <button type="button" class="hamburger" id="hamburger-btn" aria-label="Open navigation" aria-expanded="false">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <img src="../../logo-bz.png" alt="Bzade">
+      <a class="brand" href="../../dashboard.html">Bzade.app</a>
+    </div>
+    <div class="header-actions">
+      <div class="help-menu-container" id="help-menu-container">
+        <button type="button" class="header-action-btn" id="help-dropdown-btn" aria-label="Help and support" aria-haspopup="true" aria-expanded="false">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </button>
+        <div class="header-dropdown-menu" id="help-dropdown-menu">
+          <a href="../../documentation.html" class="header-dd-item">Bzade Docs</a>
+          <a href="../../documentation.html#api" class="header-dd-item">API Reference</a>
+          <a href="../../feedback.html" class="header-dd-item">Feedback</a>
+          <a href="../../terms.html" class="header-dd-item">Terms of Service</a>
+          <a href="mailto:support@bzade.app" class="header-dd-item">Support</a>
+        </div>
+      </div>
+      <button type="button" id="header-avatar" class="avatar-initial" aria-label="Open account menu" aria-haspopup="true" aria-expanded="false">U</button>
+    </div>
+  </header>
+
+  <template id="settings-nav-template">
+    <div class="sidebar-title">Workspace</div>
+    <a class="nav-item" href="../../dashboard.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span>Dashboard</span>
+    </a>
+    <div class="nav-item nav-item-collapsible collapsed" data-toggle-projects role="button" tabindex="0" aria-expanded="false">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L16.5 4.6V9.8L12 12.4L7.5 9.8V4.6L12 2Z"/><path d="M12 12.4V7.2M12 7.2L16.5 4.6M12 7.2L7.5 4.6"/>
+      </svg>
+      <span>Projects</span>
+      <svg class="projects-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="skeleton-nav-group" data-project-skeleton aria-hidden="true">
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line"></div>
+    </div>
+    <div class="sub-nav collapsed" data-sub-nav></div>
+    <a class="nav-item" href="#" data-nav-toast="notifications">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M10 21h4"/></svg>
+      <span>Notifications</span>
+    </a>
+    <a class="nav-item" href="#" data-nav-toast="api-keys">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="15" r="5"/><path d="m11.5 11.5 9-9m-3 3 3 3"/></svg>
+      <span>API keys</span>
+    </a>
+    <a class="nav-item" href="../billing.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      <span>Billing</span>
+    </a>
+    <a class="nav-item active" href="./" aria-current="page">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      <span>Settings</span>
+    </a>
+    <button type="button" class="nav-item" data-logout>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <span>Sign out</span>
+    </button>
+  </template>
+
+  <div class="mobile-sidebar-overlay" id="mobile-sidebar-overlay" aria-hidden="true">
+    <aside class="mobile-sidebar" aria-label="Main navigation">
+      <div class="mobile-sidebar-header">
+        <strong>Navigation</strong>
+        <button type="button" id="sidebar-close-btn" aria-label="Close navigation">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 6-12 12M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <nav class="mobile-sidebar-nav" id="mobile-nav"></nav>
+    </aside>
+  </div>
+
+  <div class="settings-layout">
+    <aside class="left-sidebar" aria-label="Main navigation">
+      <div class="sidebar-card">
+        <nav class="sidebar-nav" id="desktop-nav"></nav>
+      </div>
+    </aside>
+    <main>
+      <div class="page-heading">
+        <h1>Settings</h1>
+        <p>Manage your profile and account preferences.</p>
+      </div>
+      <section class="settings-card" aria-labelledby="profile-icon-heading">
+        <div class="card-heading">
+          <h2 id="profile-icon-heading">Profile icon</h2>
+          <p>Choose an image to personalize your account across Bzade. It is saved only in this browser on this device.</p>
+        </div>
+        <div class="profile-row">
+          <div class="profile-avatar" id="profile-avatar-preview" aria-label="Profile icon preview">U</div>
+          <div class="profile-actions">
+            <h3 id="profile-name">Your profile</h3>
+            <p>Use a PNG, JPG, or WebP image. It is resized before being saved on this device.</p>
+            <input id="profile-icon-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+            <div class="button-row">
+              <button type="button" class="button" id="choose-profile-icon">Choose image</button>
+              <button type="button" class="button primary" id="save-profile-icon" disabled>Save icon</button>
+              <button type="button" class="button danger" id="remove-profile-icon" hidden>Remove</button>
+            </div>
+          </div>
+        </div>
+        <p class="status-message" id="profile-icon-status" aria-live="polite"></p>
+      </section>
+      <section class="settings-card" aria-labelledby="account-details-heading">
+        <div class="card-heading">
+          <h2 id="account-details-heading">Account details</h2>
+          <p>Your sign-in details are managed by your Bzade account.</p>
+        </div>
+        <div class="profile-details">
+          <div class="detail-label">Name</div>
+          <div class="detail-value" id="account-name">-</div>
+          <div class="detail-label">Email address</div>
+          <div class="detail-value" id="account-email">-</div>
+        </div>
+      </section>
+      <section class="settings-card" aria-labelledby="team-members-heading">
+        <div class="card-heading">
+          <h2 id="team-members-heading">Team Members</h2>
+          <p>Accounts with access to your projects.</p>
+        </div>
+        <div id="team-members-list" aria-live="polite">
+          <p class="status-message">Loading project access...</p>
+        </div>
+        <p class="team-access-note">Only project owners are tracked by the current workspace model. Invited collaborator access is not yet available.</p>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="./settings.js"></script>
+</body>
+</html>

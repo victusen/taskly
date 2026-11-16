@@ -1,10 +1,11 @@
 import { requireAuth, resolveUserInitial, applyUserAvatar } from "../scripts/auth/session.js";
 import { signOut } from "../scripts/auth/auth.js";
-import { startPayment } from "../scripts/payments/payment.js";
+import { initPaymentModal } from "../scripts/payments/paymentModal.js";
 import { showToast } from "../scripts/ui/toast.js";
 import { loadProjects } from "../scripts/data/source.js";
 import { initInviteModal } from "../scripts/ui/inviteModal.js";
 import { authenticatedFetch } from "../scripts/auth/api.js";
+import { initAccountMenu } from "../scripts/ui/accountMenu.js";
 
 // Clean any leftover tokens / hash from browser address bar
 if (window.location.hash || window.location.search.includes("code=") || window.location.search.includes("access_token")) {
@@ -15,9 +16,11 @@ const session = await requireAuth();
 if (!session) throw new Error("Authentication required.");
 
 const initial = resolveUserInitial(session);
-applyUserAvatar(initial);
+applyUserAvatar(initial, session.user?.user_metadata?.avatar_url, { userId: session.user?.id });
+initAccountMenu({ triggerId: "header-avatar", session });
 
 initInviteModal();
+initPaymentModal();
 
 const emailEl = document.getElementById("user-billing-email");
 if (emailEl) emailEl.textContent = session.user?.email || "—";
@@ -48,6 +51,13 @@ async function loadBillingPlan() {
 
 void loadBillingPlan();
 
+document.addEventListener("click", (event) => {
+  const link = event.target.closest("[data-nav-toast]");
+  if (!link || !["notifications", "api-keys"].includes(link.dataset.navToast)) return;
+  event.preventDefault();
+  showToast("info", "Coming soon.");
+});
+
 // Sign out handlers
 document.querySelectorAll("[data-logout]").forEach((btn) => {
   btn.addEventListener("click", async () => {
@@ -59,19 +69,6 @@ document.querySelectorAll("[data-logout]").forEach((btn) => {
     window.location.href = "../index.html";
   });
 });
-
-// Upgrade plan / Add Card handlers with Paystack
-const launchCheckout = () => {
-  try {
-    startPayment("paid_monthly");
-  } catch (err) {
-    showToast("error", err.message || "Could not launch checkout.");
-  }
-};
-
-document.getElementById("btn-upgrade-top")?.addEventListener("click", launchCheckout);
-document.getElementById("btn-upgrade-plan")?.addEventListener("click", launchCheckout);
-document.getElementById("btn-add-card")?.addEventListener("click", launchCheckout);
 
 // Plan Benefits toggle
 const benefitsBtn = document.getElementById("btn-plan-benefits-toggle");
@@ -269,7 +266,7 @@ async function loadBillingProjects() {
           const sCount = p.schedule_count ?? 0;
           totalSchedules += sCount;
           const pName = p.project_name || p.business_name || "Untitled Project";
-          const bName = p.business_name || "Default Business";
+          const bName = p.business_name || "";
 
           return `
             <tr>

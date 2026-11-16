@@ -7,12 +7,12 @@ import { CronExpressionParser } from "cron-parser";
  *
  * Stored in the database (no cron expression is ever stored):
  *   scheduled_for : the first run, a UTC instant
- *   timezone      : UTC
+ *   timezone      : the IANA zone used to interpret recurring wall-clock times
  *   schedule_rule : the plain word the user picked, for example { "every": "weekday" }
  *
  * At run time:
  *   get-cron turns (first run, word) into a cron expression, for example "0 9 * * 1-5".
- *   cron-parser reads that expression in UTC and returns the next date.
+ *   cron-parser reads that expression in the schedule's timezone and returns the next date.
  *
  * To offer a new repeat word, add it to REPEAT_OPTIONS. get-cron must support it.
  */
@@ -51,8 +51,8 @@ export function parseRule(raw) {
  * The cron expression for a rule, built from the wall clock time of the first run.
  * Example: first run 09:00 Lagos on a Monday, every "weekday" gives "0 9 * * 1-5".
  */
-export function buildCronExpression({ schedule_type, scheduled_for, schedule_rule }) {
-  const first = DateTime.fromISO(String(scheduled_for), { zone: "utc" });
+export function buildCronExpression({ schedule_type, scheduled_for, schedule_rule, timezone = "UTC" }) {
+  const first = DateTime.fromISO(String(scheduled_for), { zone: "utc" }).setZone(timezone);
 
   const every = schedule_type === RECURRING ? schedule_rule?.every : "once";
   if (
@@ -101,10 +101,15 @@ export function computeNextRun(
   }
 
   try {
-    const expression = buildCronExpression({ scheduled_for, schedule_rule, timezone });
+    const expression = buildCronExpression({
+      schedule_type,
+      scheduled_for,
+      schedule_rule,
+      timezone,
+    });
 
     const next = CronExpressionParser.parse(expression, {
-      tz: "UTC",
+      tz: timezone || "UTC",
       currentDate: after,
     }).next();
 

@@ -1,6 +1,6 @@
 import { requireAuth, resolveUserInitial, applyUserAvatar } from "./scripts/auth/session.js";
 import { signOut } from "./scripts/auth/auth.js";
-import { startPayment } from "./scripts/payments/payment.js";
+import { initPaymentModal } from "./scripts/payments/paymentModal.js";
 import { showToast } from "./scripts/ui/toast.js";
 import { loadProjects } from "./scripts/data/source.js";
 import { initInviteModal } from "./scripts/ui/inviteModal.js";
@@ -14,9 +14,10 @@ const session = await requireAuth();
 if (!session) throw new Error("Authentication required.");
 
 const initial = resolveUserInitial(session);
-applyUserAvatar(initial);
+applyUserAvatar(initial, session.user?.user_metadata?.avatar_url, { userId: session.user?.id });
 
 initInviteModal();
+initPaymentModal();
 
 const user = session.user;
 const email = user?.email || "Victor@bzade.app";
@@ -35,18 +36,6 @@ document.querySelectorAll("[data-logout]").forEach((btn) => {
     window.location.href = "index.html";
   });
 });
-
-// Upgrade plan handlers with Paystack
-const upgradePlan = () => {
-  try {
-    startPayment();
-  } catch (err) {
-    showToast("error", err.message || "Could not launch checkout.");
-  }
-};
-
-document.getElementById("btn-upgrade-top")?.addEventListener("click", upgradePlan);
-document.getElementById("btn-upgrade-plan")?.addEventListener("click", upgradePlan);
 
 document.getElementById("btn-update-card")?.addEventListener("click", () => {
   showToast("info", "To update your billing card, complete your subscription upgrade or checkout via Paystack.");
@@ -129,7 +118,7 @@ async function loadBillingProjects() {
           const sCount = p.schedule_count ?? 0;
           totalSchedules += sCount;
           const pName = p.project_name || p.business_name || "Untitled Project";
-          const bName = p.business_name || "Default Business";
+          const bName = p.business_name || "";
 
           return `
             <tr>

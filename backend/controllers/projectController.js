@@ -13,6 +13,12 @@ const PROJECT_LIMITS = {
   business: 10,
 };
 
+function projectLimitMessage(limit) {
+  return limit === 1
+    ? "Your plan allows only 1 project. Pls Upgrade to add more."
+    : `Your plan allows up to ${limit} projects. Pls Upgrade to add more.`;
+}
+
 async function assertUnderProjectLimit(userId) {
   const { data: profile, error: profileError } = await supabase
     .from("users")
@@ -57,18 +63,23 @@ export const projectController = {
 
   async createProject(req, res) {
     try {
-      const projectName = typeof req.body?.project_name === "string" ? req.body.project_name.trim() : "";
-      const businessName = typeof req.body?.business_name === "string" ? req.body.business_name.trim() : "";
+      const enteredProjectName = typeof req.body?.project_name === "string" ? req.body.project_name.trim() : "";
+      const enteredBusinessName = typeof req.body?.business_name === "string" ? req.body.business_name.trim() : "";
       const fieldErrors = {};
-      if (projectName.length < 1 || projectName.length > 120) fieldErrors.project_name = "Project name must be 1 to 120 characters.";
-      if (businessName.length < 1 || businessName.length > 120) fieldErrors.business_name = "Business name must be 1 to 120 characters.";
+      if (!enteredProjectName && !enteredBusinessName) {
+        fieldErrors.project_name = "Enter a project name or a business name.";
+      }
+      if (enteredProjectName.length > 120) fieldErrors.project_name = "Project name must be no more than 120 characters.";
+      if (enteredBusinessName.length > 120) fieldErrors.business_name = "Business name must be no more than 120 characters.";
       if (Object.keys(fieldErrors).length > 0) {
         return fail(res, 400, "VALIDATION_FAILED", "Check the highlighted fields.", fieldErrors);
       }
 
+      const projectName = enteredProjectName || enteredBusinessName;
+      const businessName = enteredProjectName && enteredBusinessName ? enteredBusinessName : "";
       const { allowed, limit } = await assertUnderProjectLimit(req.user.id);
       if (!allowed) {
-        return fail(res, 403, "PLAN_LIMIT_REACHED", `Your plan allows ${limit} project${limit === 1 ? "" : "s"}. Upgrade to add more.`);
+        return fail(res, 403, "PLAN_LIMIT_REACHED", projectLimitMessage(limit));
       }
 
       const { data, error } = await supabase
@@ -79,7 +90,7 @@ export const projectController = {
 
       if (error) {
         if (error.code === "P0001") {
-          return fail(res, 403, "PROJECT_LIMIT_REACHED", "Your plan does not allow more projects. Upgrade to add more.");
+          return fail(res, 403, "PROJECT_LIMIT_REACHED", projectLimitMessage(limit));
         }
         if (error.code === "23505") {
           return fail(res, 409, "DUPLICATE_NAME", "A project with that name already exists.");

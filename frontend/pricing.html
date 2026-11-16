@@ -7,6 +7,7 @@
   <link rel="icon" type="image/png" href="logo-2.png" />
   <link rel="stylesheet" href="index.css?v=2.1">
   <link rel="stylesheet" href="./scripts/ui/toast.css">
+  <link rel="stylesheet" href="./scripts/ui/closeButtons.css">
   <script>
     (function() {
       try {
@@ -899,21 +900,9 @@
   </div>
 
   <script type="module">
-    import { startPayment } from "./scripts/payments/payment.js";
+    import { initPaymentModal } from "./scripts/payments/paymentModal.js";
 
-    document.querySelectorAll("[data-paystack-btn]").forEach((button) => {
-      button.addEventListener("click", (event) => {
-        event.preventDefault();
-        const tier = button.dataset.planTier;
-        if (tier !== "paid" && tier !== "business") return;
-        const billingPeriod = document
-          .getElementById("billing-yearly")
-          ?.classList.contains("active")
-          ? "yearly"
-          : "monthly";
-        startPayment(`${tier}_${billingPeriod}`);
-      });
-    });
+    initPaymentModal();
   </script>
   <script>
     // Billing Toggle for pricing.html

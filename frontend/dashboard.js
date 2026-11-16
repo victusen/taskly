@@ -1,7 +1,7 @@
 import { requireAuth, resolveUserInitial, applyUserAvatar } from "./scripts/auth/session.js";
 import { signOut } from "./scripts/auth/auth.js";
-import { startPayment } from "./scripts/payments/payment.js";
-import { showToast } from "./scripts/ui/toast.js";
+import { showToast, showToastAction } from "./scripts/ui/toast.js";
+import { initPaymentModal } from "./scripts/payments/paymentModal.js";
 import { loadConnections, addProject, loadProjects, loadSchedules, removeProject } from "./scripts/data/source.js";
 import { initInviteModal } from "./scripts/ui/inviteModal.js";
 import { initAccountMenu } from "./scripts/ui/accountMenu.js";
@@ -13,6 +13,19 @@ import { authenticatedFetch } from "./scripts/auth/api.js";
 window.bzShowAudiences = () => showToast("info", "Audiences — coming soon. Track subscriber segments here.");
 window.bzShowTeam = () => showToast("info", "Team members — coming soon. Invite collaborators to your projects.");
 
+const NAV_TOAST_MESSAGES = {
+  notifications: "Coming soon.",
+  "api-keys": "Coming soon.",
+};
+
+document.addEventListener("click", (event) => {
+  const link = event.target.closest("[data-nav-toast]");
+  const message = link && NAV_TOAST_MESSAGES[link.dataset.navToast];
+  if (!message) return;
+  event.preventDefault();
+  showToast("info", message);
+});
+
 // Clean any leftover tokens / hash from browser address bar
 if (window.location.hash || window.location.search.includes("code=") || window.location.search.includes("access_token")) {
   window.history.replaceState({}, document.title, window.location.pathname);
@@ -20,11 +33,7 @@ if (window.location.hash || window.location.search.includes("code=") || window.l
 
 const modal = document.getElementById("business-modal");
 const form = document.getElementById("business-form");
-const businessCreateState = document.getElementById("business-create-state");
 const businessLoading = document.getElementById("business-loading");
-const businessCreateMessage = document.getElementById("business-create-message");
-const businessCreateRetry = document.getElementById("business-create-retry");
-const businessCreateEdit = document.getElementById("business-create-edit");
 const projectListEl = document.getElementById("project-list");
 const deleteModal = document.getElementById("delete-project-modal");
 const deleteModalName = document.getElementById("delete-modal-project-name");
@@ -41,7 +50,6 @@ let projectMailConnections = new Map();
 let projectScheduleCounts = new Map();
 let projectMailConnectionsRequest = null;
 let projectMailConnectionsLoaded = false;
-let pendingBusinessInput = null;
 let isCreatingBusiness = false;
 let dashboardProjectRenderVersion = 0;
 
@@ -52,19 +60,20 @@ showGoogleResult();
 
 // Populate user details in header avatar / sidebar
 const initial = resolveUserInitial(session);
-applyUserAvatar(initial);
+applyUserAvatar(initial, session.user?.user_metadata?.avatar_url, { userId: session.user?.id });
 
 async function updateUpgradeLink() {
-  const upgradeLink = document.getElementById("upgrade-to-paid-link");
-  if (!upgradeLink) return;
-
+  const freePlanBanner = document.getElementById("free-plan-banner");
   try {
     const response = await authenticatedFetch("/api/account");
     const plan = String(response.data?.plan || "free").toLowerCase();
-    upgradeLink.hidden = plan !== "free";
+    const isFreePlan = plan === "free";
+    if (freePlanBanner) freePlanBanner.hidden = !isFreePlan;
+    document.body.classList.toggle("has-free-plan-banner", isFreePlan);
   } catch (error) {
     console.error("Could not load the account plan for the dashboard:", error);
-    upgradeLink.hidden = false;
+    if (freePlanBanner) freePlanBanner.hidden = true;
+    document.body.classList.remove("has-free-plan-banner");
   }
 }
 
@@ -90,10 +99,7 @@ document.querySelectorAll("[data-logout]").forEach((button) => {
   });
 });
 
-/* Every Billing and Upgrade button starts payment or navigates to billing */
-document.querySelectorAll("[data-upgrade]").forEach((button) => {
-  button.addEventListener("click", () => startPayment("paid_monthly"));
-});
+const paymentModal = initPaymentModal();
 
 function escapeHtml(str) {
   if (!str) return "";
@@ -170,7 +176,7 @@ function renderProjectInsight(card) {
     priorityNotifications.push({
       text: `Mail connected: ${connection.email_address}`,
       priority: 3,
-      bgColor: "#059669",
+      bgColor: "rgb(0, 128, 0)",
       isCritical: false
     });
   } else if (connection) {
@@ -645,14 +651,10 @@ async function openModal() {
   if (isCreatingBusiness) return;
   form.reset();
   form.hidden = false;
-  businessCreateState.hidden = true;
   businessLoading.hidden = true;
   modal.classList.remove("is-loading");
-  businessCreateRetry.hidden = true;
-  businessCreateEdit.hidden = true;
-  businessCreateMessage.textContent = "";
   modal.classList.add("open");
-  form.elements.business_name.focus();
+  form.elements.project_name.focus();
 }
 
 function closeModal() {
@@ -660,11 +662,9 @@ function closeModal() {
   modal.classList.remove("is-loading");
   businessLoading.hidden = true;
   form.hidden = false;
-  businessCreateState.hidden = true;
 }
 
 document.getElementById("modal-close")?.addEventListener("click", closeModal);
-document.getElementById("business-create-close")?.addEventListener("click", closeModal);
 document.getElementById("business-loading-close")?.addEventListener("click", closeModal);
 document.getElementById("add-business-card")?.addEventListener("click", openModal);
 modal.addEventListener("click", (event) => {
@@ -688,18 +688,18 @@ form.addEventListener("submit", async (event) => {
   const businessNameField = form.elements.business_name;
 
   if (!enteredProjectName && !enteredBusinessName) {
-    projectNameField.setCustomValidity("Enter a business name or a project name.");
+    projectNameField.setCustomValidity("Enter a project name or a business name.");
     projectNameField.reportValidity();
     return;
   }
 
   projectNameField.setCustomValidity("");
   businessNameField.setCustomValidity("");
-  pendingBusinessInput = {
+  const projectInput = {
     project_name: enteredProjectName || enteredBusinessName,
-    business_name: enteredBusinessName || enteredProjectName,
+    business_name: enteredProjectName && enteredBusinessName ? enteredBusinessName : "",
   };
-  await createBusiness(pendingBusinessInput);
+  await createBusiness(projectInput);
 });
 
 async function createBusiness(input) {
@@ -708,50 +708,45 @@ async function createBusiness(input) {
   const enteredBusinessName = String(input.business_name || "").trim();
   if (!enteredProjectName && !enteredBusinessName) {
     form.hidden = false;
-    businessCreateState.hidden = true;
-    form.elements.project_name.setCustomValidity("Enter a business name or a project name.");
+    form.elements.project_name.setCustomValidity("Enter a project name or a business name.");
     form.elements.project_name.reportValidity();
     return;
   }
   const projectName = enteredProjectName || enteredBusinessName;
-  const businessName = enteredBusinessName || enteredProjectName;
+  const businessName = enteredProjectName && enteredBusinessName ? enteredBusinessName : "";
   input = { project_name: projectName, business_name: businessName };
-  pendingBusinessInput = input;
   isCreatingBusiness = true;
   form.hidden = true;
-  businessCreateState.hidden = true;
   businessLoading.hidden = false;
   modal.classList.add("is-loading");
-  businessCreateRetry.hidden = true;
-  businessCreateState.dataset.state = "loading";
-  businessCreateMessage.textContent = "Creating your business and loading its project details…";
 
   try {
     const createdProject = await addProject(input);
-    isCreatingBusiness = false;
     closeModal();
-    showToast("success", "Business profile created.");
+    showToast("success", "Project created successfully.");
     await renderDashboardProjects({ fallbackProject: createdProject, useFallback: true });
   } catch (err) {
+    const first = err.fieldErrors ? Object.values(err.fieldErrors)[0] : null;
     modal.classList.remove("is-loading");
     businessLoading.hidden = true;
-    businessCreateState.hidden = false;
-    const first = err.fieldErrors ? Object.values(err.fieldErrors)[0] : null;
-    businessCreateState.dataset.state = "error";
-    businessCreateMessage.textContent = first || err.message || "Could not create the business profile. Check your connection and try again.";
-    businessCreateRetry.hidden = false;
-    businessCreateEdit.hidden = false;
+    form.hidden = false;
+
+    if (err.code === "PLAN_LIMIT_REACHED" || err.code === "PROJECT_LIMIT_REACHED") {
+      closeModal();
+      showToastAction(
+        "warning",
+        err.message || "Your plan allows only 1 project. Pls Upgrade to add more.",
+        "Upgrade",
+        () => paymentModal.open(),
+        { title: "Project limit reached" }
+      );
+    } else {
+      showToast("error", first || err.message || "Could not create the project. Check your connection and try again.");
+    }
   } finally {
     isCreatingBusiness = false;
   }
 }
-
-businessCreateRetry?.addEventListener("click", () => createBusiness(pendingBusinessInput));
-businessCreateEdit?.addEventListener("click", () => {
-  if (isCreatingBusiness) return;
-  businessCreateState.hidden = true;
-  form.hidden = false;
-});
 
 // Initial load
 renderDashboardProjects();

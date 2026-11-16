@@ -213,7 +213,12 @@ export function validateScheduleInput(input, now = new Date(), { allowImmediateS
     errors.name = `Name must be ${LIMITS.MAX_NAME} characters or fewer.`;
   }
 
-  const timezone = "UTC";
+  const timezone = typeof input.timezone === "string" && input.timezone.trim()
+    ? input.timezone.trim()
+    : "UTC";
+  if (!DateTime.now().setZone(timezone).isValid) {
+    errors.timezone = "Choose a valid timezone.";
+  }
 
   const rawSubject =
     typeof config.subject === "string" ? config.subject.trim() : "";
@@ -277,7 +282,7 @@ export function validateScheduleInput(input, now = new Date(), { allowImmediateS
     errors.body = "This message is too large. Shorten it or remove images.";
   }
 
-  /* The frontend sends wall-clock fields interpreted as UTC. */
+  /* Wall-clock fields are interpreted in the selected timezone, then stored as UTC instants. */
   const storedType = requestedType === RECURRING ? RECURRING : ONE_TIME;
   let first = null;
 
@@ -292,7 +297,7 @@ export function validateScheduleInput(input, now = new Date(), { allowImmediateS
     if (!raw || raw.length > 40) {
       errors.scheduled_for = "Pick the date and time.";
     } else {
-      const parsed = DateTime.fromISO(raw, { zone: "UTC" });
+      const parsed = DateTime.fromISO(raw, { zone: timezone });
 
       if (!parsed.isValid) {
         errors.scheduled_for = "That date and time is not valid.";
