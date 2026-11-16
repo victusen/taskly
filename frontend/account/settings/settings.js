@@ -9,7 +9,6 @@ import {
 import { signOut } from "../../scripts/auth/auth.js";
 import { initAccountMenu } from "../../scripts/ui/accountMenu.js";
 import { showToast } from "../../scripts/ui/toast.js";
-import { loadProjects } from "../../scripts/data/source.js";
 
 const session = await requireAuth();
 if (!session) throw new Error("Authentication required.");
@@ -21,7 +20,6 @@ let savedAvatar = getLocalProfileAvatar(user.id);
 let selectedAvatar = null;
 
 applyUserAvatar(initial, null, { userId: user.id });
-initAccountMenu({ triggerId: "header-avatar" });
 
 const accountName = document.getElementById("account-name");
 const accountEmail = document.getElementById("account-email");
@@ -40,9 +38,16 @@ if (accountEmail) accountEmail.textContent = user.email || "—";
 if (profileName) profileName.textContent = displayName;
 if (removeButton) removeButton.hidden = !savedAvatar;
 
+try {
+  initAccountMenu({ triggerId: "header-avatar", session });
+} catch (error) {
+  console.error("Could not initialize the Settings account menu:", error);
+  showToast("error", "Could not initialize the account menu.");
+}
+
 const navTemplate = document.getElementById("settings-nav-template");
-document.getElementById("desktop-nav").append(navTemplate.content.cloneNode(true));
-document.getElementById("mobile-nav").append(navTemplate.content.cloneNode(true));
+const mobileNav = document.getElementById("mobile-nav");
+if (navTemplate && mobileNav) mobileNav.append(navTemplate.content.cloneNode(true));
 
 function escapeHtml(value) {
   return String(value || "")
@@ -53,8 +58,15 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function renderTeamMembers() {
+function renderTeamMembers(error = null) {
   if (!teamMembersList) return;
+  if (error) {
+    teamMembersList.innerHTML = `
+      <p class="status-message">Could not load project access. ${escapeHtml(error.message || "Please try again.")}</p>
+      <button type="button" class="button" data-retry-project-access>Try again</button>
+    `;
+    return;
+  }
   if (settingsProjects.length === 0) {
     teamMembersList.innerHTML = '<p class="status-message">No project access to show yet.</p>';
     return;
@@ -88,7 +100,7 @@ async function loadProjectNavigation() {
 
   try {
     const projects = await Promise.race([
-      loadProjects(),
+      import("../../scripts/data/source.js").then(({ loadProjects }) => loadProjects()),
       new Promise((_, reject) => {
         timeoutId = window.setTimeout(
           () => reject(new Error("Loading projects timed out. Check your connection and try again.")),
@@ -123,7 +135,7 @@ async function loadProjectNavigation() {
     });
   } catch (error) {
     settingsProjects = [];
-    renderTeamMembers();
+    renderTeamMembers(error);
     skeletons.forEach((skeleton) => skeleton.remove());
     toggles.forEach((toggle) => {
       toggle.style.display = "none";
@@ -179,6 +191,7 @@ document.querySelectorAll("[data-toggle-projects]").forEach((toggle) => {
 });
 
 helpButton?.addEventListener("click", (event) => {
+  if (!helpMenu) return;
   event.stopPropagation();
   const open = helpMenu.classList.toggle("show");
   helpButton.setAttribute("aria-expanded", String(open));
@@ -216,8 +229,12 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-chooseButton.addEventListener("click", () => fileInput.click());
-fileInput.addEventListener("change", async () => {
+teamMembersList?.addEventListener("click", (event) => {
+  if (event.target.closest("[data-retry-project-access]")) void loadProjectNavigation();
+});
+
+chooseButton?.addEventListener("click", () => fileInput?.click());
+fileInput?.addEventListener("change", async () => {
   const file = fileInput.files?.[0];
   if (!file) return;
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
@@ -243,7 +260,7 @@ fileInput.addEventListener("change", async () => {
   }
 });
 
-saveButton.addEventListener("click", async () => {
+saveButton?.addEventListener("click", async () => {
   if (!selectedAvatar) return;
   saveButton.disabled = true;
   chooseButton.disabled = true;
@@ -269,7 +286,7 @@ saveButton.addEventListener("click", async () => {
   }
 });
 
-removeButton.addEventListener("click", async () => {
+removeButton?.addEventListener("click", async () => {
   if (!savedAvatar) return;
   removeButton.disabled = true;
   chooseButton.disabled = true;

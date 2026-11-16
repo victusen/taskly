@@ -475,6 +475,28 @@
     .modal-header { display: flex; align-items: center; justify-content: space-between; }
     #business-modal .modal-box { max-width: 500px; padding: 30px; border: 1px solid #e5e7eb; border-radius: 16px; box-shadow: 0 24px 70px rgba(17,24,39,.2); }
     #business-modal .modal-header h3 { margin: 0; color: #111827; font-size: 23px !important; line-height: 1.2; font-weight: 750; }
+    #business-modal .modal-header { gap: 16px; }
+    #business-modal .project-modal-heading { min-width: 0; flex: 1; }
+    #business-modal .project-type-step { min-height: 210px; display: flex; flex-direction: column; justify-content: center; }
+    #business-modal .project-type-copy { margin: 8px 0 20px; color: #6b7280; font-size: 14px; line-height: 1.5; }
+    #business-modal .project-type-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    #business-modal .project-type-option {
+      min-height: 72px; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px;
+      background: #fff; color: #111827; font: inherit; font-weight: 650; cursor: pointer;
+    }
+    #business-modal .project-type-option:hover,
+    #business-modal .project-type-option.selected { border: 2px solid #16a34a; padding: 11px; }
+    #business-modal .project-type-option.selected { background: #f0fdf4; color: #166534; }
+    #business-modal .project-type-step[hidden],
+    #business-modal .project-create-step[hidden],
+    #business-modal .project-type-back[hidden],
+    #business-modal .project-type-label[hidden] { display: none !important; }
+    #business-modal .project-type-label {
+      display: inline-flex; margin-top: 6px; padding: 3px 8px; border: 1px solid #16a34a;
+      border-radius: 999px; color: #166534; font-size: 11px; font-weight: 650;
+    }
+    #business-modal .project-type-back { border: 0; background: transparent; color: #4b5563; font: inherit; font-size: 13px; cursor: pointer; }
+    #business-modal .project-type-back:hover { color: #166534; }
     #business-modal .business-field-label { display: block; margin-top: 16px; color: #1f2937; font-size: 13px; font-weight: 700; }
     #business-modal .business-field-input { width: 100%; padding: 11px 12px; margin-top: 7px; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; color: #111827; font: inherit; font-size: 14px; }
     #business-modal .business-field-input::placeholder { color: #c4c8d0; font-weight: 300; opacity: 1; }
@@ -488,6 +510,13 @@
     #business-modal #business-form > button:hover { background: #1f2937; }
     #business-modal #business-form[hidden] { display: none !important; }
     @keyframes business-spin { to { transform: rotate(360deg); } }
+    @media (max-width: 520px) {
+      #business-modal .modal-box { padding: 22px 18px; }
+      #business-modal .project-type-options { gap: 8px; }
+      #business-modal .project-type-option { min-height: 64px; padding: 8px; font-size: 13px; }
+      #business-modal .project-type-option:hover,
+      #business-modal .project-type-option.selected { padding: 7px; }
+    }
 
     .add-hidden { display: none; }
 
@@ -1043,21 +1072,35 @@
   <div class="modal-backdrop" id="business-modal">
     <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="business-modal-title">
       <div class="modal-header">
-        <h3 id="business-modal-title">Create a new <span style="color:green;">Project</span></h3>
+        <div class="project-modal-heading">
+          <h3 id="business-modal-title">Choose project type</h3>
+          <span class="project-type-label" id="selected-project-type-label" hidden></span>
+        </div>
+        <button type="button" class="project-type-back" id="project-type-back" hidden>Back</button>
         <div class="close-btn" id="modal-close" role="button" aria-label="Close">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </div>
       </div>
-      <form id="business-form">
-        <label class="business-field-label">Project Name <span style="font-weight: 400; color: #6b7280;">(optional)</span>
-          <input class="business-field-input" type="text" name="project_name" placeholder="e.g. Customer Welcome Campaign" autocomplete="off">
-        </label>
-        <label class="business-field-label">Business Name <span style="font-weight: 400; color: #6b7280;">(optional)</span>
-          <input class="business-field-input" type="text" name="business_name" placeholder="e.g. Acme Corporation" autocomplete="off">
-        </label>
-        <p style="font-size: 13px; margin-top: 16px;">Enter a project name, a business name, or both. Each project has its own mail account.</p>
-        <button type="submit">Create project</button>
-      </form>
+      <div class="project-type-step" id="project-type-step">
+        <p class="project-type-copy">Choose the kind of project you want to create.</p>
+        <div class="project-type-options" role="group" aria-label="Project type">
+          <button type="button" class="project-type-option" data-project-type="api" aria-pressed="false">API</button>
+          <button type="button" class="project-type-option" data-project-type="email" aria-pressed="false">Email</button>
+          <button type="button" class="project-type-option" data-project-type="payload" aria-pressed="false">Payload</button>
+        </div>
+      </div>
+      <div class="project-create-step" id="project-create-step" hidden>
+        <form id="business-form">
+          <label class="business-field-label">Project Name <span style="font-weight: 400; color: #6b7280;">(optional)</span>
+            <input class="business-field-input" type="text" name="project_name" placeholder="e.g. Customer Welcome Campaign" autocomplete="off">
+          </label>
+          <label class="business-field-label">Business Name <span style="font-weight: 400; color: #6b7280;">(optional)</span>
+            <input class="business-field-input" type="text" name="business_name" placeholder="e.g. Acme Corporation" autocomplete="off">
+          </label>
+          <p style="font-size: 13px; margin-top: 16px;">Enter a project name, a business name, or both. Each project has its own mail account.</p>
+          <button type="submit">Create project</button>
+        </form>
+      </div>
     </div>
     <div id="business-loading" class="business-loading" role="status" aria-label="Creating your project" hidden>
       <span class="business-loading-spinner" aria-hidden="true"></span>

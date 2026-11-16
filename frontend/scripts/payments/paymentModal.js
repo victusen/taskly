@@ -3,8 +3,8 @@ import { showToast } from "../ui/toast.js";
 
 const PLANS = [
   { key: "paid_monthly", name: "Paid Monthly", amount: 2999, period: "monthly" },
-  { key: "paid_yearly", name: "Paid Yearly", amount: 29999, period: "yearly" },
   { key: "business_monthly", name: "Business Monthly", amount: 4999, period: "monthly" },
+  { key: "paid_yearly", name: "Paid Yearly", amount: 29999, period: "yearly" },
   { key: "business_yearly", name: "Business Yearly", amount: 49999, period: "yearly" },
 ];
 
@@ -26,12 +26,13 @@ function addPaymentModalStyles() {
     .payment-modal-body{padding:24px 28px;flex:1;overflow-y:auto}
     .payment-modal-note{margin:0 0 16px;color:#6b7280;font-size:13px;line-height:1.5}
     .plan-options{margin-bottom:24px}
-    .plan-option{width:100%;box-sizing:border-box;text-align:left;font:inherit;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:20px 16px;cursor:pointer;transition:all .15s ease;margin-bottom:8px}
+    .plan-option{width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:16px;text-align:left;font:inherit;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;cursor:pointer;transition:all .15s ease;margin-bottom:8px}
     .plan-option:hover{border-color:#d1d5db;background:#f3f4f6}
     .plan-option.selected{border-color:#16a34a;background:#f0fdf4}
+    .plan-option-copy{min-width:0}
     .plan-option .plan-name{font-size:16px;font-weight:600;color:#111827;margin-bottom:4px}
     .plan-option .plan-desc{font-size:12px;color:#6b7280}
-    .plan-option .plan-price{font-size:18px;font-weight:700;color:#059669;margin-top:8px}
+    .plan-option .plan-price{flex:0 0 auto;font-size:18px;font-weight:700;color:#059669;text-align:right}
     .payment-details{margin-top:24px}
     .plan-type{font-size:14px;font-weight:500;color:#374151;margin-bottom:8px}
     .pricing-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
@@ -67,7 +68,7 @@ function createPaymentModal() {
         </button>
       </div>
       <div class="payment-modal-body">
-        <p class="payment-modal-note">Choose a plan, then continue to secure Paystack checkout to select an available payment method.</p>
+        <p class="payment-modal-note">Choose a plan, then pay securely with Paystack and select an available payment method.</p>
         <div class="plan-options" id="plan-options"></div>
         <div class="payment-details" id="payment-details" hidden>
           <div class="plan-type" id="plan-type"></div>
@@ -78,7 +79,7 @@ function createPaymentModal() {
       </div>
       <div class="payment-modal-footer">
         <button type="button" class="payment-cancel-btn" id="payment-cancel">Cancel</button>
-        <button type="button" class="payment-submit-btn" id="payment-subscribe" disabled>Continue to payment</button>
+        <button type="button" class="payment-submit-btn" id="payment-subscribe" disabled>Pay</button>
       </div>
     </div>
   `;
@@ -99,7 +100,7 @@ export function initPaymentModal() {
   if (!modal.querySelector(".payment-modal-note")) {
     const note = document.createElement("p");
     note.className = "payment-modal-note";
-    note.textContent = "Choose a plan, then continue to secure Paystack checkout to select an available payment method.";
+    note.textContent = "Choose a plan, then pay securely with Paystack and select an available payment method.";
     modal.querySelector(".payment-modal-body")?.prepend(note);
   }
   const options = modal.querySelector("#plan-options");
@@ -110,7 +111,7 @@ export function initPaymentModal() {
   const endDate = modal.querySelector("#end-date");
   const endDateText = modal.querySelector("#end-date-text");
   const submitButton = modal.querySelector("#payment-subscribe");
-  submitButton.textContent = "Continue to payment";
+  submitButton.textContent = "Pay";
   let selectedPlan = null;
   let previousOverflow = "";
 
@@ -134,11 +135,26 @@ export function initPaymentModal() {
     const renewsAt = new Date();
     if (plan.period === "monthly") renewsAt.setMonth(renewsAt.getMonth() + 1);
     else renewsAt.setFullYear(renewsAt.getFullYear() + 1);
-    endDateText.textContent = renewsAt.toLocaleDateString("en-US", {
+    const dateParts = new Intl.DateTimeFormat("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
-    });
+    }).formatToParts(renewsAt);
+    endDateText.replaceChildren();
+    for (const part of dateParts) {
+      if (part.type === "literal") {
+        endDateText.append(document.createTextNode(part.value));
+      } else if (
+        (plan.period === "monthly" && ["month", "day"].includes(part.type)) ||
+        (plan.period === "yearly" && part.type === "year")
+      ) {
+        const emphasized = document.createElement("strong");
+        emphasized.textContent = part.value;
+        endDateText.append(emphasized);
+      } else {
+        endDateText.append(document.createTextNode(part.value));
+      }
+    }
 
     details.hidden = false;
     details.style.display = "block";
@@ -162,8 +178,10 @@ export function initPaymentModal() {
       card.className = "plan-option";
       card.setAttribute("aria-pressed", "false");
       card.innerHTML = `
-        <div class="plan-name"></div>
-        <div class="plan-desc"></div>
+        <div class="plan-option-copy">
+          <div class="plan-name"></div>
+          <div class="plan-desc"></div>
+        </div>
         <div class="plan-price"></div>
       `;
       card.querySelector(".plan-name").textContent = plan.name;
@@ -207,11 +225,11 @@ export function initPaymentModal() {
       return;
     }
     submitButton.disabled = true;
-    submitButton.textContent = "Preparing checkout...";
+    submitButton.textContent = "Preparing...";
     try {
       if (await startPayment(selectedPlan.key)) close();
     } finally {
-      submitButton.textContent = "Continue to payment";
+      submitButton.textContent = "Pay";
       submitButton.disabled = !selectedPlan;
     }
   });

@@ -34,6 +34,12 @@ if (window.location.hash || window.location.search.includes("code=") || window.l
 const modal = document.getElementById("business-modal");
 const form = document.getElementById("business-form");
 const businessLoading = document.getElementById("business-loading");
+const projectTypeStep = document.getElementById("project-type-step");
+const projectCreateStep = document.getElementById("project-create-step");
+const projectModalTitle = document.getElementById("business-modal-title");
+const projectTypeBack = document.getElementById("project-type-back");
+const selectedProjectTypeLabel = document.getElementById("selected-project-type-label");
+const projectTypeButtons = document.querySelectorAll("[data-project-type]");
 const projectListEl = document.getElementById("project-list");
 const deleteModal = document.getElementById("delete-project-modal");
 const deleteModalName = document.getElementById("delete-modal-project-name");
@@ -52,6 +58,7 @@ let projectMailConnectionsRequest = null;
 let projectMailConnectionsLoaded = false;
 let isCreatingBusiness = false;
 let dashboardProjectRenderVersion = 0;
+let selectedProjectType = null;
 
 const session = await requireAuth();
 if (!session) throw new Error("Authentication required.");
@@ -647,41 +654,98 @@ document.addEventListener("keydown", (e) => {
 /**
  * Add Business Modal Functions
  */
-async function openModal() {
+function openModal() {
   if (isCreatingBusiness) return;
+  if (!modal || !form || !projectTypeStep || !projectCreateStep) {
+    console.error("Project creation modal is missing required elements.");
+    showToast("error", "Could not open project creation. Please refresh and try again.");
+    return;
+  }
   form.reset();
   form.hidden = false;
-  businessLoading.hidden = true;
+  if (businessLoading) businessLoading.hidden = true;
+  selectedProjectType = null;
+  projectTypeButtons.forEach((button) => {
+    button.classList.remove("selected");
+    button.setAttribute("aria-pressed", "false");
+  });
+  projectTypeStep.hidden = false;
+  projectCreateStep.hidden = true;
+  if (projectModalTitle) projectModalTitle.textContent = "Choose project type";
+  if (selectedProjectTypeLabel) selectedProjectTypeLabel.hidden = true;
+  if (projectTypeBack) projectTypeBack.hidden = true;
   modal.classList.remove("is-loading");
   modal.classList.add("open");
-  form.elements.project_name.focus();
 }
 
 function closeModal() {
+  if (!modal) return;
   modal.classList.remove("open");
   modal.classList.remove("is-loading");
-  businessLoading.hidden = true;
-  form.hidden = false;
+  if (businessLoading) businessLoading.hidden = true;
+  if (form) form.hidden = false;
+}
+
+function showProjectCreationStep(type, button) {
+  if (isCreatingBusiness || !projectTypeStep || !projectCreateStep) return;
+  selectedProjectType = type;
+  projectTypeButtons.forEach((option) => {
+    const selected = option === button;
+    option.classList.toggle("selected", selected);
+    option.setAttribute("aria-pressed", String(selected));
+  });
+  projectTypeStep.hidden = true;
+  projectCreateStep.hidden = false;
+  if (projectModalTitle) projectModalTitle.textContent = "Create a new project";
+  if (selectedProjectTypeLabel) {
+    selectedProjectTypeLabel.textContent = `${type.charAt(0).toUpperCase()}${type.slice(1)} project`;
+    selectedProjectTypeLabel.hidden = false;
+  }
+  if (projectTypeBack) projectTypeBack.hidden = false;
+  form?.elements.project_name.focus();
+}
+
+function showProjectTypeStep() {
+  if (isCreatingBusiness || !projectTypeStep || !projectCreateStep) return;
+  selectedProjectType = null;
+  projectTypeStep.hidden = false;
+  projectCreateStep.hidden = true;
+  if (projectModalTitle) projectModalTitle.textContent = "Choose project type";
+  if (selectedProjectTypeLabel) selectedProjectTypeLabel.hidden = true;
+  if (projectTypeBack) projectTypeBack.hidden = true;
+  projectTypeButtons.forEach((button) => {
+    button.classList.remove("selected");
+    button.setAttribute("aria-pressed", "false");
+  });
 }
 
 document.getElementById("modal-close")?.addEventListener("click", closeModal);
 document.getElementById("business-loading-close")?.addEventListener("click", closeModal);
 document.getElementById("add-business-card")?.addEventListener("click", openModal);
-modal.addEventListener("click", (event) => {
+projectTypeButtons.forEach((button) => {
+  button.addEventListener("click", () => showProjectCreationStep(button.dataset.projectType, button));
+});
+projectTypeBack?.addEventListener("click", showProjectTypeStep);
+modal?.addEventListener("click", (event) => {
   if (event.target === modal) closeModal();
 });
 
-form.elements.project_name.addEventListener("input", (event) => {
+form?.elements.project_name.addEventListener("input", (event) => {
   form.elements.business_name.setCustomValidity("");
   if (event.currentTarget.value.trim()) event.currentTarget.setCustomValidity("");
 });
-form.elements.business_name.addEventListener("input", (event) => {
+form?.elements.business_name.addEventListener("input", (event) => {
   form.elements.project_name.setCustomValidity("");
   if (event.currentTarget.value.trim()) event.currentTarget.setCustomValidity("");
 });
 
-form.addEventListener("submit", async (event) => {
+form?.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (!selectedProjectType) {
+    showToast("warning", "Choose a project type first.");
+    showProjectTypeStep();
+    return;
+  }
   const enteredProjectName = form.elements.project_name.value.trim();
   const enteredBusinessName = form.elements.business_name.value.trim();
   const projectNameField = form.elements.project_name;
@@ -716,9 +780,9 @@ async function createBusiness(input) {
   const businessName = enteredProjectName && enteredBusinessName ? enteredBusinessName : "";
   input = { project_name: projectName, business_name: businessName };
   isCreatingBusiness = true;
-  form.hidden = true;
-  businessLoading.hidden = false;
-  modal.classList.add("is-loading");
+  if (form) form.hidden = true;
+  if (businessLoading) businessLoading.hidden = false;
+  modal?.classList.add("is-loading");
 
   try {
     const createdProject = await addProject(input);
@@ -727,9 +791,9 @@ async function createBusiness(input) {
     await renderDashboardProjects({ fallbackProject: createdProject, useFallback: true });
   } catch (err) {
     const first = err.fieldErrors ? Object.values(err.fieldErrors)[0] : null;
-    modal.classList.remove("is-loading");
-    businessLoading.hidden = true;
-    form.hidden = false;
+    modal?.classList.remove("is-loading");
+    if (businessLoading) businessLoading.hidden = true;
+    if (form) form.hidden = false;
 
     if (err.code === "PLAN_LIMIT_REACHED" || err.code === "PROJECT_LIMIT_REACHED") {
       closeModal();
