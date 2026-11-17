@@ -4,11 +4,12 @@ import { supabase } from "../config/supabase.js";
 import { assertOwnedProject } from "./emailConnectionService.js";
 import { createGoogleOAuthClient } from "./googleOAuthService.js";
 import { decryptJson, encryptJson } from "../utils/credentialCrypto.js";
+import { LIMITS } from "./scheduleValidation.js";
 
 export const SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
 export const DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 export const MAX_SHEET_ROW = 1_000_000;
-export const MAX_SHEET_RECIPIENTS = 500;
+export const MAX_SHEET_RECIPIENTS = LIMITS.MAX_SHEET_RECIPIENTS;
 
 const SPREADSHEET_ID_PATTERN = /^[A-Za-z0-9_-]{1,256}$/;
 const COLUMN_PATTERN = /^[A-Z]{1,3}$/;

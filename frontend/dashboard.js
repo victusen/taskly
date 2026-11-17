@@ -88,6 +88,17 @@ async function updateUpgradeLink() {
 
 void updateUpgradeLink();
 
+const dashboardMain = document.querySelector("main");
+const updateBannerScrollState = () => {
+  const isDesktop = window.matchMedia("(min-width: 768px)").matches;
+  const isScrolled = isDesktop &&
+    (window.scrollY > 12 || (dashboardMain?.scrollTop || 0) > 12);
+  document.body.classList.toggle("dashboard-content-scrolled", isScrolled);
+};
+window.addEventListener("scroll", updateBannerScrollState, { passive: true });
+dashboardMain?.addEventListener("scroll", updateBannerScrollState, { passive: true });
+window.addEventListener("resize", updateBannerScrollState);
+
 // Initialize right-side team member invite drawer modal
 const inviteModal = initInviteModal();
 initAccountMenu({
@@ -104,7 +115,7 @@ document.querySelectorAll("[data-logout]").forEach((button) => {
     } catch (err) {
       console.error(err);
     }
-    window.location.href = "index.html";
+    window.location.href = "/";
   });
 });
 

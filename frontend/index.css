@@ -5,7 +5,7 @@
   transition: color 0.2s ease, background-color 0.15s ease, gap 0.2s ease;
 }
 .hero-actions .btn-primary:hover {
-  background-color: transparent;
+  background-color: inherit;
   color: #6b7280;
   border: 1px solid #d1d5db;
   transition: color 0.15s ease 0.2s, background-color 0.15s ease, gap 0.2s ease;
@@ -22,7 +22,7 @@
   transition: color 0.2s ease, background-color 0.15s ease, gap 0.2s ease;
 }
 .bottom-cta-box .hero-actions .btn-primary:hover {
-  background-color: #ffffff;
+  background-color: inherit;
   color: #111111;
   border: 1px solid black;
   transition: color 0.15s ease 0.2s, background-color 0.15s ease, gap 0.2s ease;
@@ -1626,6 +1626,61 @@ a {
   .hero-actions {
     flex-direction: column;
     width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    .mobile-drawer-content {
+      justify-content: flex-start;
+    }
+    .mobile-nav-links {
+      gap: 4px;
+      padding: 12px 0;
+    }
+    .mobile-nav-item {
+      width: 100%;
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      text-align: left;
+      font: inherit;
+      color: #111111;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+    .mobile-nav-item:hover,
+    .mobile-nav-item:focus-visible {
+      background: #f3f4f6;
+    }
+    .mobile-nav-item--drop .nav-drop-arrow {
+      margin-left: auto;
+      transform: rotate(-90deg);
+    }
+    .mobile-nav-item--drop.is-expanded .nav-drop-arrow {
+      transform: rotate(0);
+    }
+    .mobile-drawer-auth {
+      margin-top: auto;
+      border-top: 0;
+      padding-top: 12px;
+    }
+    .hero-section .hero-actions .btn-primary {
+      font-weight: 400;
+    }
+    .hero-section .hero-actions .btn-secondary {
+      border: 0;
+      border-radius: 999px;
+      cursor: default;
+      font-weight: 400;
+      justify-content: center;
+      text-align: center;
+    }
+    .hero-section .hero-actions .btn-secondary svg {
+      display: none;
+    }
+    .bottom-cta-box .hero-actions .btn-primary {
+      border-radius: var(--radius-sm);
+    }
   }
   .hero-actions .btn-primary { align-self: center; }
   .hero-actions .btn-secondary {

@@ -4,7 +4,7 @@ import { test } from "node:test";
 process.env.SUPABASE_URL ||= "https://example.supabase.co";
 process.env.SUPABASE_SECRET_KEY ||= "test-service-role-key";
 
-const { readSpreadsheetRecipients } = await import("../services/googleSheetsService.js");
+const { MAX_SHEET_RECIPIENTS, readSpreadsheetRecipients } = await import("../services/googleSheetsService.js");
 
 function createSheetsApi(valueRanges) {
   let requestedRanges;
@@ -54,9 +54,9 @@ test("spreadsheet rows map selected columns and preserve original row numbers", 
   ]);
 });
 
-test("spreadsheet row reading fails permanently above 500 non-empty addresses", async () => {
+test("spreadsheet row reading fails permanently above its recipient safety limit", async () => {
   const sheets = createSheetsApi([
-    { values: Array.from({ length: 501 }, (_, index) => [`person${index}@example.com`]) },
+    { values: Array.from({ length: MAX_SHEET_RECIPIENTS + 1 }, (_, index) => [`person${index}@example.com`]) },
   ]);
 
   await assert.rejects(

@@ -74,7 +74,7 @@ export function initShell(session) {
       } catch (err) {
         console.error("[LOGOUT]", err);
       }
-      window.location.href = "index.html";
+      window.location.href = "/";
     });
   });
 

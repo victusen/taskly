@@ -90,6 +90,7 @@ export async function getScheduleReadiness(scheduleId, projectId) {
     reason: issues.map((issue) => issue.reason).join(" "),
     issues,
     schedule,
+    project,
     connection,
   };
 }

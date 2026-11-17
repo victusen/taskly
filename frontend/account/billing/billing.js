@@ -66,7 +66,7 @@ document.querySelectorAll("[data-logout]").forEach((btn) => {
     } catch (e) {
       console.error(e);
     }
-    window.location.href = "../../index.html";
+    window.location.href = "/";
   });
 });
 

@@ -259,7 +259,7 @@ export function initInviteModal(options = {}) {
     <aside class="invite-drawer" id="invite-drawer">
       <div class="invite-drawer-header">
         <div>
-          <h3 class="invite-drawer-title" id="invite-drawer-title">Invite a Team Member</h3>
+          <h3 class="invite-drawer-title" id="invite-drawer-title">Invite a Member /Collaborator</h3>
           <p class="invite-drawer-sub">Collaborate on email schedules, review dispatches, or manage mail connections together.</p>
         </div>
         <button type="button" class="invite-close-btn" id="invite-drawer-close" aria-label="Close invite modal">
@@ -389,7 +389,9 @@ export function initInviteModal(options = {}) {
     populateProjects();
     overlay.classList.add("open");
     document.body.style.overflow = "hidden";
-    setTimeout(() => emailsInput?.focus(), 150);
+    if (!window.matchMedia("(max-width: 767px)").matches) {
+      setTimeout(() => emailsInput?.focus(), 150);
+    }
   }
 
   function closeDrawer() {

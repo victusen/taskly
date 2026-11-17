@@ -189,7 +189,7 @@ export function initAccountMenu({
   menu.querySelector("#avatar-sign-out").addEventListener("click", async () => {
     try {
       await signOut();
-      window.location.href = new URL("/index.html", window.location.origin).href;
+      window.location.href = new URL("/", window.location.origin).href;
     } catch (error) {
       console.error("[LOGOUT]", error);
       showToast("error", "Could not sign out. Please try again.");

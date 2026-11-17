@@ -118,7 +118,7 @@ function statusBadge(status) {
     failed: { cls: "badge-red", label: "Failed" },
     new: { cls: "badge-blue", label: "New" },
   };
-  const b = map[status] || { cls: "", label: status ? status.charAt(0).toUpperCase() + status.slice(1) : "Active" };
+  const b = map[status] || { cls: "badge-green", label: status ? status.charAt(0).toUpperCase() + status.slice(1) : "Active" };
   return `<span class="badge ${b.cls}">${esc(b.label)}</span>`;
 }
 
@@ -725,7 +725,7 @@ function renderRows() {
           <div class="schedule-mobile-meta">
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Type</span><span class="schedule-mobile-value schedule-type-cell">${esc(type)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Status</span><span class="schedule-mobile-value">${statusBadge(row.status)}</span></div>
-            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Repeat frequency</span><span class="schedule-mobile-value schedule-frequency-cell">${esc(frequency)}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Frequency</span><span class="schedule-mobile-value schedule-frequency-cell">${esc(frequency)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Created at</span><span class="schedule-mobile-value">${dateValue(createdAt)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Next run</span><span class="schedule-mobile-value">${dateValue(nextRun)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Last run</span><span class="schedule-mobile-value">${dateValue(lastRun)}</span></div>
@@ -738,7 +738,7 @@ function renderRows() {
         <table class="schedule-table">
           <thead><tr>
             <th class="schedule-select-cell">Select</th>
-            <th>Name</th><th>Type</th><th>Repeat frequency</th><th>Created at</th><th>Next run</th><th>Last run</th>
+            <th>Name</th><th>Type</th><th>Frequency</th><th>Created at</th><th>Next run</th><th>Last run</th>
             <th>Recipients</th><th>Status</th><th aria-label="More actions"></th>
           </tr></thead>
           <tbody>${tableRows}</tbody>
@@ -1281,7 +1281,7 @@ document.querySelectorAll("[data-logout]").forEach((button) => {
     } catch (err) {
       console.error(err);
     }
-    window.location.href = "index.html";
+    window.location.href = "/";
   });
 });
 

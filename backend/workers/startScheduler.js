@@ -5,6 +5,7 @@ import { Cron } from "croner";
 import { planDay } from "./planDay.js";
 import { stopAll } from "./scheduleQueue.js";
 import { expireBillingPlans } from "./expireBillingPlans.js";
+import { resetPlanUsage } from "./resetPlanUsage.js";
 
 const plannerJobs = [];
 
@@ -13,6 +14,14 @@ async function checkExpiredPlans(trigger) {
     await expireBillingPlans(new Date(), trigger);
   } catch (error) {
     console.error(`[BILLING] ${trigger} expiry check failed:`, error.message);
+  }
+}
+
+async function checkPlanUsagePeriods(trigger) {
+  try {
+    await resetPlanUsage(trigger);
+  } catch (error) {
+    console.error(`[PLAN USAGE] ${trigger} rollover check failed:`, error.message);
   }
 }
 
@@ -34,10 +43,12 @@ export async function startScheduler() {
       console.error("[SCHEDULER] midnight plan failed:", error.message);
     }
     await checkExpiredPlans("midnight");
+    await checkPlanUsagePeriods("midnight");
   }));
 
   console.log("[SCHEDULER] running");
   await checkExpiredPlans("startup");
+  await checkPlanUsagePeriods("startup");
 }
 
 export function stopScheduler() {

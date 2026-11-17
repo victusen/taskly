@@ -1,4 +1,5 @@
 import { supabase } from "../config/supabase.js";
+import { getEffectivePlan } from "../services/planService.js";
 import { computeNextRun } from "../services/scheduleRule.js";
 import { getScheduleReadiness } from "../services/scheduleRunService.js";
 import { disarmSchedule } from "../workers/scheduleQueue.js";
@@ -10,14 +11,6 @@ function fail(res, status, code, message, fieldErrors) {
 
 const COLUMNS = "id, project_name, business_name, status, created_at";
 
-// Must match the values in scheduleService.js PLAN_LIMITS.
-const PROJECT_LIMITS = {
-  free:     1,
-  paid:     3,
-  business: 10,
-};
-
-
 function projectLimitMessage(limit) {
   return limit === 1
     ? "Your plan allows only 1 project. Pls Upgrade to add more."
@@ -25,15 +18,9 @@ function projectLimitMessage(limit) {
 }
 
 async function assertUnderProjectLimit(userId) {
-  const { data: profile, error: profileError } = await supabase
-    .from("users")
-    .select("plan_tier")
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (profileError) throw profileError;
-
-  const limit = PROJECT_LIMITS[profile?.plan_tier] ?? PROJECT_LIMITS.free;
+  const { limits } = await getEffectivePlan(userId);
+  const limit = limits.projects;
+  if (limit === null) return { allowed: true, limit: null };
 
   const { count, error } = await supabase
     .from("projects")

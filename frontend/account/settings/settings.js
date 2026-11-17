@@ -217,7 +217,7 @@ document.addEventListener("click", (event) => {
   const logoutButton = event.target.closest("[data-logout]");
   if (!logoutButton) return;
   void signOut().then(() => {
-    window.location.href = "../../index.html";
+    window.location.href = "/";
   }).catch((error) => {
     console.error("Could not sign out:", error);
     showToast("error", error.message || "Could not sign out.");

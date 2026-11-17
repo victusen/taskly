@@ -9,7 +9,7 @@
 // credentials — the decrypted credentials object (already decrypted by runSchedule.js)
 // config      — { recipients: string[], subject: string, body: string, body_type: "html"|"text" }
 //
-// Returns { failures: [{ to, reason }] }
+// Returns { failures: [{ to, reason }], sentRecipients: number }
 // failures is empty on full success, or contains the addresses that were rejected.
 
 import { google } from "googleapis";
@@ -96,7 +96,7 @@ async function sendViaGmail({ connection, credentials, config }) {
 
   // Gmail does not report per-recipient rejections synchronously.
   // Bounces come back as delivery status notifications to the sender's inbox.
-  return { failures: [] };
+  return { failures: [], sentRecipients: config.recipients.length };
 }
 
 // ─── Custom SMTP (nodemailer) ─────────────────────────────────────────────────
@@ -143,7 +143,10 @@ async function sendViaSmtp({ connection, credentials, config }) {
     reason: "Rejected by SMTP server.",
   }));
 
-  return { failures };
+  const sentRecipients = Array.isArray(info.accepted)
+    ? info.accepted.length
+    : Math.max(0, config.recipients.length - failures.length);
+  return { failures, sentRecipients };
 }
 
 // ─── Public export ────────────────────────────────────────────────────────────
@@ -219,6 +222,7 @@ async function sendPersonalizedViaGmail({ connection, credentials, messages }) {
   const gmail = google.gmail({ version: "v1", auth: oauth2Client });
   const failures = [];
   let sentCount = 0;
+  let sentRecipients = 0;
 
   for (const message of messages) {
     await waitForSpreadsheetSendSlot(connection.id || `${connection.connection_type}:${connection.email_address}`);
@@ -233,6 +237,7 @@ async function sendPersonalizedViaGmail({ connection, credentials, messages }) {
     try {
       await sendGmailMessageWithBackoff(gmail, raw);
       sentCount += 1;
+      sentRecipients += message.recipients.length;
     } catch (error) {
       if (isRevokedGoogleGrant(error)) throw revokedGoogleError();
       failures.push({
@@ -242,7 +247,7 @@ async function sendPersonalizedViaGmail({ connection, credentials, messages }) {
     }
   }
 
-  return { failures, sentCount };
+  return { failures, sentCount, sentRecipients };
 }
 
 async function sendPersonalizedViaSmtp({ connection, credentials, messages }) {
@@ -258,6 +263,7 @@ async function sendPersonalizedViaSmtp({ connection, credentials, messages }) {
   });
   const failures = [];
   let sentCount = 0;
+  let sentRecipients = 0;
 
   try {
     for (const message of messages) {
@@ -270,6 +276,10 @@ async function sendPersonalizedViaSmtp({ connection, credentials, messages }) {
           [message.body_type === "html" ? "html" : "text"]: message.body,
         });
         const rejected = info.rejected || [];
+        const acceptedCount = Array.isArray(info.accepted)
+          ? info.accepted.length
+          : Math.max(0, message.recipients.length - rejected.length);
+        sentRecipients += acceptedCount;
         if (rejected.length) {
           failures.push(...rejected.map((address) => ({
             to: address,
@@ -289,7 +299,7 @@ async function sendPersonalizedViaSmtp({ connection, credentials, messages }) {
     transporter.close();
   }
 
-  return { failures, sentCount };
+  return { failures, sentCount, sentRecipients };
 }
 
 export async function sendPersonalizedEmails({ connection, credentials, messages }) {

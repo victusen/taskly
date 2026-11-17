@@ -4,25 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pricing Plans &amp; Capabilities - Bzade</title>
-  <link rel="icon" type="image/png" href="logo-2.png" />
-  <link rel="stylesheet" href="index.css?v=2.1">
-  <link rel="stylesheet" href="./scripts/ui/toast.css">
-  <link rel="stylesheet" href="./scripts/ui/closeButtons.css">
-  <script>
-    (function() {
-      try {
-        var isAuth = false;
-        for (var i = 0; i < localStorage.length; i++) {
-          var k = localStorage.key(i);
-          if (k && (k.indexOf('-auth-token') !== -1 || k.indexOf('supabase.auth.token') !== -1)) {
-            var val = localStorage.getItem(k);
-            if (val && val.indexOf('access_token') !== -1) { isAuth = true; break; }
-          }
-        }
-        window.__BZ_IS_LOGGED_IN = isAuth;
-      } catch(e) { window.__BZ_IS_LOGGED_IN = false; }
-    })();
-  </script>
+  <link rel="icon" type="image/png" href="../logo-2.png" />
+  <link rel="stylesheet" href="../index.css?v=2.1">
+  <link rel="stylesheet" href="../scripts/ui/toast.css">
+  <link rel="stylesheet" href="../scripts/ui/closeButtons.css">
   <style>
     /* Dedicated Pricing Page Additions */
     .pricing-card {
@@ -277,22 +262,22 @@
   <!-- 2. Main Header -->
   <header class="main-header">
     <div class="header-left">
-      <a href="index.html" class="brand-wrap">
-        <img src="logo-bz.png" alt="Bzade logo" style="height: 30px; width: auto; display: block;" />
+      <a href="/" class="brand-wrap">
+        <img src="../logo-bz.png" alt="Bzade logo" style="height: 30px; width: auto; display: block;" />
       </a>
       <nav class="header-center" aria-label="Primary navigation">
-        <a href="index.html#product" class="nav-link">Product</a>
-        <a href="index.html#solutions" class="nav-link">Solutions</a>
-        <a href="pricing.html" class="nav-link" style="color: #111111; font-weight: 700;">Pricing</a>
-        <a href="index.html#resources" class="nav-link">Resources</a>
-        <a href="index.html#docs" class="nav-link">Doc</a>
-        <a href="index.html#careers" class="nav-link">Careers</a>
+        <a href="/#product" class="nav-link">Product</a>
+        <a href="/#solutions" class="nav-link">Solutions</a>
+        <a href="/pricing/" class="nav-link" style="color: #111111; font-weight: 700;">Pricing</a>
+        <a href="/#resources" class="nav-link">Resources</a>
+        <a href="/#docs" class="nav-link">Doc</a>
+        <a href="/jobs/" class="nav-link">Careers</a>
       </nav>
     </div>
 
     <div class="header-right">
-      <a href="login.html" class="login-link">Log in</a>
-      <a href="signup.html" class="signup-btn">
+      <a href="../login.html" class="login-link">Log in</a>
+      <a href="../signup.html" class="signup-btn">
         <span class="signup-text-full">Sign up free</span>
         <span class="signup-text-mobile">Sign up</span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -314,20 +299,20 @@
   <div id="mobile-nav-drawer" class="mobile-drawer-overlay">
     <div class="mobile-drawer-content">
       <div class="mobile-drawer-head">
-        <img src="logo-bz.png" alt="Bzade" style="height: 32px; width: auto; display: block;" />
+        <img src="../logo-bz.png" alt="Bzade" style="height: 32px; width: auto; display: block;" />
         <button type="button" id="close-mobile-drawer" class="mobile-drawer-close" aria-label="Close menu">&times;</button>
       </div>
       <nav class="mobile-nav-links">
-        <a href="index.html#product" class="mobile-nav-item">Product</a>
-        <a href="index.html#solutions" class="mobile-nav-item">Solutions</a>
-        <a href="pricing.html" class="mobile-nav-item" style="font-weight: 700;">Pricing</a>
-        <a href="index.html#resources" class="mobile-nav-item">Resources</a>
-        <a href="index.html#docs" class="mobile-nav-item">Doc</a>
-        <a href="index.html#careers" class="mobile-nav-item">Careers</a>
+        <a href="/#product" class="mobile-nav-item">Product</a>
+        <a href="/#solutions" class="mobile-nav-item">Solutions</a>
+        <a href="/pricing/" class="mobile-nav-item" style="font-weight: 700;">Pricing</a>
+        <a href="/#resources" class="mobile-nav-item">Resources</a>
+        <a href="/#docs" class="mobile-nav-item">Doc</a>
+        <a href="/jobs/" class="mobile-nav-item">Careers</a>
       </nav>
       <div class="mobile-drawer-auth">
-        <a href="login.html" class="mobile-auth-login">Log in</a>
-        <a href="signup.html" class="mobile-auth-signup">Sign up free</a>
+        <a href="../login.html" class="mobile-auth-login">Log in</a>
+        <a href="../signup.html" class="mobile-auth-signup">Sign up free</a>
       </div>
     </div>
   </div>
@@ -375,7 +360,11 @@
               </li>
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span><strong>1,000</strong> recipients per schedule</span>
+                <span>Recipients per schedule: based on your provider</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>2,000</strong> recipients per month</span>
               </li>
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -389,13 +378,13 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 <span>Payload access: No</span>
               </li>
-              <li class="plan-feature-item disabled">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                <span>Sending via SMTP: No</span>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Sending via SMTP: Yes</span>
               </li>
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span>Support: Community</span>
+                <span>Support: Message us anytime</span>
               </li>
             </ul>
           </div>
@@ -419,15 +408,19 @@
             <ul class="plan-features-list">
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span><strong>50</strong> active schedules</span>
+                <span><strong>15</strong> active schedules</span>
               </li>
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span><strong>3</strong> project workspaces</span>
+                <span><strong>1</strong> project workspace</span>
               </li>
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span><strong>50,000</strong> recipients per schedule</span>
+                <span>Recipients per schedule: based on your provider</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>5,000</strong> recipients per month</span>
               </li>
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -435,7 +428,7 @@
               </li>
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span><strong>5,000</strong> API requests per month</span>
+                <span><strong>1,000</strong> API requests per month</span>
               </li>
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -447,7 +440,7 @@
               </li>
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span>Support: Email priority</span>
+                <span>Support: Email us anytime</span>
               </li>
             </ul>
           </div>
@@ -471,15 +464,19 @@
             <ul class="plan-features-list">
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span><strong>Unlimited</strong> active schedules</span>
+                <span><strong>25</strong> active schedules per project</span>
               </li>
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span><strong>Unlimited</strong> project workspaces</span>
+                <span><strong>5</strong> project workspaces</span>
               </li>
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span><strong>High volume</strong> (provider-limited)</span>
+                <span>Recipients per schedule: based on your provider</span>
+              </li>
+              <li class="plan-feature-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>50,000</strong> recipients per month</span>
               </li>
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -487,7 +484,7 @@
               </li>
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span><strong>50,000</strong> API throughput requests</span>
+                <span><strong>10,000</strong> API requests per month</span>
               </li>
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -499,7 +496,7 @@
               </li>
               <li class="plan-feature-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span>Support: 24/7 Priority</span>
+                <span>Support: Urgent support</span>
               </li>
             </ul>
           </div>
@@ -553,9 +550,7 @@
               </li>
             </ul>
           </div>
-          <div class="plan-info-badge">
-            <span>Bespoke Enterprise Terms</span>
-          </div>
+          <a class="plan-info-badge" href="mailto:support@bzade.app?subject=Custom%20Plan%20Inquiry">Contact us about a Custom plan</a>
         </div>
       </div>
     </section>
@@ -590,16 +585,23 @@
               <tr>
                 <td>Active recurring schedules</td>
                 <td>Contractual</td>
-                <td>Unlimited</td>
-                <td>50</td>
+                <td>25 per project</td>
+                <td>15</td>
                 <td>5</td>
               </tr>
               <tr>
                 <td>Max recipients per schedule send</td>
                 <td>Contractual</td>
-                <td>High Volume</td>
+                <td>Provider limit</td>
+                <td>Provider limit</td>
+                <td>Provider limit</td>
+              </tr>
+              <tr>
+                <td>Monthly recipient limit</td>
+                <td>Contractual</td>
                 <td>50,000</td>
-                <td>1,000</td>
+                <td>5,000</td>
+                <td>2,000</td>
               </tr>
               <tr>
                 <td>Daily, weekly, monthly recurrence</td>
@@ -663,8 +665,8 @@
               <tr>
                 <td>Independent project workspaces</td>
                 <td>Contractual</td>
-                <td>Unlimited</td>
-                <td>3</td>
+                <td>5</td>
+                <td>1</td>
                 <td>1</td>
               </tr>
               <tr>
@@ -689,8 +691,8 @@
               <tr>
                 <td>Monthly REST API call limit</td>
                 <td>Contractual</td>
-                <td>50,000</td>
-                <td>5,000</td>
+                <td>10,000</td>
+                <td>1,000</td>
                 <td>200</td>
               </tr>
               <tr>
@@ -729,9 +731,9 @@
               <tr>
                 <td>Customer support level</td>
                 <td>Dedicated TAM</td>
-                <td>24/7 Priority</td>
-                <td>Priority Email</td>
-                <td>Community</td>
+                <td>Urgent</td>
+                <td>Email anytime</td>
+                <td>Message anytime</td>
               </tr>
             </tbody>
           </table>
@@ -827,8 +829,8 @@
   <footer class="main-footer">
     <div class="footer-top">
       <div class="footer-brand">
-        <a href="index.html" class="brand-wrap">
-          <img src="logo-bz.png" alt="Bzade logo" style="height: 30px; width: auto;" />
+        <a href="/" class="brand-wrap">
+          <img src="../logo-bz.png" alt="Bzade logo" style="height: 30px; width: auto;" />
           <span class="brand-title" style="font-size: 18px;">Bzade.app</span>
         </a>
         <p>A mailing platform built to keep your customer communication punctual, reliable, and straightforward.</p>
@@ -837,19 +839,19 @@
       <div class="footer-col" id="docs">
         <h4>Product</h4>
         <ul>
-          <li><a href="index.html#product" class="footer-link">Overview</a></li>
-          <li><a href="pricing.html" class="footer-link" style="font-weight: 700;">Pricing Plans</a></li>
-          <li><a href="smtp.html" class="footer-link footer-link--ext">SMTP Configuration<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
-          <li><a href="dashboard.html" class="footer-link footer-link--ext">Web App Dashboard<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
+          <li><a href="/#product" class="footer-link">Overview</a></li>
+          <li><a href="/pricing/" class="footer-link" style="font-weight: 700;">Pricing Plans</a></li>
+          <li><a href="../smtp.html" class="footer-link footer-link--ext">SMTP Configuration<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
+          <li><a href="../dashboard.html" class="footer-link footer-link--ext">Web App Dashboard<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
         </ul>
       </div>
 
       <div class="footer-col">
         <h4>Resources</h4>
         <ul>
-          <li><a href="feedback.html" class="footer-link">Product Feedback</a></li>
+          <li><a href="../feedback.html" class="footer-link">Product Feedback</a></li>
           <li><a href="https://leakedprice.online" target="_blank" rel="noopener noreferrer" class="footer-link footer-link--ext">Smartindex Integration<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
-          <li><a href="index.html#resources" class="footer-link">Billing FAQ</a></li>
+          <li><a href="/#resources" class="footer-link">Billing FAQ</a></li>
           <li><a href="mailto:Victor@bzade.app" class="footer-link footer-link--ext">Contact Support<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
         </ul>
       </div>
@@ -857,9 +859,9 @@
       <div class="footer-col">
         <h4>Legal</h4>
         <ul>
-          <li><a href="terms.html" class="footer-link legal-link"><span>Terms of Service</span><svg class="claude-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></li>
-          <li><a href="privacy-policy.html" class="footer-link legal-link"><span>Privacy Policy</span><svg class="claude-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></li>
-          <li><a href="data-protection.html" class="footer-link legal-link"><span>Data Protection</span><svg class="claude-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></li>
+          <li><a href="../terms.html" class="footer-link legal-link"><span>Terms of Service</span><svg class="claude-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></li>
+          <li><a href="../privacy-policy.html" class="footer-link legal-link"><span>Privacy Policy</span><svg class="claude-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></li>
+          <li><a href="../data-protection.html" class="footer-link legal-link"><span>Data Protection</span><svg class="claude-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></li>
         </ul>
       </div>
     </div>
@@ -871,9 +873,9 @@
       <div class="social-links">
         <span>Follow us:</span>
         <a href="https://x.com/bzadeapp" target="_blank" rel="noopener noreferrer" class="social-link social-link--icon" aria-label="Bzade on X (Twitter)">
-          <img src="instagram-icon.png" alt="" style="width: 18px; height: 18px;">
-          <img src="facebook.png" alt="" style="width: 18px; height: 18px;">
-          <img src="x-social-icon.png" alt="" style="width: 15px; height: 15px;">
+          <img src="../instagram-icon.png" alt="" style="width: 18px; height: 18px;">
+          <img src="../facebook.png" alt="" style="width: 18px; height: 18px;">
+          <img src="../x-social-icon.png" alt="" style="width: 15px; height: 15px;">
           <span>@bzadeapp</span>
         </a>
       </div>
@@ -889,124 +891,13 @@
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
       </div>
-      <h3 class="auth-modal-title">Sign in or create an account to access schedules and workspace.</h3>
-      <p class="auth-modal-desc">Create your free account to connect your Gmail or custom SMTP inboxes, configure punctual customer email campaigns, and access your dashboard.</p>
+      <h3 class="auth-modal-title">Log in to continue.</h3>
       <div class="auth-modal-actions">
-        <a href="signup.html" class="btn-primary auth-modal-btn">Sign up</a>
-        <a href="login.html" class="btn-secondary auth-modal-cancel" style="display:inline-flex; align-items:center; justify-content:center;">Log in</a>
-        <button type="button" id="close-auth-modal" class="btn-secondary auth-modal-cancel" style="max-width: 44px; padding: 0;" aria-label="Close modal">&times;</button>
+        <a href="../login.html" class="btn-primary auth-modal-btn">Log in</a>
       </div>
     </div>
   </div>
 
-  <script type="module">
-    import { initPaymentModal } from "./scripts/payments/paymentModal.js";
-
-    initPaymentModal();
-  </script>
-  <script>
-    // Billing Toggle for pricing.html
-    const monthlyBtn = document.getElementById('billing-monthly');
-    const yearlyBtn = document.getElementById('billing-yearly');
-    const pricePaid = document.getElementById('price-paid');
-    const discountPaid = document.getElementById('discount-paid');
-    const priceBusiness = document.getElementById('price-business');
-    const discountBusiness = document.getElementById('discount-business');
-    const intervalPaid = document.getElementById('interval-paid');
-    const intervalBusiness = document.getElementById('interval-business');
-
-    function setBilling(isYearly) {
-      if (!monthlyBtn || !yearlyBtn) return;
-      if (isYearly) {
-        yearlyBtn.classList.add('active');
-        monthlyBtn.classList.remove('active');
-        if (pricePaid) pricePaid.textContent = '23.88';
-        if (discountPaid) {
-          discountPaid.textContent = '(-$12)';
-          discountPaid.style.display = 'inline';
-        }
-        if (intervalPaid) intervalPaid.textContent = '/ year';
-        if (priceBusiness) priceBusiness.textContent = '47.88';
-        if (discountBusiness) {
-          discountBusiness.textContent = '(-$12)';
-          discountBusiness.style.display = 'inline';
-        }
-        if (intervalBusiness) intervalBusiness.textContent = '/ year';
-      } else {
-        monthlyBtn.classList.add('active');
-        yearlyBtn.classList.remove('active');
-        if (pricePaid) pricePaid.textContent = '2.99';
-        if (discountPaid) discountPaid.style.display = 'none';
-        if (intervalPaid) intervalPaid.textContent = '/ month';
-        if (priceBusiness) priceBusiness.textContent = '4.99';
-        if (discountBusiness) discountBusiness.style.display = 'none';
-        if (intervalBusiness) intervalBusiness.textContent = '/ month';
-      }
-    }
-
-    monthlyBtn?.addEventListener('click', () => setBilling(false));
-    yearlyBtn?.addEventListener('click', () => setBilling(true));
-
-    // Auth Modal handling
-    const authModal = document.getElementById('auth-required-modal');
-    const closeAuthModalBtn = document.getElementById('close-auth-modal');
-
-    function openAuthModal() {
-      if (authModal) {
-        authModal.style.display = 'flex';
-        authModal.setAttribute('aria-hidden', 'false');
-      }
-    }
-
-    function closeAuthModal() {
-      if (authModal) {
-        authModal.style.display = 'none';
-        authModal.setAttribute('aria-hidden', 'true');
-      }
-    }
-
-    closeAuthModalBtn?.addEventListener('click', closeAuthModal);
-    authModal?.addEventListener('click', (e) => {
-      if (e.target === authModal) closeAuthModal();
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && authModal && authModal.style.display === 'flex') closeAuthModal();
-    });
-
-    // Intercept account-only addresses.
-    document.addEventListener('click', (e) => {
-      const link = e.target.closest('a[href*="dashboard.html"], a[href*="schedules.html"], a[href*="jobs.html"], a[href*="billing.html"], a[href*="account/billing/"], a[href*="smtp.html"]');
-      if (link && !window.__BZ_IS_LOGGED_IN) {
-        e.preventDefault();
-        openAuthModal();
-      }
-    });
-
-    // Make each pricing card clickable with auth session check
-    document.querySelectorAll('.pricing-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('[data-paystack-btn]')) return;
-        e.preventDefault();
-        if (window.__BZ_IS_LOGGED_IN) {
-          window.location.href = 'dashboard.html';
-        } else {
-          openAuthModal();
-        }
-      });
-    });
-
-    // Mobile nav drawer
-    const mobileToggle = document.getElementById('mobile-nav-toggle');
-    const mobileDrawer = document.getElementById('mobile-nav-drawer');
-    const closeDrawer = document.getElementById('close-mobile-drawer');
-
-    mobileToggle?.addEventListener('click', () => {
-      if (mobileDrawer) mobileDrawer.style.display = 'flex';
-    });
-
-    closeDrawer?.addEventListener('click', () => {
-      if (mobileDrawer) mobileDrawer.style.display = 'none';
-    });
-  </script>
+  <script type="module" src="./pricing.js"></script>
 </body>
 </html>

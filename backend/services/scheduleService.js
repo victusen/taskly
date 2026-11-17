@@ -1,4 +1,5 @@
 import { supabase } from "../config/supabase.js";
+import { getEffectivePlan } from "./planService.js";
 import {
   UUID_PATTERN,
   ValidationError,
@@ -7,13 +8,6 @@ import {
 import { computeNextRun } from "./scheduleRule.js";
 import { syncSchedule } from "../workers/planDay.js";
 import { runImmediateOccurrence } from "../workers/runSchedule.js";
-
-/* Active plus paused schedules one user may hold, by plan_tier. Change the numbers when pricing is decided. */ 
-const PLAN_LIMITS = {
-  free:     { schedules: 5,  projects: 1  },
-  paid:     { schedules: 20, projects: 3  },
-  business: { schedules: 50, projects: 10 },
-};
 
 class ServiceError extends Error {
   constructor(status, code, message) {
@@ -78,16 +72,6 @@ async function assertProject(userId, projectId) {
   return data;
 }
 
-async function getOwnedProjectIds(userId) {
-  const { data, error } = await supabase
-    .from("projects")
-    .select("id")
-    .eq("user_id", userId)
-    .in("status", ["active", "paused"]);
-  if (error) throw error;
-  return (data || []).map((project) => project.id);
-}
-
 /* The mail account must belong to this user's project and be usable. */
 async function assertConnection(userId, projectId, connectionId, requiresGoogle = false) {
   const { data, error } = await supabase
@@ -117,33 +101,24 @@ async function assertConnection(userId, projectId, connectionId, requiresGoogle 
   }
 }
 
-async function assertUnderPlanLimit(userId) {
-  const { data: profile, error: profileError } = await supabase
-    .from("users")
-    .select("plan_tier")
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (profileError) throw profileError;
-
-  const limits = PLAN_LIMITS[profile?.plan_tier] ?? PLAN_LIMITS.free;
-
-  const projectIds = await getOwnedProjectIds(userId);
-  if (projectIds.length === 0) return;
+async function assertUnderPlanLimit(userId, projectId) {
+  const { limits } = await getEffectivePlan(userId);
+  const scheduleLimit = limits.activeSchedulesPerProject;
+  if (scheduleLimit === null) return;
 
   const { count, error } = await supabase
     .from("schedules")
     .select("id", { count: "exact", head: true })
-    .in("project_id", projectIds)
-    .in("status", ["active", "paused"]);
+    .eq("project_id", projectId)
+    .eq("status", "active");
 
   if (error) throw error;
 
-  if ((count || 0) >= limits.schedules) {
+  if ((count || 0) >= scheduleLimit) {
     throw new ServiceError(
       403,
       "PLAN_LIMIT_REACHED",
-      `Your plan allows ${limits.schedules} active schedules. Upgrade to add more.`
+      `Your plan allows ${scheduleLimit} active schedules per project. Upgrade to add more.`
     );
   }
 }
@@ -257,7 +232,7 @@ export const scheduleService = {
       value.email_connection_id,
       Boolean(value.config.spreadsheet),
     );
-    await assertUnderPlanLimit(userId);
+    await assertUnderPlanLimit(userId, value.project_id);
 
     const data = await insertSchedule(value);
 
@@ -278,7 +253,7 @@ export const scheduleService = {
     if (project.status !== "active") {
       throw new ServiceError(409, "PROJECT_PAUSED", "Resume this project before sending an email.");
     }
-    await assertUnderPlanLimit(userId);
+    await assertUnderPlanLimit(userId, value.project_id);
 
     const schedule = await insertSchedule(value);
     const run = await runImmediateOccurrence(schedule);
@@ -352,6 +327,7 @@ export const scheduleService = {
 
     /* A failed schedule that is edited gets another chance. Paused and active keep their status. */
     if (row.status === "failed") {
+      await assertUnderPlanLimit(userId, row.project_id);
       Object.assign(changes, { status: "active", retry_count: 0, last_failure_reason: null });
     }
 
@@ -378,7 +354,7 @@ export const scheduleService = {
 
     const { data: row, error } = await supabase
       .from("schedules")
-      .select("project_id, schedule_type, scheduled_for, schedule_rule, timezone")
+      .select("project_id, status, schedule_type, scheduled_for, schedule_rule, timezone")
       .eq("id", id)
       .maybeSingle();
 
@@ -396,6 +372,7 @@ export const scheduleService = {
       throw new ServiceError(409, "PROJECT_PAUSED", "Resume this project before resuming its schedules.");
     }
 
+    await assertUnderPlanLimit(userId, row.project_id);
     const updated = await changeStatus(userId, id, ["paused"], { status: "active", next_run_at: nextRunAt });
 
     if (process.env.ENABLE_SCHEDULER === "true") {

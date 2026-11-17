@@ -6,6 +6,7 @@ import { computeNextRun } from "../services/scheduleRule.js";
 import { sendPersonalizedEmails, sendScheduledEmail } from "../services/sendService.js";
 import { buildSpreadsheetMessages } from "../services/spreadsheetDelivery.js";
 import { decryptJson } from "../utils/credentialCrypto.js";
+import { consumePlanUsage, releasePlanUsage } from "../services/planUsageService.js";
 import { armAt, release, occurrenceKey } from "./scheduleQueue.js";
 import {
   getScheduleStatus,
@@ -90,7 +91,7 @@ async function attempt({ scheduleId, projectId, runFor, number, retryFailures = 
       return { status: "failed", error: message };
     }
 
-    const { schedule: current, connection } = readiness;
+    const { schedule: current, project, connection } = readiness;
     if (!sameInstant(current.next_run_at, runFor)) {
       const message = "Schedule was edited before it ran.";
       await closeAttempt(runId, { status: "failed", error: message });
@@ -100,7 +101,16 @@ async function attempt({ scheduleId, projectId, runFor, number, retryFailures = 
       return { status: "failed", error: message };
     }
 
-    return await send({ current, connection, runFor, key, runId, number, retryFailures });
+    return await send({
+      current,
+      ownerId: project.user_id,
+      connection,
+      runFor,
+      key,
+      runId,
+      number,
+      retryFailures,
+    });
   } catch (err) {
     const message = String(err?.message || "Schedule run failed.");
     console.error(`[RUN] schedule ${scheduleId} attempt ${number} crashed:`, message);
@@ -114,28 +124,62 @@ async function attempt({ scheduleId, projectId, runFor, number, retryFailures = 
   }
 }
 
-async function send({ current, connection, runFor, key, runId, number, retryFailures }) {
+async function send({ current, ownerId, connection, runFor, key, runId, number, retryFailures }) {
   let emailSent = false;
+  let reservation = null;
+  let reservationSettled = false;
 
   try {
     const credentials = decryptJson(connection.credentials);
     let result;
+    let messages;
+    let rowFailures = [];
     if (current.config.spreadsheet) {
-      const { messages, failures: rowFailures } = await buildSpreadsheetMessages(
+      const prepared = await buildSpreadsheetMessages(
         connection,
         current.config,
       );
+      messages = prepared.messages;
+      rowFailures = prepared.failures;
+    }
+
+    const recipientCount = current.config.spreadsheet
+      ? messages.reduce((total, message) => total + message.recipients.length, 0)
+      : current.config.recipients.length;
+    reservation = await consumePlanUsage(ownerId, "recipients", recipientCount);
+    if (!reservation.allowed) {
+      const error = new Error(
+        `Your plan allows ${reservation.limit.toLocaleString("en-NG")} recipients in each 31-day period. The limit resets on ${new Date(reservation.window.endAt).toLocaleDateString()}.`,
+      );
+      error.code = "PLAN_LIMIT_REACHED";
+      error.permanent = true;
+      throw error;
+    }
+
+    if (current.config.spreadsheet) {
       result = await sendPersonalizedEmails({ connection, credentials, messages });
       result.failures.unshift(...rowFailures);
-      emailSent = result.sentCount > 0;
-      if (!emailSent) {
-        const error = new Error(summarize(result.failures) || "No spreadsheet messages were accepted.");
-        error.failures = result.failures;
-        throw error;
-      }
     } else {
       result = await sendScheduledEmail({ connection, credentials, config: current.config });
-      emailSent = true;
+    }
+    emailSent = result.sentRecipients > 0;
+
+    const unusedRecipients = Math.max(0, recipientCount - result.sentRecipients);
+    if (!reservation.unlimited && unusedRecipients > 0) {
+      reservationSettled = true;
+      await releasePlanUsage(
+        ownerId,
+        "recipients",
+        unusedRecipients,
+        reservation.window.startAt,
+      );
+    }
+    reservationSettled = true;
+
+    if (!emailSent) {
+      const error = new Error(summarize(result.failures) || "No recipients were accepted.");
+      error.failures = result.failures;
+      throw error;
     }
 
     const partial = result.failures.length ? summarize(result.failures) : null;
@@ -146,6 +190,22 @@ async function send({ current, connection, runFor, key, runId, number, retryFail
     return { status: "succeeded", error: partial };
   } catch (err) {
     const message = String(err?.message || "Send failed.");
+
+    if (reservation?.allowed && !reservation.unlimited && !reservationSettled && !emailSent) {
+      try {
+        await releasePlanUsage(
+          ownerId,
+          "recipients",
+          reservation.amount,
+          reservation.window.startAt,
+        );
+      } catch (releaseError) {
+        console.error(
+          `[RUN] could not release reserved recipient usage for schedule ${current.id}:`,
+          releaseError.message,
+        );
+      }
+    }
 
     // Email already left the building. Record it and never send again.
     if (emailSent) {
@@ -162,6 +222,13 @@ async function send({ current, connection, runFor, key, runId, number, retryFail
     }
 
     await closeAttempt(runId, { status: "failed", error: message });
+
+    if (err?.code === "PLAN_LIMIT_REACHED") {
+      await finishOccurrence(current, "failed", message, number);
+      console.warn(`[RUN] schedule ${current.id} paused for this occurrence: ${message}`);
+      release(key);
+      return { status: "failed", code: err.code, error: message };
+    }
 
     if (err?.code === "GMAIL_REVOKED") {
       await markConnectionNeedsReconnect(current.email_connection_id, current.project_id);

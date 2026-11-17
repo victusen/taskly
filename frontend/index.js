@@ -90,6 +90,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mobileDrawer) mobileDrawer.style.display = 'none';
   });
 
+  document.querySelectorAll('[data-mobile-nav-toggle]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const expanded = button.getAttribute('aria-expanded') === 'true';
+      button.setAttribute('aria-expanded', String(!expanded));
+      button.classList.toggle('is-expanded', !expanded);
+    });
+  });
+
   // 6. Careers Viewport Mega Dropdown Toggle & Hover Logic
   const careersTrigger = document.getElementById('careers-nav-trigger');
   const careersDropdown = document.getElementById('careers-mega-dropdown');
@@ -117,17 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (careersTrigger && careersDropdown) {
-    // Click toggle
-    careersTrigger.addEventListener('click', (e) => {
-      e.preventDefault();
-      const isOpen = careersDropdown.classList.contains('is-open');
-      if (isOpen) {
-        closeCareersMega();
-      } else {
-        openCareersMega();
-      }
-    });
-
     // Hover intent on desktop
     careersTrigger.addEventListener('mouseenter', openCareersMega);
     careersTrigger.addEventListener('mouseleave', closeCareersMega);
@@ -173,11 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  mobileCareersLink?.addEventListener('click', (e) => {
-    e.preventDefault();
+  mobileCareersLink?.addEventListener('click', () => {
     if (mobileDrawer) mobileDrawer.style.display = 'none';
-    openCareersMega();
-    careersDropdown?.scrollIntoView({ behavior: 'smooth' });
   });
 
   // 7. Unauthenticated User Interceptor for Dashboard / Jobs Links

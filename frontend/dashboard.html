@@ -54,13 +54,20 @@
     .drop-arrow { height: 20px; cursor: pointer; }
     .drop {
       display: none; position: absolute; top: 34px; left: 0; width: 200px; z-index: 12;
-      border-radius: 12px; overflow: hidden; background-color: white;
+      border-radius: 4px; overflow: hidden; background-color: white;
       border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     .drop.show { display: block; }
     .taskly-projs { padding: 10px 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
     .taskly-projs p { font-size: 13px; }
     .taskly-projs:hover { background-color: #e6f4ea; color: green; }
+    .drop-upgrade {
+      width: 100%; padding: 10px 12px; display: flex; align-items: center; gap: 9px;
+      border: 0; border-radius: 0; background: #fff; color: #374151;
+      font: inherit; font-size: 13px; text-align: left; cursor: pointer;
+    }
+    .drop-upgrade:hover { background: #f3f4f6; color: #111827; }
+    .drop-upgrade svg { width: 16px; height: 16px; }
 
     /* Shared navigation (used by the laptop sidebar and the phone drawer) */
     .nav-section h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #888; margin-bottom: 8px; }
@@ -404,9 +411,10 @@
       min-height: 42px; padding: 9px 16px; background: #f3f4f6; color: #374151;
       border: 1px solid #e5e7eb; border-radius: 8px; text-align: center;
       font-size: 13px; line-height: 1.45;
+      transition: opacity .2s ease, transform .2s ease, visibility .2s ease;
     }
     .free-plan-banner[hidden] { display: none; }
-    .free-plan-banner a { color: #166534; font-weight: 600; text-decoration: underline; white-space: nowrap; }
+    .free-plan-banner a { color: #166534; font-weight: 600; text-decoration: underline; }
     .project-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
     .project-list > a { display: block; width: 100%; min-width: 0; }
     .projs {
@@ -702,10 +710,15 @@
       }
       .col-empty-third { display: none !important; }
       body.has-free-plan-banner .free-plan-banner {
-        position: fixed; top: 50px; left: 0; right: 0; z-index: 45;
-        border-radius: 0; border-left: 0; border-right: 0;
+        position: fixed; top: 50px; left: 50%; right: auto; z-index: 45;
+        width: min(760px, calc(100% - 32px));
+        transform: translateX(-50%);
       }
       body.has-free-plan-banner .asymmetric-wrapper { margin-top: 112px; }
+      body.dashboard-content-scrolled.has-free-plan-banner .free-plan-banner {
+        opacity: 0; visibility: hidden; pointer-events: none; transform: translate(-50%, -48px);
+      }
+      body.dashboard-content-scrolled.has-free-plan-banner .asymmetric-wrapper { margin-top: 68px; }
     }
     @media (max-width: 767px) {
       .banner-left { gap: 6px; }
@@ -743,8 +756,7 @@
 <body>
 
   <div class="free-plan-banner" id="free-plan-banner" hidden>
-    <span>You are using our free plan. If you want more projects or schedules, we'd like you to upgrade.</span>
-    <a href="account/billing/" data-upgrade>Upgrade</a>
+    <span>You are on a free plan. For more projects or schedules, <a href="account/billing/" data-upgrade>upgrade</a> to our paid plan.</span>
   </div>
   <header>
     <div class="banner-left">
@@ -752,26 +764,16 @@
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
       </button>
       <img src="logo-bz.png" style="height: 30px; width: auto;" alt="">
-      <a href="index.html"><p class="brand">Bzade.app</p></a>
+      <a href="/"><p class="brand">Bzade.app</p></a>
       <div class="drop-wrap">
         <img id="drop-toggle" class="drop-arrow" src="drop-arrow.png" alt="Switch view" />
         <div class="drop" id="drop">
-          <div class="taskly-projs" onclick="window.location.href='dashboard.html'">
-            <img src="Check.png" style="height: 12px;" alt="">
-            <p>Open project</p>
-          </div>
-          <div class="taskly-projs" onclick="window.location.href='smtp.html'">
-            <img src="Check.png" style="height: 12px;" alt="">
-            <p>Connect Mail</p>
-          </div>
-          <div class="taskly-projs" onclick="window.location.href='schedules.html'">
-            <img src="Check.png" style="height: 12px;" alt="">
-            <p>Schedules</p>
-          </div>
-          <!--<div class="taskly-projs" id="header-connect-gmail" onclick="window.location.href='schedules.html?connect=gmail'">
-            <img src="gmail-btn.png" style="height: 12px;" alt="">
-            <p>Connect Gmail account</p>
-          </div> -->
+          <button type="button" class="drop-upgrade" data-upgrade>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/>
+            </svg>
+            <span>Upgrade</span>
+          </button>
         </div>
       </div>
     </div>

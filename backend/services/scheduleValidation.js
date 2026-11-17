@@ -14,8 +14,7 @@ export const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const LIMITS = {
-  MAX_RECIPIENTS: 50,
-  MAX_SHEET_RECIPIENTS: 500,
+  MAX_SHEET_RECIPIENTS: 50_000,
   MAX_SUBJECT: 300,
   /* Gmail clips messages above about 102 KB. Measured in bytes, not characters. */
   MAX_BODY_BYTES: 102_000,
@@ -243,8 +242,6 @@ export function validateScheduleInput(input, now = new Date(), { allowImmediateS
     errors.recipients = "Choose either direct recipients or spreadsheet recipients, not both.";
   } else if (config.recipients.length === 0 && !spreadsheet) {
     errors.recipients = "Add at least one recipient.";
-  } else if (config.recipients.length > LIMITS.MAX_RECIPIENTS) {
-    errors.recipients = `A maximum of ${LIMITS.MAX_RECIPIENTS} recipients is allowed.`;
   } else {
     recipients = [
       ...new Set(

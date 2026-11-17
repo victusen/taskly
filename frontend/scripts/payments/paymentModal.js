@@ -1,5 +1,6 @@
 import { startPayment } from "./payment.js";
 import { showToast } from "../ui/toast.js";
+import { supabase } from "../auth/auth.js";
 
 const PLANS = [
   { key: "paid_monthly", name: "Paid Monthly", amount: 2999, period: "monthly" },
@@ -26,7 +27,7 @@ function addPaymentModalStyles() {
     .payment-modal-body{padding:24px 28px;flex:1;overflow-y:auto}
     .payment-modal-note{margin:0 0 16px;color:#6b7280;font-size:13px;line-height:1.5}
     .plan-options{margin-bottom:24px}
-    .plan-option{width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:16px;text-align:left;font:inherit;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;cursor:pointer;transition:all .15s ease;margin-bottom:8px}
+    .plan-option{width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:16px;text-align:left;font:inherit;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 16px;cursor:pointer;transition:all .15s ease;margin-bottom:8px}
     .plan-option:hover{border-color:#d1d5db;background:#f3f4f6}
     .plan-option.selected{border-color:#16a34a;background:#f0fdf4}
     .plan-option-copy{min-width:0}
@@ -47,6 +48,12 @@ function addPaymentModalStyles() {
     .payment-submit-btn{border:0;background:#16a34a;color:#fff;font-weight:600}
     .payment-submit-btn:hover{background:#15803d}
     .payment-submit-btn:disabled{opacity:.6;cursor:wait}
+    .payment-login-backdrop{display:none;position:fixed;inset:0;z-index:4100;align-items:center;justify-content:center;padding:16px;background:rgba(17,24,39,.52)}
+    .payment-login-backdrop.open{display:flex}
+    .payment-login-card{width:min(380px,100%);padding:30px 26px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;box-shadow:0 20px 55px rgba(0,0,0,.2);text-align:center}
+    .payment-login-card h3{margin:0 0 20px;color:#111827;font-size:18px;line-height:1.4}
+    .payment-login-button{display:flex;align-items:center;justify-content:center;width:100%;padding:11px 16px;border:0;border-radius:6px;background:#111827;color:#fff;font:inherit;font-weight:600;text-decoration:none}
+    .payment-login-button:hover{background:#262626}
     @media(max-width:520px){.payment-modal-box{max-width:100vw}.payment-modal-header,.payment-modal-body{padding-left:20px;padding-right:20px}.payment-modal-footer{padding-left:20px;padding-right:20px}}
   `;
   document.head.append(style);
@@ -73,13 +80,13 @@ function createPaymentModal() {
         <div class="payment-details" id="payment-details" hidden>
           <div class="plan-type" id="plan-type"></div>
           <div class="pricing-info" id="pricing-info"></div>
-          <div class="billing-cycle">Billing cycle: <span id="billing-cycle-text"></span></div>
-          <div class="end-date" id="end-date" hidden>If paid today, this plan will renew on <span id="end-date-text"></span>.</div>
+          <div class="billing-cycle">Billing cycle: <span id="billing-cycle-text"></span><br>Starts today: <span id="start-date-text"></span></div>
+          <div class="end-date" id="end-date" hidden>Ends on <span id="end-date-text"></span>.</div>
         </div>
       </div>
       <div class="payment-modal-footer">
         <button type="button" class="payment-cancel-btn" id="payment-cancel">Cancel</button>
-        <button type="button" class="payment-submit-btn" id="payment-subscribe" disabled>Pay</button>
+        <button type="button" class="payment-submit-btn" id="payment-subscribe" disabled>Start payment</button>
       </div>
     </div>
   `;
@@ -108,12 +115,47 @@ export function initPaymentModal() {
   const planType = modal.querySelector("#plan-type");
   const pricingInfo = modal.querySelector("#pricing-info");
   const cycleText = modal.querySelector("#billing-cycle-text");
+  const startDateText = modal.querySelector("#start-date-text");
   const endDate = modal.querySelector("#end-date");
   const endDateText = modal.querySelector("#end-date-text");
   const submitButton = modal.querySelector("#payment-subscribe");
-  submitButton.textContent = "Pay";
+  submitButton.textContent = "Start payment";
   let selectedPlan = null;
   let previousOverflow = "";
+
+  function appendFormattedDate(target, date, period) {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }).formatToParts(date);
+    target.replaceChildren();
+    for (const part of parts) {
+      if (part.type === "literal") {
+        target.append(document.createTextNode(part.value));
+      } else if (
+        (period === "monthly" && ["month", "day"].includes(part.type)) ||
+        (period === "yearly" && part.type === "year")
+      ) {
+        const emphasized = document.createElement("strong");
+        emphasized.textContent = part.value;
+        target.append(emphasized);
+      } else {
+        target.append(document.createTextNode(part.value));
+      }
+    }
+  }
+
+  function getEndDate(start, period) {
+    const end = new Date(start);
+    const day = end.getDate();
+    end.setDate(1);
+    if (period === "monthly") end.setMonth(end.getMonth() + 1);
+    else end.setFullYear(end.getFullYear() + 1);
+    const lastDay = new Date(end.getFullYear(), end.getMonth() + 1, 0).getDate();
+    end.setDate(Math.min(day, lastDay));
+    return end;
+  }
 
   function selectPlan(plan, card) {
     selectedPlan = plan;
@@ -129,32 +171,12 @@ export function initPaymentModal() {
       <div class="period"></div>
     `;
     pricingInfo.querySelector(".price").textContent = `₦${plan.amount.toLocaleString("en-NG")}`;
-    pricingInfo.querySelector(".period").textContent = plan.period;
+    pricingInfo.querySelector(".period").textContent = `per ${plan.period === "monthly" ? "month" : "year"}`;
     cycleText.textContent = plan.period === "monthly" ? "Monthly" : "Yearly";
 
-    const renewsAt = new Date();
-    if (plan.period === "monthly") renewsAt.setMonth(renewsAt.getMonth() + 1);
-    else renewsAt.setFullYear(renewsAt.getFullYear() + 1);
-    const dateParts = new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }).formatToParts(renewsAt);
-    endDateText.replaceChildren();
-    for (const part of dateParts) {
-      if (part.type === "literal") {
-        endDateText.append(document.createTextNode(part.value));
-      } else if (
-        (plan.period === "monthly" && ["month", "day"].includes(part.type)) ||
-        (plan.period === "yearly" && part.type === "year")
-      ) {
-        const emphasized = document.createElement("strong");
-        emphasized.textContent = part.value;
-        endDateText.append(emphasized);
-      } else {
-        endDateText.append(document.createTextNode(part.value));
-      }
-    }
+    const startsAt = new Date();
+    appendFormattedDate(startDateText, startsAt, plan.period);
+    appendFormattedDate(endDateText, getEndDate(startsAt, plan.period), plan.period);
 
     details.hidden = false;
     details.style.display = "block";
@@ -186,13 +208,45 @@ export function initPaymentModal() {
       `;
       card.querySelector(".plan-name").textContent = plan.name;
       card.querySelector(".plan-desc").textContent = plan.period === "monthly" ? "Billed monthly" : "Billed yearly";
-      card.querySelector(".plan-price").textContent = `₦${plan.amount.toLocaleString("en-NG")} / ${plan.period === "monthly" ? "month" : "year"}`;
+      card.querySelector(".plan-price").textContent = `₦${plan.amount.toLocaleString("en-NG")} / per ${plan.period === "monthly" ? "month" : "year"}`;
       card.addEventListener("click", () => selectPlan(plan, card));
       options.append(card);
     });
   }
 
-  function open(initialPlanKey) {
+  const loginBackdrop = document.createElement("div");
+  loginBackdrop.className = "payment-login-backdrop";
+  loginBackdrop.innerHTML = `
+    <div class="payment-login-card" role="dialog" aria-modal="true" aria-labelledby="payment-login-title">
+      <h3 id="payment-login-title">Log in to choose a plan and start payment.</h3>
+      <a class="payment-login-button" href="/login.html">Log in</a>
+    </div>
+  `;
+  document.body.append(loginBackdrop);
+
+  function closeLoginPrompt() {
+    loginBackdrop.classList.remove("open");
+  }
+  loginBackdrop.addEventListener("click", (event) => {
+    if (event.target === loginBackdrop) closeLoginPrompt();
+  });
+
+  async function open(initialPlanKey) {
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      if (!data?.session?.access_token) {
+        loginBackdrop.classList.add("open");
+        loginBackdrop.querySelector(".payment-login-button")?.focus();
+        return;
+      }
+    } catch (error) {
+      console.error("[PAYMENT MODAL] Could not verify the current session:", error);
+      showToast("error", "Could not verify your session. Please try again.");
+      return;
+    }
+
+    closeLoginPrompt();
     if (!modal.classList.contains("open")) {
       previousOverflow = document.body.style.overflow;
     }
@@ -218,6 +272,7 @@ export function initPaymentModal() {
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && modal.classList.contains("open")) close();
+    if (event.key === "Escape" && loginBackdrop.classList.contains("open")) closeLoginPrompt();
   });
   submitButton.addEventListener("click", async () => {
     if (!selectedPlan) {
@@ -229,7 +284,7 @@ export function initPaymentModal() {
     try {
       if (await startPayment(selectedPlan.key)) close();
     } finally {
-      submitButton.textContent = "Pay";
+      submitButton.textContent = "Start payment";
       submitButton.disabled = !selectedPlan;
     }
   });
@@ -243,7 +298,7 @@ export function initPaymentModal() {
       : "monthly";
     const planKey = trigger.dataset.planKey ||
       (trigger.dataset.planTier ? `${trigger.dataset.planTier}_${billingPeriod}` : null);
-    open(planKey);
+    void open(planKey);
   });
 
   modalController = { open, close };

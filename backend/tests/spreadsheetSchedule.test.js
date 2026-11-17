@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { validateScheduleInput } from "../services/scheduleValidation.js";
+import { LIMITS, validateScheduleInput } from "../services/scheduleValidation.js";
 import { renderSheetTemplate } from "../services/sheetTemplate.js";
 
 const now = new Date("2025-01-01T00:00:00.000Z");
@@ -56,7 +56,7 @@ test("spreadsheet schedules reject mixed direct recipients, oversized ranges, an
   assert.throws(() => validateScheduleInput(mixed, now), (error) => Boolean(error.fieldErrors.recipients));
 
   const oversized = validPayload();
-  oversized.config.spreadsheet.endRow = 502;
+  oversized.config.spreadsheet.endRow = LIMITS.MAX_SHEET_RECIPIENTS + 2;
   assert.throws(() => validateScheduleInput(oversized, now), (error) => Boolean(error.fieldErrors.spreadsheet));
 
   const immediate = validPayload();
