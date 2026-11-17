@@ -956,6 +956,7 @@
     .schedule-detail-footer button { padding: 8px 13px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #374151; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
     .schedule-detail-footer [data-detail-edit] { border-color: #111827; background: #111827; color: #fff; }
     @media (max-width: 767px) {
+      .banner-left > img { height: 26px !important; }
       .schedule-list-shell { flex: 1 0 320px; min-height: 320px; border: 1.5px solid #374151; border-radius: 12px; background: #fff; overflow: hidden; }
       .schedule-list-shell #job-rows { flex: 1 1 auto; min-height: 0; }
       .schedule-table-scroll { display: none; }
@@ -1243,7 +1244,7 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
             <span>API Reference</span>
           </a>
-          <a href="feedback.html" class="header-dd-item">
+          <a href="mailto:support@bzade.app?subject=Feedback" class="header-dd-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span>Feedbacks</span>
           </a>
@@ -1251,8 +1252,7 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             <span>Terms of Service</span>
           </a>
-          <div style="height: 1px; background: #e5e7eb; margin: 4px 0;"></div>
-          <a href="mailto:support@bzade.app" class="header-dd-item">
+          <a href="mailto:support@bzade.app" class="header-dd-item" style="border-top: 1px solid #e5e7eb; margin-top: 4px; padding-top: 10px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             <span>Support</span>
           </a>
@@ -1361,7 +1361,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
           <span>API keys</span>
         </a>
-        <a href="account/billing.html" class="nav-item">
+        <a href="account/billing/" class="nav-item">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
           <span>Billing</span>
         </a>
@@ -1699,7 +1699,7 @@
 
     <!-- Column 3: Third Side -->
     <div class="col-empty-third">
-      <p>Hi, User. We are still working on this page. Can you tell us what you'd like to see <a href="./feedback.html">here</a></p>
+      <p>Hi, User. We are still working on this page. Can you tell us what you'd like to see <a href="mailto:support@bzade.app?subject=Schedules%20page%20feedback">here</a></p>
     </div>
   </div>
 
@@ -2379,7 +2379,7 @@
   </div>
   </div>
 
-  <script type="module" src="schedules.js"></script>
+  <script type="module" src="schedules.js?v=20261117"></script>
 
   <!-- Payment Selection Modal -->
   <div class="payment-modal-backdrop" id="payment-modal">

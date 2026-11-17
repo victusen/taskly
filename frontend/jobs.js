@@ -10,7 +10,7 @@ import {
   listSpreadsheetColumns,
 } from "./scripts/api/googleSheets.js";
 import { inspectTemplateVariables } from "./scripts/utils/scheduleSheets.js";
-import { openConnectModal, openDatabaseConnectModal } from "./scripts/ui/connectModal.js";
+import { openConnectModal, openDatabaseConnectModal } from "./scripts/ui/connectModal.js?v=20261117";
 import { initPaymentModal } from "./scripts/payments/paymentModal.js";
 import { sendNow } from "./scripts/api/schedules.js"
 import {
@@ -556,11 +556,6 @@ function hideAllStates() {
   if (noJobState) noJobState.hidden = true;
   if (projectNotFoundState) projectNotFoundState.hidden = true;
   if (requestErrorState) requestErrorState.hidden = true;
-  if (taskPagination) {
-    taskPagination.hidden = true;
-    taskPagination.style.display = "none";
-  }
-  if (taskListFooter) taskListFooter.hidden = true;
   if (scheduleListShell) scheduleListShell.hidden = true;
 }
 
@@ -599,21 +594,23 @@ function showRequestError(msg) {
 }
 
 function renderPagination() {
-  if (!taskPagination || totalSchedules === 0) return;
+  if (!taskPagination) return;
 
-  const firstItem = (currentPage - 1) * pageSize + 1;
-  const lastItem = Math.min(currentPage * pageSize, totalSchedules);
-  const canGoBack = currentPage > 1;
-  const canGoForward = hasMoreSchedules;
+  const hasSchedules = totalSchedules > 0;
+  const firstItem = hasSchedules ? (currentPage - 1) * pageSize + 1 : 0;
+  const lastItem = hasSchedules ? Math.min(currentPage * pageSize, totalSchedules) : 0;
+  const canGoBack = hasSchedules && currentPage > 1;
+  const canGoForward = hasSchedules && hasMoreSchedules;
   taskPagination.innerHTML = `
     <span class="page-summary">${firstItem}–${lastItem} of ${totalSchedules} schedules</span>
     <span class="page-mobile-summary">${totalSchedules} ${totalSchedules === 1 ? "schedule" : "schedules"}</span>
-    <span class="page-current">${currentPage}</span>
-    <span class="page-mobile-current">${currentPage} / ${totalSchedules}</span>
+    <span class="page-current">${hasSchedules ? currentPage : "0 / 0"}</span>
+    <span class="page-mobile-current">${hasSchedules ? `${currentPage} / ${totalSchedules}` : "0 / 0"}</span>
     <button type="button" class="page-btn" data-page="${currentPage - 1}" ${canGoBack ? "" : "disabled"} aria-label="Previous schedule page">‹</button>
     <button type="button" class="page-btn" data-page="${currentPage + 1}" ${canGoForward ? "" : "disabled"} aria-label="Next schedule page">›</button>`;
   taskPagination.hidden = false;
   taskPagination.style.display = "flex";
+  if (taskListFooter) taskListFooter.hidden = false;
 }
 
 function formatScheduleDateTime(value, timezone = "UTC") {
@@ -647,6 +644,7 @@ function renderRows() {
   if (btnNew) btnNew.textContent = "New";
   if (btnPaused) btnPaused.textContent = "Paused";
 
+  renderPagination();
   if (schedules.length === 0) {
     hideAllStates();
     if (noJobState) noJobState.hidden = false;
@@ -655,8 +653,6 @@ function renderRows() {
 
   hideAllStates();
   if (scheduleListShell) scheduleListShell.hidden = false;
-  if (taskListFooter) taskListFooter.hidden = false;
-
   if (jobRows) {
     jobRows.hidden = false;
     jobRows.style.display = "block";
@@ -750,8 +746,6 @@ function renderRows() {
       </div>
       <div class="schedule-mobile-list">${mobileCards}</div>`;
   }
-
-  renderPagination();
 
   if (typeof window.bzRightPanel?.updateTaskCount === 'function') {
     window.bzRightPanel.updateTaskCount(totalSchedules);
@@ -1502,6 +1496,7 @@ window.bzComposer.onUpdate = async (id, draft) => {
 
 async function init() {
   showGoogleResult();
+  renderPagination();
   void loadRows();
 
   void loadProject(projectId)

@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.addEventListener('click', (e) => {
-    const link = e.target.closest('a[href*="dashboard.html"], a[href*="schedules.html"], a[href*="jobs.html"], a[href*="billing.html"], a[href*="smtp.html"]');
+    const link = e.target.closest('a[href*="dashboard.html"], a[href*="schedules.html"], a[href*="jobs.html"], a[href*="billing.html"], a[href*="account/billing/"], a[href*="smtp.html"]');
     if (link && !window.__BZ_IS_LOGGED_IN) {
       e.preventDefault();
       openAuthModal();

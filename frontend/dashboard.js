@@ -746,7 +746,7 @@ function showProjectCreationStep(type, button) {
   projectCreateStep.hidden = false;
   if (projectModalTitle) projectModalTitle.textContent = "Create a new project";
   if (selectedProjectTypeLabel) {
-    selectedProjectTypeLabel.textContent = `${type.charAt(0).toUpperCase()}${type.slice(1)} project`;
+    selectedProjectTypeLabel.textContent = `${type === "email" ? "Email Schedules" : "API"} project`;
     selectedProjectTypeLabel.hidden = false;
   }
   if (projectTypeBack) projectTypeBack.hidden = false;

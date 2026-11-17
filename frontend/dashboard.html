@@ -477,11 +477,11 @@
     #business-modal .modal-header h3 { margin: 0; color: #111827; font-size: 23px !important; line-height: 1.2; font-weight: 750; }
     #business-modal .modal-header { gap: 16px; }
     #business-modal .project-modal-heading { min-width: 0; flex: 1; }
-    #business-modal .project-type-step { min-height: 210px; display: flex; flex-direction: column; justify-content: center; }
-    #business-modal .project-type-copy { margin: 8px 0 20px; color: #6b7280; font-size: 14px; line-height: 1.5; }
-    #business-modal .project-type-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    #business-modal .project-type-step { display: flex; flex-direction: column; justify-content: center; }
+    #business-modal .project-type-copy { margin: 4px 0 14px; color: #6b7280; font-size: 14px; line-height: 1.5; }
+    #business-modal .project-type-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     #business-modal .project-type-option {
-      min-height: 72px; padding: 12px; border: 1px solid #d1d5db; border-radius: 10px;
+      min-height: 56px; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 10px;
       background: #fff; color: #111827; font: inherit; font-weight: 650; cursor: pointer;
     }
     #business-modal .project-type-option:hover,
@@ -513,9 +513,9 @@
     @media (max-width: 520px) {
       #business-modal .modal-box { padding: 22px 18px; }
       #business-modal .project-type-options { gap: 8px; }
-      #business-modal .project-type-option { min-height: 64px; padding: 8px; font-size: 13px; }
+      #business-modal .project-type-option { min-height: 50px; padding: 6px 8px; font-size: 13px; }
       #business-modal .project-type-option:hover,
-      #business-modal .project-type-option.selected { padding: 7px; }
+      #business-modal .project-type-option.selected { padding: 5px 7px; }
     }
 
     .add-hidden { display: none; }
@@ -709,7 +709,13 @@
     }
     @media (max-width: 767px) {
       .banner-left { gap: 6px; }
-      .free-plan-banner { margin-bottom: 18px; }
+      header { position: sticky; top: 0; z-index: 50; }
+      .banner-left > img { height: 26px !important; }
+      .asymmetric-wrapper { margin-top: 0; }
+      .free-plan-banner {
+        min-height: 0; margin: 0 14px 8px; padding: 0; border: 0;
+        background: #f3f4f6; border-radius: 0; font-size: 15px; line-height: 1.5;
+      }
     }
 
     /* Desktop (>= 1200px): sidebar wider, main takes all remaining width */
@@ -736,6 +742,10 @@
 </head>
 <body>
 
+  <div class="free-plan-banner" id="free-plan-banner" hidden>
+    <span>You are using our free plan. If you want more projects or schedules, we'd like you to upgrade.</span>
+    <a href="account/billing/" data-upgrade>Upgrade</a>
+  </div>
   <header>
     <div class="banner-left">
       <button type="button" class="mobile-hamburger-btn" id="hamburger-btn" aria-label="Open navigation" style="background:none; border:none; padding:4px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#111;">
@@ -789,7 +799,7 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
             <span>API Reference</span>
           </a>
-          <a href="feedback.html" class="header-dd-item">
+          <a href="mailto:support@bzade.app?subject=Feedback" class="header-dd-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span>Feedbacks</span>
           </a>
@@ -797,8 +807,7 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             <span>Terms of Service</span>
           </a>
-          <div style="height: 1px; background: #e5e7eb; margin: 4px 0;"></div>
-          <a href="mailto:support@bzade.app" class="header-dd-item">
+          <a href="mailto:support@bzade.app" class="header-dd-item" style="border-top: 1px solid #e5e7eb; margin-top: 4px; padding-top: 10px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             <span>Support</span>
           </a>
@@ -872,7 +881,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
           <span>API keys</span>
         </a>
-        <a href="account/billing.html" class="nav-item">
+        <a href="account/billing/" class="nav-item">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
           <span>Billing</span>
         </a>
@@ -920,10 +929,6 @@
 
     <!-- Main column (middle) -->
     <main>
-      <div class="free-plan-banner" id="free-plan-banner" hidden>
-        <span>You are using our free plan. If you want more projects or schedules, we'd like you to upgrade.</span>
-        <a href="account/billing.html" data-upgrade>Upgrade</a>
-      </div>
       <div class="dash-header-strip">
       <div style="display: flex; flex-direction: column;">
         <div class="dash-top">
@@ -1086,8 +1091,7 @@
         <p class="project-type-copy">Choose the kind of project you want to create.</p>
         <div class="project-type-options" role="group" aria-label="Project type">
           <button type="button" class="project-type-option" data-project-type="api" aria-pressed="false">API</button>
-          <button type="button" class="project-type-option" data-project-type="email" aria-pressed="false">Email</button>
-          <button type="button" class="project-type-option" data-project-type="payload" aria-pressed="false">Payload</button>
+          <button type="button" class="project-type-option" data-project-type="email" aria-pressed="false">Email Schedules</button>
         </div>
       </div>
       <div class="project-create-step" id="project-create-step" hidden>

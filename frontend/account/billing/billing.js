@@ -1,11 +1,11 @@
-import { requireAuth, resolveUserInitial, applyUserAvatar } from "../scripts/auth/session.js";
-import { signOut } from "../scripts/auth/auth.js";
-import { initPaymentModal } from "../scripts/payments/paymentModal.js";
-import { showToast } from "../scripts/ui/toast.js";
-import { loadProjects } from "../scripts/data/source.js";
-import { initInviteModal } from "../scripts/ui/inviteModal.js";
-import { authenticatedFetch } from "../scripts/auth/api.js";
-import { initAccountMenu } from "../scripts/ui/accountMenu.js";
+import { requireAuth, resolveUserInitial, applyUserAvatar } from "../../scripts/auth/session.js";
+import { signOut } from "../../scripts/auth/auth.js";
+import { initPaymentModal } from "../../scripts/payments/paymentModal.js";
+import { showToast } from "../../scripts/ui/toast.js";
+import { loadProjects } from "../../scripts/data/source.js";
+import { initInviteModal } from "../../scripts/ui/inviteModal.js";
+import { authenticatedFetch } from "../../scripts/auth/api.js";
+import { initAccountMenu } from "../../scripts/ui/accountMenu.js";
 
 // Clean any leftover tokens / hash from browser address bar
 if (window.location.hash || window.location.search.includes("code=") || window.location.search.includes("access_token")) {
@@ -66,7 +66,7 @@ document.querySelectorAll("[data-logout]").forEach((btn) => {
     } catch (e) {
       console.error(e);
     }
-    window.location.href = "../index.html";
+    window.location.href = "../../index.html";
   });
 });
 
@@ -230,7 +230,7 @@ async function loadBillingProjects() {
           <tr>
             <td colspan="6" style="text-align: center; padding: 32px 20px; color: #6b7280;">
               <p style="font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 4px;">No projects created yet</p>
-              <p style="font-size: 13px;">Create a project in the <a href="../dashboard.html" style="color: #4f46e5; text-decoration: underline;">Overview Dashboard</a> to view project billing details.</p>
+              <p style="font-size: 13px;">Create a project in the <a href="../../dashboard.html" style="color: #4f46e5; text-decoration: underline;">Overview Dashboard</a> to view project billing details.</p>
             </td>
           </tr>
         `;
@@ -246,7 +246,7 @@ async function loadBillingProjects() {
     const sidebarHtml = activeProjects
       .map(
         (p) =>
-          `<a href="../schedules.html?project=${encodeURIComponent(p.id)}" class="nav-item sub-item">${escapeHtml(
+          `<a href="../../schedules.html?project=${encodeURIComponent(p.id)}" class="nav-item sub-item">${escapeHtml(
             p.project_name || p.business_name || "Untitled Project"
           )}</a>`
       )
@@ -285,7 +285,7 @@ async function loadBillingProjects() {
               </td>
               <td><span class="badge-paid">✓ Included</span></td>
               <td style="text-align: right;">
-                <a href="../schedules.html?project=${encodeURIComponent(p.id)}" class="btn-outline-sm">View Schedules</a>
+                <a href="../../schedules.html?project=${encodeURIComponent(p.id)}" class="btn-outline-sm">View Schedules</a>
               </td>
             </tr>
           `;

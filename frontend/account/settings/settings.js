@@ -72,10 +72,16 @@ function renderTeamMembers(error = null) {
     return;
   }
 
-  const projectNames = settingsProjects
-    .map((project) => project.project_name || project.business_name || "Untitled Project")
-    .map(escapeHtml)
-    .join(", ");
+  const projectRows = settingsProjects.map((project) => {
+    const name = project.project_name || project.business_name || "Untitled Project";
+    const role = String(project.role || "Owner").replace(/^./, (letter) => letter.toUpperCase());
+    const href = `../../schedules.html?project=${encodeURIComponent(project.id)}`;
+    return `
+      <a class="project-access-row" href="${escapeHtml(href)}">
+        <span>${escapeHtml(name)}</span>
+        <span class="project-access-role">${escapeHtml(role)}</span>
+      </a>`;
+  }).join("");
   teamMembersList.innerHTML = `
     <div class="team-member-row">
       <div class="team-member-avatar" aria-hidden="true">${escapeHtml(initial)}</div>
@@ -85,10 +91,7 @@ function renderTeamMembers(error = null) {
       </div>
       <span class="team-member-role">Owner</span>
     </div>
-    <div class="team-member-details">
-      <strong>Project access</strong>
-      <span>${projectNames}</span>
-    </div>
+    <div class="project-access-list">${projectRows}</div>
   `;
 }
 
