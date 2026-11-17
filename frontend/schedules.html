@@ -649,6 +649,7 @@
     }
 
     @media (max-width: 767px) {
+      .banner-left { gap: 6px; }
       .asymmetric-wrapper {
         display: flex;
         flex-direction: column;
@@ -1774,7 +1775,7 @@
       const navTemplate = document.getElementById("nav-template");
       document.getElementById("desktop-nav").append(navTemplate.content.cloneNode(true));
       document.getElementById("mobile-nav").append(navTemplate.content.cloneNode(true));
-      document.querySelectorAll("#desktop-nav .nav-item").forEach((item) => {
+      document.querySelectorAll("#desktop-nav .nav-item, #mobile-nav .nav-item").forEach((item) => {
         const label = (item.querySelector(".nav-item-collapsible > div span") ||
           item.querySelector(":scope > span") ||
           item.querySelector("span") ||
@@ -1789,6 +1790,19 @@
       const overlay = document.getElementById("mobile-sidebar-overlay");
       const menuBtn = document.getElementById("hamburger-btn");
       const closeBtn = document.getElementById("sidebar-close-btn");
+      const sidebar = document.getElementById("left-sidebar");
+      const collapseBtn = document.getElementById("sidebar-collapse-btn");
+
+      function setSidebarCollapsed(collapsed) {
+        sidebar?.classList.toggle("collapsed", collapsed);
+        const label = collapsed ? "Expand navigation" : "Collapse navigation";
+        collapseBtn?.setAttribute("aria-label", label);
+        collapseBtn?.setAttribute("title", label);
+      }
+
+      function toggleSidebar() {
+        setSidebarCollapsed(!sidebar?.classList.contains("collapsed"));
+      }
 
       function setDrawer(open) {
         overlay.classList.toggle("open", open);
@@ -1798,6 +1812,7 @@
 
       menuBtn?.addEventListener("click", () => setDrawer(true));
       closeBtn?.addEventListener("click", () => setDrawer(false));
+      collapseBtn?.addEventListener("click", toggleSidebar);
       overlay.addEventListener("click", (event) => {
         if (event.target === overlay) setDrawer(false);
       });

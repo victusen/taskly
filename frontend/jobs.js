@@ -10,7 +10,7 @@ import {
   listSpreadsheetColumns,
 } from "./scripts/api/googleSheets.js";
 import { inspectTemplateVariables } from "./scripts/utils/scheduleSheets.js";
-import { openConnectModal } from "./scripts/ui/connectModal.js";
+import { openConnectModal, openDatabaseConnectModal } from "./scripts/ui/connectModal.js";
 import { initPaymentModal } from "./scripts/payments/paymentModal.js";
 import { sendNow } from "./scripts/api/schedules.js"
 import {
@@ -395,7 +395,24 @@ window.bzComposer.getSheetPlan = () => sheetPlan ? JSON.parse(JSON.stringify(she
 window.bzComposer.setSheetPlan = setSheetPlan;
 window.bzComposer.validateSheetPlan = validateCurrentSheetPlan;
 
-connectDatabaseBtns.forEach((button) => button.addEventListener("click", openSheetPicker));
+connectDatabaseBtns.forEach((button) => button.addEventListener("click", () => {
+  openDatabaseConnectModal({
+    onSelect(provider) {
+      if (provider === "google-sheets") {
+        openSheetPicker();
+        return;
+      }
+      const providerName = {
+        excel: "Excel",
+        supabase: "Supabase",
+        firebase: "Firebase",
+        mongodb: "MongoDB",
+        postgresql: "PostgreSQL",
+      }[provider] || "This database";
+      showToast("info", `${providerName} connection is coming soon.`);
+    },
+  });
+}));
 document.getElementById("sheet-picker-close")?.addEventListener("click", closeSheetPicker);
 document.getElementById("sheet-picker-cancel")?.addEventListener("click", closeSheetPicker);
 document.getElementById("sheet-plan-clear")?.addEventListener("click", () => setSheetPlan(null));

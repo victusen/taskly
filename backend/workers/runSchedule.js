@@ -75,7 +75,10 @@ async function attempt({ scheduleId, projectId, runFor, number, retryFailures = 
       await closeAttempt(runId, { status: "failed", error: message });
       console.error(`[RUN] schedule ${scheduleId} failed eligibility checks: ${message}`);
 
-      if (readiness.schedule?.status === "active" && readiness.code !== "schedule_inactive") {
+      if (
+        readiness.schedule?.status === "active" &&
+        !["schedule_inactive", "project_inactive"].includes(readiness.code)
+      ) {
         await updateScheduleAfterOccurrence(scheduleId, projectId, {
           status: "failed",
           next_run_at: null,

@@ -708,6 +708,7 @@
       body.has-free-plan-banner .asymmetric-wrapper { margin-top: 112px; }
     }
     @media (max-width: 767px) {
+      .banner-left { gap: 6px; }
       .free-plan-banner { margin-bottom: 18px; }
     }
 
@@ -1147,12 +1148,19 @@
       </div>
       <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px;">
         <div>
-          <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Active Project</label>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Project</label>
           <p id="settings-active-name" style="font-size: 16px; font-weight: 600; color: #111827; margin-top: 4px;">-</p>
         </div>
         <div>
           <label style="display: block; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase;">Status</label>
-          <span style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: #dcfce7; color: #166534; margin-top: 4px;">Active</span>
+          <span id="settings-project-status" style="display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: #dcfce7; color: #166534; margin-top: 4px;">Active</span>
+        </div>
+        <div style="border-top: 1px solid #e5e7eb; padding-top: 14px; margin-top: 4px;">
+          <h4 style="font-size: 14px; font-weight: 600; color: #111827; margin: 0 0 4px;">Project availability</h4>
+          <p style="font-size: 13px; color: #6b7280; margin: 0 0 10px;">Pausing stops this project's schedules from running. You can resume it at any time.</p>
+          <button type="button" id="settings-pause-btn" style="border-radius: 6px; padding: 8px 14px; background: #fff; border: 1px solid #d1d5db; color: #374151; font-size: 13px; font-weight: 600; cursor: pointer;">
+            Pause Project
+          </button>
         </div>
         <div style="border-top: 1px solid #fee2e2; padding-top: 16px; margin-top: 8px;">
           <h4 style="font-size: 14px; font-weight: 600; color: #dc2626; margin: 0 0 4px;">Danger Zone</h4>

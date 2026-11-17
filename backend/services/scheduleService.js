@@ -64,10 +64,10 @@ async function insertSchedule(value) {
 async function assertProject(userId, projectId) {
   const { data, error } = await supabase
     .from("projects")
-    .select("id")
+    .select("id, status")
     .eq("id", projectId)
     .eq("user_id", userId)
-    .eq("status", "active")
+    .in("status", ["active", "paused"])
     .maybeSingle();
 
   if (error) throw error;
@@ -75,6 +75,7 @@ async function assertProject(userId, projectId) {
   if (!data) {
     throw new ServiceError(404, "NOT_FOUND", "Project not found or you do not have permission to access it.");
   }
+  return data;
 }
 
 async function getOwnedProjectIds(userId) {
@@ -82,7 +83,7 @@ async function getOwnedProjectIds(userId) {
     .from("projects")
     .select("id")
     .eq("user_id", userId)
-    .eq("status", "active");
+    .in("status", ["active", "paused"]);
   if (error) throw error;
   return (data || []).map((project) => project.id);
 }
@@ -246,7 +247,10 @@ export const scheduleService = {
     /* Validates and cleans everything. Throws ValidationError with a message per field. */
     const value = validateScheduleInput(input);
 
-    await assertProject(userId, value.project_id);
+    const project = await assertProject(userId, value.project_id);
+    if (project.status !== "active") {
+      throw new ServiceError(409, "PROJECT_PAUSED", "Resume this project before creating schedules.");
+    }
     await assertConnection(
       userId,
       value.project_id,
@@ -270,7 +274,10 @@ export const scheduleService = {
     }
 
     const value = validateScheduleInput(input);
-    await assertProject(userId, value.project_id);
+    const project = await assertProject(userId, value.project_id);
+    if (project.status !== "active") {
+      throw new ServiceError(409, "PROJECT_PAUSED", "Resume this project before sending an email.");
+    }
     await assertUnderPlanLimit(userId);
 
     const schedule = await insertSchedule(value);
@@ -295,7 +302,7 @@ export const scheduleService = {
 
     if (error) throw error;
     if (!row) throw notFound();
-    await assertProject(userId, row.project_id);
+    const project = await assertProject(userId, row.project_id);
 
     const timingKeys = ["schedule_type", "scheduled_for", "timezone", "schedule_rule"];
     const changesTiming = timingKeys.some((key) => patch[key] !== undefined);
@@ -350,7 +357,7 @@ export const scheduleService = {
 
     const updated = await changeStatus(userId, id, ["active", "paused", "failed"], changes);
 
-    if (process.env.ENABLE_SCHEDULER === "true") {
+    if (process.env.ENABLE_SCHEDULER === "true" && project.status === "active") {
       await syncSchedule(updated);
     }
     return updated;
@@ -377,13 +384,16 @@ export const scheduleService = {
 
     if (error) throw error;
     if (!row) throw notFound();
-    await assertProject(userId, row.project_id);
+    const project = await assertProject(userId, row.project_id);
 
     /* Time kept passing while it was paused. Skip missed runs and find the next real one. */
     const nextRunAt = computeNextRun(row, new Date());
 
     if (!nextRunAt) {
       throw new ServiceError(409, "INVALID_STATE", "The send time has passed. Edit the schedule and pick a new time.");
+    }
+    if (project.status !== "active") {
+      throw new ServiceError(409, "PROJECT_PAUSED", "Resume this project before resuming its schedules.");
     }
 
     const updated = await changeStatus(userId, id, ["paused"], { status: "active", next_run_at: nextRunAt });

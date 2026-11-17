@@ -1,7 +1,7 @@
 import { authenticatedFetch } from "../auth/api.js";
 import { getCurrentSession } from "../auth/session.js";
 import { BACKEND_URL } from "../config.js";
-import { getProjects, createProject, deleteProject } from "../api/projects.js";
+import { getProjects, createProject, deleteProject, updateProjectStatus } from "../api/projects.js";
 import { getProjectEmailConnection, listEmailConnections } from "../api/emailConnections.js";
 import { getSchedules, pauseSchedule, resumeSchedule, cancelSchedule } from "../api/schedules.js";
 
@@ -226,6 +226,30 @@ export async function removeProject(id) {
   const idx = BASE_PROJECTS.findIndex((p) => p.id === id);
   if (idx !== -1) BASE_PROJECTS.splice(idx, 1);
   return true;
+}
+
+export async function setProjectStatus(id, status) {
+  let project;
+  let warnings = [];
+  if (USE_MOCK) {
+    project = mockProjects().find((item) => item.id === id);
+    if (!project) throw new Error("Project not found.");
+    project.status = status;
+    const baseIndex = BASE_PROJECTS.findIndex((item) => item.id === id);
+    if (baseIndex >= 0) BASE_PROJECTS[baseIndex] = project;
+    else writeExtra(readExtra().map((item) => item.id === id ? project : item));
+  } else {
+    const result = await updateProjectStatus(id, status);
+    project = result?.data || result;
+    warnings = Array.isArray(result?.warnings) ? result.warnings : [];
+  }
+
+  if (!project?.id) throw new Error("Could not update project status.");
+  const session = await getCurrentSession();
+  const userId = session?.user?.id;
+  const current = readProjectsCache(userId) || [];
+  writeProjectsCache([project, ...current.filter((item) => item.id !== project.id)], userId);
+  return { project, warnings };
 }
 
 export async function addSchedule(payload) {

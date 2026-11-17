@@ -2,7 +2,7 @@ import { requireAuth, resolveUserInitial, applyUserAvatar } from "./scripts/auth
 import { signOut } from "./scripts/auth/auth.js";
 import { showToast, showToastAction } from "./scripts/ui/toast.js";
 import { initPaymentModal } from "./scripts/payments/paymentModal.js";
-import { loadConnections, addProject, loadProjects, loadSchedules, removeProject } from "./scripts/data/source.js";
+import { loadConnections, addProject, loadProjects, loadSchedules, removeProject, setProjectStatus } from "./scripts/data/source.js";
 import { initInviteModal } from "./scripts/ui/inviteModal.js";
 import { initAccountMenu } from "./scripts/ui/accountMenu.js";
 import { openConnectModal } from "./scripts/ui/connectModal.js";
@@ -49,6 +49,8 @@ const settingsModal = document.getElementById("project-settings-modal");
 const settingsActiveName = document.getElementById("settings-active-name");
 const settingsModalClose = document.getElementById("settings-modal-close");
 const settingsDeleteBtn = document.getElementById("settings-delete-btn");
+const settingsPauseBtn = document.getElementById("settings-pause-btn");
+const settingsStatusLabel = document.getElementById("settings-project-status");
 
 let pendingDeleteProject = null;
 let activeProjects = [];
@@ -162,6 +164,13 @@ function renderProjectInsight(card) {
   const projectId = card.dataset.projectId;
   const label = card.querySelector("[data-project-info]");
   if (!label) return;
+  const project = activeProjects.find((item) => item.id === projectId);
+  if (project?.status === "paused") {
+    const message = { text: "Project paused", bgColor: "#6b7280" };
+    label.dataset.messages = JSON.stringify([message]);
+    showProjectInsight(card, message);
+    return;
+  }
   const connection = projectMailConnections.get(projectId);
   const todayCount = projectScheduleCounts.get(projectId);
   
@@ -190,8 +199,8 @@ function renderProjectInsight(card) {
     priorityNotifications.push({
       text: "No email account connected",
       priority: 3,
-      bgColor: "#dc2626",
-      isCritical: true
+      bgColor: "#6b7280",
+      isCritical: false
     });
   } else {
     // 3. Low priority: new project, ready to launch
@@ -621,9 +630,21 @@ deleteModalConfirm?.addEventListener("click", async () => {
  * Settings Modal Functions
  */
 function openSettingsModal(projectId, projectName) {
-  pendingDeleteProject = { id: projectId, name: projectName };
+  const project = activeProjects.find((item) => item.id === projectId);
+  pendingDeleteProject = { id: projectId, name: projectName, status: project?.status || "active" };
   if (settingsActiveName) settingsActiveName.textContent = projectName || "-";
+  updateSettingsProjectStatus(pendingDeleteProject.status);
   if (settingsModal) settingsModal.classList.add("open");
+}
+
+function updateSettingsProjectStatus(status) {
+  const paused = status === "paused";
+  if (settingsStatusLabel) {
+    settingsStatusLabel.textContent = paused ? "Paused" : "Active";
+    settingsStatusLabel.style.backgroundColor = paused ? "#f3f4f6" : "#dcfce7";
+    settingsStatusLabel.style.color = paused ? "#4b5563" : "#166534";
+  }
+  if (settingsPauseBtn) settingsPauseBtn.textContent = paused ? "Resume Project" : "Pause Project";
 }
 
 function closeSettingsModal() {
@@ -639,6 +660,33 @@ settingsDeleteBtn?.addEventListener("click", () => {
   if (pendingDeleteProject) {
     closeSettingsModal();
     openDeleteModal(pendingDeleteProject.id, pendingDeleteProject.name);
+  }
+});
+
+settingsPauseBtn?.addEventListener("click", async () => {
+  if (!pendingDeleteProject || settingsPauseBtn.disabled) return;
+  const nextStatus = pendingDeleteProject.status === "paused" ? "active" : "paused";
+  const actionText = nextStatus === "paused" ? "Pausing..." : "Resuming...";
+  settingsPauseBtn.disabled = true;
+  settingsPauseBtn.textContent = actionText;
+  try {
+    const { project, warnings } = await setProjectStatus(pendingDeleteProject.id, nextStatus);
+    pendingDeleteProject.status = project.status;
+    activeProjects = activeProjects.map((item) => item.id === project.id ? project : item);
+    updateSettingsProjectStatus(project.status);
+    if (warnings.length) {
+      showToast("info", `Project resumed; ${warnings.length} schedule(s) need attention before they can run.`);
+    } else {
+      showToast("success", project.status === "paused"
+        ? "Project paused. Its schedules will not run until it is resumed."
+        : "Project resumed.");
+    }
+    await renderDashboardProjects();
+  } catch (error) {
+    showToast("error", error.message || "Could not update project status.");
+    updateSettingsProjectStatus(pendingDeleteProject.status);
+  } finally {
+    settingsPauseBtn.disabled = false;
   }
 });
 

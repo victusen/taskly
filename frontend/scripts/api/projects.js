@@ -16,3 +16,10 @@ export function deleteProject(id) {
     method: "DELETE",
   });
 }
+
+export function updateProjectStatus(id, status) {
+  return authenticatedFetch(`/api/projects/${encodeURIComponent(id)}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
+}
