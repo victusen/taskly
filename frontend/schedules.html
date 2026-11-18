@@ -872,12 +872,12 @@
     .schedule-menu-trigger { display: inline-grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 6px; background: transparent; color: #4b5563; cursor: pointer; }
     .schedule-menu-trigger:hover, .schedule-menu-trigger[aria-expanded="true"] { background: #f3f4f6; color: #111827; }
     .schedule-menu-trigger svg { width: 18px; height: 18px; }
-    .schedule-row-menu { position: absolute; z-index: 15; top: calc(100% + 4px); right: 0; min-width: 128px; padding: 4px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; box-shadow: 0 8px 20px rgba(17,24,39,.12); }
+    .schedule-row-menu { position: absolute; z-index: 15; top: calc(100% + 4px); right: 0; min-width: 144px; padding: 4px; border: 1px solid #d1d5db; border-radius: 0; background: #fff; box-shadow: 0 8px 20px rgba(17,24,39,.12); }
     .schedule-row-menu[hidden] { display: none; }
-    .schedule-row-menu button { display: block; width: 100%; padding: 7px 9px; border: 0; border-radius: 5px; background: transparent; color: #374151; font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+    .schedule-row-menu button { display: block; width: 100%; padding: 7px 9px; border: 0; border-radius: 0; background: transparent; color: #374151; font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
     .schedule-row-menu button:hover { background: #f3f4f6; }
     .schedule-row-menu button[data-delete-schedule] { color: #b91c1c; }
-    .schedule-row-menu button[data-sidebar-toggle] { margin-top: 4px; border-top: 1px solid #e5e7eb; border-radius: 0 0 5px 5px; }
+    .schedule-row-menu button[data-sidebar-toggle] { margin-top: 4px; border-top: 1px solid #e5e7eb; }
     .schedule-mobile-list { display: none; }
     .schedule-mobile-card { display: grid; grid-template-columns: 28px minmax(0,1fr) minmax(0,1.25fr); align-items: stretch; gap: 0 12px; min-width: 0; padding: 12px; border-bottom: 1px solid #e5e7eb; background: #fff; cursor: pointer; }
     .schedule-mobile-card:last-child { border-bottom: 0; }
@@ -1738,27 +1738,6 @@
       const overlay = document.getElementById("mobile-sidebar-overlay");
       const menuBtn = document.getElementById("hamburger-btn");
       const closeBtn = document.getElementById("sidebar-close-btn");
-      const sidebar = document.getElementById("left-sidebar");
-      const collapseBtn = document.getElementById("sidebar-collapse-btn");
-
-      function setSidebarCollapsed(collapsed) {
-        sidebar?.classList.toggle("collapsed", collapsed);
-        const label = collapsed ? "Expand navigation" : "Collapse navigation";
-        collapseBtn?.setAttribute("aria-label", label);
-        collapseBtn?.setAttribute("title", label);
-        document.querySelectorAll("[data-sidebar-toggle]").forEach((button) => {
-          button.textContent = collapsed ? "Collapse" : "Expand";
-          button.setAttribute("aria-pressed", String(collapsed));
-        });
-      }
-
-      function toggleSidebar() {
-        const collapsed = !sidebar?.classList.contains("collapsed");
-        setSidebarCollapsed(collapsed);
-        return collapsed;
-      }
-
-      window.toggleSchedulesSidebar = toggleSidebar;
 
       function setDrawer(open) {
         overlay.classList.toggle("open", open);
@@ -1768,7 +1747,6 @@
 
       menuBtn?.addEventListener("click", () => setDrawer(true));
       closeBtn?.addEventListener("click", () => setDrawer(false));
-      collapseBtn?.addEventListener("click", toggleSidebar);
       overlay.addEventListener("click", (event) => {
         if (event.target === overlay) setDrawer(false);
       });
@@ -2043,10 +2021,8 @@
 
     if (schedule.schedule_type === "recurring" && schedule.schedule_rule?.every) {
       howSelect.value = schedule.schedule_rule.every;
-    } else if (schedule.schedule_type === "one_time") {
-      howSelect.value = "once";
     } else {
-      howSelect.value = "now";
+      howSelect.value = window.bzScheduleFrequencyOption?.(schedule) || "once";
     }
 
     if (!howSelect.value) howSelect.value = "once";
@@ -2332,7 +2308,7 @@
   </div>
   </div>
 
-  <script type="module" src="schedules.js?v=20261117"></script>
+  <script type="module" src="schedules.js?v=20261118"></script>
 
   <!-- Payment Selection Modal -->
   <div class="payment-modal-backdrop" id="payment-modal">

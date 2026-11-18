@@ -9,32 +9,32 @@ const DATABASE_OPTIONS = [
   {
     id: "google-sheets",
     name: "Google Sheets",
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 9v12m5-12v12"/></svg>',
+    icon: new URL("../../icon-gsheet.png", import.meta.url).href,
   },
   {
     id: "excel",
     name: "Excel",
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/><path d="M3 7l10-3v16L3 17V7Z"/><path d="m6 9 4 6m0-6-4 6"/></svg>',
+    icon: new URL("../../icon-excel.png", import.meta.url).href,
   },
   {
     id: "supabase",
     name: "Supabase",
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 3 4 14h7l-1 7 10-12h-7l1-6Z"/></svg>',
+    icon: new URL("../../icon-supabase.png", import.meta.url).href,
   },
   {
     id: "firebase",
     name: "Firebase",
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 19 2-14 4 7 3-9 4 16-7-4-6 4Z"/></svg>',
+    icon: new URL("../../icon-firebase.png", import.meta.url).href,
   },
   {
     id: "mongodb",
     name: "MongoDB",
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2c-3 5-6 8-5 13 .5 3 2.5 5 5 7 2.5-2 4.5-4 5-7 1-5-2-8-5-13Z"/><path d="M12 9v13"/></svg>',
+    icon: new URL("../../icon-mongodb.png", import.meta.url).href,
   },
   {
     id: "postgresql",
     name: "PostgreSQL",
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 6c0-2 3-3 7-3s7 1 7 3v7c0 2-3 3-7 3s-7-1-7-3V6Z"/><path d="M5 6c0 2 3 3 7 3s7-1 7-3M5 10c0 2 3 3 7 3 1 0 2-.1 3-.3"/></svg>',
+    icon: new URL("../../icon-postgresql.png", import.meta.url).href,
   },
 ];
 
@@ -66,6 +66,7 @@ function injectStyles() {
     .cm-db-option { min-height: 48px; }
     .cm-db-icon { display: grid; place-items: center; flex: 0 0 24px; width: 24px; height: 24px; color: #16803c; }
     .cm-db-icon svg { width: 22px; height: 22px; }
+    .cm-db-icon img { display: block; width: 24px; height: 24px; object-fit: contain; }
     .cm-db-soon { margin-left: auto; color: #6b7280; font-size: 11px; font-weight: 500; white-space: nowrap; }
   `;
   document.head.appendChild(style);
@@ -198,7 +199,7 @@ function ensureDatabaseMarkup() {
       <p class="cm-sub">Choose a data source for this schedule.</p>
       ${DATABASE_OPTIONS.map((option) => `
         <button type="button" class="cm-option cm-db-option" data-db-choice="${option.id}">
-          <span class="cm-db-icon" aria-hidden="true">${option.icon}</span>
+          <span class="cm-db-icon" aria-hidden="true"><img src="${option.icon}" alt=""></span>
           <span>${option.name}</span>
           ${option.id === "google-sheets" ? "" : '<span class="cm-db-soon">Coming soon</span>'}
         </button>

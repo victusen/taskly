@@ -78,26 +78,13 @@ async function updateUpgradeLink() {
     const plan = String(response.data?.plan || "free").toLowerCase();
     const isFreePlan = plan === "free";
     if (freePlanBanner) freePlanBanner.hidden = !isFreePlan;
-    document.body.classList.toggle("has-free-plan-banner", isFreePlan);
   } catch (error) {
     console.error("Could not load the account plan for the dashboard:", error);
     if (freePlanBanner) freePlanBanner.hidden = true;
-    document.body.classList.remove("has-free-plan-banner");
   }
 }
 
 void updateUpgradeLink();
-
-const dashboardMain = document.querySelector("main");
-const updateBannerScrollState = () => {
-  const isDesktop = window.matchMedia("(min-width: 768px)").matches;
-  const isScrolled = isDesktop &&
-    (window.scrollY > 12 || (dashboardMain?.scrollTop || 0) > 12);
-  document.body.classList.toggle("dashboard-content-scrolled", isScrolled);
-};
-window.addEventListener("scroll", updateBannerScrollState, { passive: true });
-dashboardMain?.addEventListener("scroll", updateBannerScrollState, { passive: true });
-window.addEventListener("resize", updateBannerScrollState);
 
 // Initialize right-side team member invite drawer modal
 const inviteModal = initInviteModal();

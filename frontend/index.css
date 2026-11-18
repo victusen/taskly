@@ -1775,3 +1775,40 @@ a {
   background: #f4f4f4;
   color: #111111;
 }
+
+@media (max-width: 767px) {
+  .hero-section .hero-actions {
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .hero-section .hero-actions .btn-primary,
+  .hero-section .hero-actions .btn-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px 24px;
+    border: 1px solid #d1d5db;
+    border-radius: 999px;
+    background: #fff;
+    color: #6b7280;
+    font-size: 15px;
+    font-weight: 400;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .hero-section .hero-actions .btn-primary:hover,
+  .hero-section .hero-actions .btn-secondary:hover {
+    gap: 8px;
+    border-color: #d1d5db;
+    background: #fff;
+    color: #6b7280;
+  }
+
+  .hero-section .hero-actions .btn-secondary svg {
+    display: none;
+  }
+}

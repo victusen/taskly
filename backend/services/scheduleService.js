@@ -260,8 +260,7 @@ export const scheduleService = {
     return { schedule, run };
   },
 
-  /* Edit: the same rules as create. Allowed only while the schedule is active, paused or failed. */
-    /* Partial edit: send only the fields that changed. Missing fields keep their stored value. */
+  /* Partial edit: send only the fields that changed. Missing fields keep their stored value. */
   async updateSchedule(userId, id, patch) {
     assertUuid(id, "id");
 
@@ -278,6 +277,9 @@ export const scheduleService = {
     if (error) throw error;
     if (!row) throw notFound();
     const project = await assertProject(userId, row.project_id);
+    if (!["active", "paused"].includes(row.status)) {
+      throw new ServiceError(409, "INVALID_STATE", `This schedule is ${row.status} and cannot be edited.`);
+    }
 
     const timingKeys = ["schedule_type", "scheduled_for", "timezone", "schedule_rule"];
     const changesTiming = timingKeys.some((key) => patch[key] !== undefined);
@@ -325,13 +327,7 @@ export const scheduleService = {
       });
     }
 
-    /* A failed schedule that is edited gets another chance. Paused and active keep their status. */
-    if (row.status === "failed") {
-      await assertUnderPlanLimit(userId, row.project_id);
-      Object.assign(changes, { status: "active", retry_count: 0, last_failure_reason: null });
-    }
-
-    const updated = await changeStatus(userId, id, ["active", "paused", "failed"], changes);
+    const updated = await changeStatus(userId, id, ["active", "paused"], changes);
 
     if (process.env.ENABLE_SCHEDULER === "true" && project.status === "active") {
       await syncSchedule(updated);

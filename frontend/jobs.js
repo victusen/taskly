@@ -10,7 +10,7 @@ import {
   listSpreadsheetColumns,
 } from "./scripts/api/googleSheets.js";
 import { inspectTemplateVariables } from "./scripts/utils/scheduleSheets.js";
-import { openConnectModal, openDatabaseConnectModal } from "./scripts/ui/connectModal.js?v=20261117";
+import { openConnectModal, openDatabaseConnectModal } from "./scripts/ui/connectModal.js?v=20261118";
 import { initPaymentModal } from "./scripts/payments/paymentModal.js";
 import { sendNow } from "./scripts/api/schedules.js"
 import {
@@ -630,6 +630,47 @@ function formatScheduleDateTime(value, timezone = "UTC") {
   }
 }
 
+function getScheduleFrequencyOption(schedule) {
+  const repeatOption = schedule.schedule_rule?.every;
+  if (schedule.schedule_type === "recurring" && repeatOption) {
+    return repeatOption;
+  }
+
+  if (schedule.schedule_type === "one_time") {
+    const scheduledAt = Date.parse(schedule.scheduled_for || "");
+    const createdAt = Date.parse(schedule.created_at || "");
+    if (
+      Number.isFinite(scheduledAt) &&
+      Number.isFinite(createdAt) &&
+      Math.abs(scheduledAt - createdAt) < 30_000
+    ) {
+      return "now";
+    }
+    return "once";
+  }
+
+  return "";
+}
+
+function getScheduleFrequency(schedule) {
+  const labels = {
+    now: "Now",
+    once: "Once",
+    daily: "Daily",
+    weekday: "Every weekday (Mon–Fri)",
+    weekends: "Every weekend",
+    weekly: "Weekly",
+    monthly: "Monthly",
+    yearly: "Yearly",
+    christmas: "Christmas",
+    "christmas-eve": "Christmas Eve",
+    "new year": "New Year's Day",
+    "new years-eve": "New Year's Eve",
+    valentines: "Valentine's Day",
+  };
+  return labels[getScheduleFrequencyOption(schedule)] || "—";
+}
+
 /**
  * Renders the current page of schedule rows and the pager.
  */
@@ -660,13 +701,13 @@ function renderRows() {
       const recipients = Array.isArray(row.config?.recipients) ? row.config.recipients : [];
       const name = row.name || row.config?.subject || "Untitled task";
       const type = String(row.job_type || "email").replace(/^./, (letter) => letter.toUpperCase());
-      const frequency = row.schedule_type === "recurring"
-        ? String(row.schedule_rule?.every || "Repeating").replace(/\b\w/g, (letter) => letter.toUpperCase())
-        : "One time";
+      const frequency = getScheduleFrequency(row);
       const createdAt = formatScheduleDateTime(row.created_at);
       const nextRun = formatScheduleDateTime(row.next_run_at);
       const lastRun = formatScheduleDateTime(row.last_run_at);
       const statusAction = row.status === "active" ? "Pause" : row.status === "paused" ? "Resume" : "";
+      const canEditSchedule = row.status === "active" || row.status === "paused";
+      const canDeleteSchedule = ["active", "paused", "failed"].includes(row.status);
       return `
         <tr data-id="${esc(row.id)}" data-schedule='${esc(JSON.stringify(row))}' tabindex="0" aria-label="View schedule ${esc(name)}">
           <td class="schedule-select-cell"><input type="checkbox" aria-label="Select ${esc(name)}"></td>
@@ -684,9 +725,10 @@ function renderRows() {
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
               </button>
               <div class="schedule-row-menu" hidden>
-                <button type="button" data-edit="${esc(row.id)}">Edit</button>
+                ${canEditSchedule ? `<button type="button" data-edit="${esc(row.id)}">Edit</button>` : ""}
                 ${statusAction ? `<button type="button" data-schedule-action="${statusAction.toLowerCase()}" data-id="${esc(row.id)}">${statusAction}</button>` : ""}
-                <button type="button" data-delete-schedule="${esc(row.id)}">Delete</button>
+                ${canDeleteSchedule ? `<button type="button" data-delete-schedule="${esc(row.id)}">Delete</button>` : ""}
+                <button type="button" data-sidebar-toggle aria-pressed="false">Expand</button>
               </div>
             </div>
           </td>
@@ -696,13 +738,13 @@ function renderRows() {
       const recipients = Array.isArray(row.config?.recipients) ? row.config.recipients : [];
       const name = row.name || row.config?.subject || "Untitled task";
       const type = String(row.job_type || "email").replace(/^./, (letter) => letter.toUpperCase());
-      const frequency = row.schedule_type === "recurring"
-        ? String(row.schedule_rule?.every || "Repeating").replace(/\b\w/g, (letter) => letter.toUpperCase())
-        : "One time";
+      const frequency = getScheduleFrequency(row);
       const createdAt = formatScheduleDateTime(row.created_at).split(" · ");
       const nextRun = formatScheduleDateTime(row.next_run_at).split(" · ");
       const lastRun = formatScheduleDateTime(row.last_run_at).split(" · ");
       const statusAction = row.status === "active" ? "Pause" : row.status === "paused" ? "Resume" : "";
+      const canEditSchedule = row.status === "active" || row.status === "paused";
+      const canDeleteSchedule = ["active", "paused", "failed"].includes(row.status);
       const dateValue = (parts) => `<span class="schedule-mobile-date"><strong>${esc(parts[0] || "—")}</strong><span>${esc(parts[1] || "")}</span></span>`;
       return `
         <article class="schedule-mobile-card" data-schedule='${esc(JSON.stringify(row))}' tabindex="0" aria-label="View schedule ${esc(name)}">
@@ -716,9 +758,9 @@ function renderRows() {
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
               </button>
               <div class="schedule-row-menu" hidden>
-                <button type="button" data-edit="${esc(row.id)}">Edit</button>
+                ${canEditSchedule ? `<button type="button" data-edit="${esc(row.id)}">Edit</button>` : ""}
                 ${statusAction ? `<button type="button" data-schedule-action="${statusAction.toLowerCase()}" data-id="${esc(row.id)}">${statusAction}</button>` : ""}
-                <button type="button" data-delete-schedule="${esc(row.id)}">Delete</button>
+                ${canDeleteSchedule ? `<button type="button" data-delete-schedule="${esc(row.id)}">Delete</button>` : ""}
                 <button type="button" data-sidebar-toggle aria-pressed="false">Expand</button>
               </div>
             </div>
@@ -838,6 +880,31 @@ mailAccountBtn?.addEventListener("click", () => {
 });
 
 const sidebar = document.getElementById("left-sidebar");
+const sidebarCollapseButton = document.getElementById("sidebar-collapse-btn");
+
+function setSchedulesSidebarCollapsed(collapsed) {
+  if (!sidebar) return;
+  sidebar.classList.toggle("collapsed", collapsed);
+  const label = collapsed ? "Expand navigation" : "Collapse navigation";
+  sidebarCollapseButton?.setAttribute("aria-label", label);
+  sidebarCollapseButton?.setAttribute("title", label);
+  jobRows?.querySelectorAll("[data-sidebar-toggle]").forEach((button) => {
+    button.textContent = collapsed ? "Collapse" : "Expand";
+    button.setAttribute("aria-pressed", String(collapsed));
+  });
+}
+
+function toggleSchedulesSidebar() {
+  if (!sidebar) {
+    console.error("The schedules sidebar is unavailable.");
+    return;
+  }
+  setSchedulesSidebarCollapsed(!sidebar.classList.contains("collapsed"));
+}
+
+window.toggleSchedulesSidebar = toggleSchedulesSidebar;
+window.bzScheduleFrequencyOption = getScheduleFrequencyOption;
+sidebarCollapseButton?.addEventListener("click", toggleSchedulesSidebar);
 
 // Wire up global hook for composer
 window.loadRows = loadRows;
@@ -1004,9 +1071,6 @@ function openScheduleDetails(rowElement) {
     const node = document.getElementById(id);
     if (node) node.textContent = content || "—";
   };
-  const frequency = schedule.schedule_type === "recurring"
-    ? (schedule.schedule_rule?.every || "Repeating").replace(/\b\w/g, (letter) => letter.toUpperCase())
-    : "One time";
   const recipients = Array.isArray(config.recipients) ? config.recipients.join(", ") : "";
   const parser = new DOMParser();
   const message = parser.parseFromString(String(config.body || ""), "text/html").body.textContent.trim();
@@ -1014,7 +1078,7 @@ function openScheduleDetails(rowElement) {
   value("schedule-detail-type", schedule.job_type || "email");
   value("schedule-detail-status", schedule.status);
   value("schedule-detail-created", formatScheduleDateTime(schedule.created_at));
-  value("schedule-detail-frequency", frequency);
+  value("schedule-detail-frequency", getScheduleFrequency(schedule));
   value("schedule-detail-next", formatScheduleDateTime(schedule.next_run_at));
   value("schedule-detail-last", formatScheduleDateTime(schedule.last_run_at));
   value("schedule-detail-timezone", "UTC");
@@ -1024,6 +1088,10 @@ function openScheduleDetails(rowElement) {
   value("schedule-detail-error", schedule.last_failure_reason || "");
   const errorWrap = document.getElementById("schedule-detail-error-wrap");
   if (errorWrap) errorWrap.hidden = !schedule.last_failure_reason;
+  const detailEditButton = document.getElementById("schedule-detail-edit");
+  if (detailEditButton) {
+    detailEditButton.hidden = schedule.status !== "active" && schedule.status !== "paused";
+  }
   scheduleDetailOverlay.dataset.schedule = JSON.stringify(schedule);
   scheduleDetailOverlay.classList.add("open");
   scheduleDetailOverlay.setAttribute("aria-hidden", "false");
@@ -1069,11 +1137,7 @@ jobRows?.addEventListener("click", async (event) => {
 
   const sidebarToggle = event.target.closest("[data-sidebar-toggle]");
   if (sidebarToggle) {
-    if (typeof window.toggleSchedulesSidebar !== "function") {
-      console.error("The schedules sidebar toggle is unavailable.");
-      return;
-    }
-    window.toggleSchedulesSidebar();
+    toggleSchedulesSidebar();
     event.stopPropagation();
     return;
   }
