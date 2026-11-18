@@ -719,6 +719,7 @@ function renderRows() {
                 <button type="button" data-edit="${esc(row.id)}">Edit</button>
                 ${statusAction ? `<button type="button" data-schedule-action="${statusAction.toLowerCase()}" data-id="${esc(row.id)}">${statusAction}</button>` : ""}
                 <button type="button" data-delete-schedule="${esc(row.id)}">Delete</button>
+                <button type="button" data-sidebar-toggle aria-pressed="false">Expand</button>
               </div>
             </div>
           </div>
@@ -837,13 +838,6 @@ mailAccountBtn?.addEventListener("click", () => {
 });
 
 const sidebar = document.getElementById("left-sidebar");
-const sidebarCollapseButton = document.getElementById("sidebar-collapse-btn");
-sidebarCollapseButton?.addEventListener("click", () => {
-  if (!sidebar) return;
-  const collapsed = sidebar.classList.toggle("collapsed");
-  sidebarCollapseButton.setAttribute("aria-label", collapsed ? "Expand navigation" : "Collapse navigation");
-  sidebarCollapseButton.title = collapsed ? "Expand navigation" : "Collapse navigation";
-});
 
 // Wire up global hook for composer
 window.loadRows = loadRows;
@@ -1061,8 +1055,25 @@ jobRows?.addEventListener("click", async (event) => {
     const opening = menu.hidden;
     jobRows.querySelectorAll(".schedule-row-menu").forEach((item) => { item.hidden = true; });
     jobRows.querySelectorAll(".schedule-menu-trigger").forEach((item) => item.setAttribute("aria-expanded", "false"));
+    const sidebarToggle = menu.querySelector("[data-sidebar-toggle]");
+    const sidebarCollapsed = sidebar?.classList.contains("collapsed") || false;
+    if (sidebarToggle) {
+      sidebarToggle.textContent = sidebarCollapsed ? "Collapse" : "Expand";
+      sidebarToggle.setAttribute("aria-pressed", String(sidebarCollapsed));
+    }
     menu.hidden = !opening;
     menuTrigger.setAttribute("aria-expanded", String(opening));
+    event.stopPropagation();
+    return;
+  }
+
+  const sidebarToggle = event.target.closest("[data-sidebar-toggle]");
+  if (sidebarToggle) {
+    if (typeof window.toggleSchedulesSidebar !== "function") {
+      console.error("The schedules sidebar toggle is unavailable.");
+      return;
+    }
+    window.toggleSchedulesSidebar();
     event.stopPropagation();
     return;
   }

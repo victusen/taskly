@@ -49,7 +49,7 @@ form?.addEventListener("submit", async (event) => {
     if (result.session) {
       showToast("success", "Account created successfully! Redirecting...");
       setTimeout(() => {
-        window.location.href = "dashboard.html";
+        window.location.href = "/onboarding?t=1";
       }, 400);
     } else {
       showToast("info", "Check your email to confirm your account.");

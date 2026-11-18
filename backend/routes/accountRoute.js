@@ -1,13 +1,12 @@
 import { Router } from "express";
 import { supabase } from "../config/supabase.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
-import { planUsageMiddleware } from "../middleware/planUsageMiddleware.js";
 import { effectivePlanTier } from "../services/planService.js";
 
 const router = Router();
 
 /* The one place the frontend learns the effective plan. Expiry is checked here, not trusted from a stored word. */
-router.get("/", authMiddleware, planUsageMiddleware, async (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
   const { data, error } = await supabase
     .from("users")
     .select("email, plan_tier, billing_cycle_ends_at")

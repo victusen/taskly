@@ -757,7 +757,7 @@ function showProjectCreationStep(type, button) {
   projectCreateStep.hidden = false;
   if (projectModalTitle) projectModalTitle.textContent = "Create a new project";
   if (selectedProjectTypeLabel) {
-    selectedProjectTypeLabel.textContent = `${type === "email" ? "Email Schedules" : "API"} project`;
+    selectedProjectTypeLabel.textContent = `${type === "email" ? "Email" : "API"} project`;
     selectedProjectTypeLabel.hidden = false;
   }
   if (projectTypeBack) projectTypeBack.hidden = false;
@@ -788,6 +788,21 @@ projectTypeBack?.addEventListener("click", showProjectTypeStep);
 modal?.addEventListener("click", (event) => {
   if (event.target === modal) closeModal();
 });
+
+const onboardingParams = new URLSearchParams(window.location.search);
+if (onboardingParams.get("createProject") === "true") {
+  const requestedType = onboardingParams.get("projectType");
+  window.history.replaceState({}, document.title, window.location.pathname);
+  window.setTimeout(() => {
+    openModal();
+    if (requestedType === "email" || requestedType === "api") {
+      const button = [...projectTypeButtons].find(
+        (option) => option.dataset.projectType === requestedType,
+      );
+      if (button) showProjectCreationStep(requestedType, button);
+    }
+  }, 0);
+}
 
 form?.elements.project_name.addEventListener("input", (event) => {
   form.elements.business_name.setCustomValidity("");
@@ -821,6 +836,7 @@ form?.addEventListener("submit", async (event) => {
   const projectInput = {
     project_name: enteredProjectName || enteredBusinessName,
     business_name: enteredProjectName && enteredBusinessName ? enteredBusinessName : "",
+    project_type: selectedProjectType,
   };
   await createBusiness(projectInput);
 });
@@ -837,7 +853,11 @@ async function createBusiness(input) {
   }
   const projectName = enteredProjectName || enteredBusinessName;
   const businessName = enteredProjectName && enteredBusinessName ? enteredBusinessName : "";
-  input = { project_name: projectName, business_name: businessName };
+  input = {
+    project_name: projectName,
+    business_name: businessName,
+    project_type: input.project_type || "email",
+  };
   isCreatingBusiness = true;
   if (form) form.hidden = true;
   if (businessLoading) businessLoading.hidden = false;

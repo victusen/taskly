@@ -5,7 +5,7 @@ import { planUsageMiddleware } from "../middleware/planUsageMiddleware.js";
 
 const router = Router();
 
-router.get("/", authMiddleware, planUsageMiddleware, projectController.getProjects);
+router.get("/", authMiddleware, projectController.getProjects);
 router.post("/", authMiddleware, planUsageMiddleware, projectController.createProject);
 router.patch("/:id/status", authMiddleware, planUsageMiddleware, projectController.updateProjectStatus);
 router.delete("/:id", authMiddleware, planUsageMiddleware, projectController.deleteProject);

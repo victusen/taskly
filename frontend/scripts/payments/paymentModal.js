@@ -171,7 +171,7 @@ export function initPaymentModal() {
       <div class="period"></div>
     `;
     pricingInfo.querySelector(".price").textContent = `₦${plan.amount.toLocaleString("en-NG")}`;
-    pricingInfo.querySelector(".period").textContent = `per ${plan.period === "monthly" ? "month" : "year"}`;
+    pricingInfo.querySelector(".period").textContent = `${plan.period === "monthly" ? "month" : "per year"}`;
     cycleText.textContent = plan.period === "monthly" ? "Monthly" : "Yearly";
 
     const startsAt = new Date();
@@ -284,7 +284,7 @@ export function initPaymentModal() {
     try {
       if (await startPayment(selectedPlan.key)) close();
     } finally {
-      submitButton.textContent = "Start payment";
+      submitButton.textContent = "Pay for plan";
       submitButton.disabled = !selectedPlan;
     }
   });

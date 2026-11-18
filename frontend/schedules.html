@@ -483,57 +483,6 @@
     }
     #request-error-state h3 { margin: 0; color: #111827; font-size: 17px; line-height: 1.35; }
     #request-error-state p { width: 100%; max-width: 380px; margin: 0; color: #6b7280; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
-    #request-error-state .request-error-actions {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: auto;
-      min-width: 0;
-      margin-top: 8px;
-    }
-    #request-error-state .request-error-actions > button,
-    #request-error-state .request-error-actions > a {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      height: 44px;
-      min-height: 44px;
-      max-height: 44px;
-      padding: 0 16px;
-      min-width: 0;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: opacity 0.15s ease, background 0.15s ease;
-    }
-    #request-error-state .request-error-actions #request-error-add-task-cta {
-      display: inline-flex;
-      flex: 0 0 auto;
-      align-self: center;
-      height: 44px;
-      min-height: 44px;
-      max-height: 44px;
-      margin: 0;
-      background-color: #111111;
-      color: #ffffff;
-      border: 1px solid #111111;
-      white-space: nowrap;
-    }
-    #request-error-state .request-error-actions #request-error-add-task-cta svg {
-      display: block;
-      flex: 0 0 20px;
-      width: 20px;
-      height: 20px;
-      margin: 0;
-      overflow: hidden;
-      transform: none;
-    }
-    #request-error-state .request-error-actions #request-error-add-task-cta:hover {
-      background-color: #262626;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-    }
     .no-job h3 { font-size: 18px; color: #333; margin-bottom: 4px; }
     .no-job p { font-size: 14px; max-width: 320px; }
     .schedule-empty-action {
@@ -547,7 +496,6 @@
     .schedule-empty-action svg { width: 16px; height: 16px; margin: 0; color: currentColor; }
     @media (max-width: 420px) {
       #request-error-state { padding: 20px 12px; }
-      #request-error-state .request-error-actions > button { padding: 0 12px; font-size: 13px; }
     }
 
     .connect-avatars { display: inline-flex; align-items: center; }
@@ -649,6 +597,7 @@
     }
 
     @media (max-width: 767px) {
+      html, body { background-color: #fff; }
       header { position: static; }
       .banner-left { gap: 6px; }
       .asymmetric-wrapper {
@@ -675,7 +624,7 @@
       .col-tasks-area { flex: 1 1 auto; }
       .task-toggle { flex: 1 1 auto; }
       .col-empty-third { display: none; }
-      .task-list { overflow: visible; }
+      .task-list { min-height: 360px; overflow: visible; }
       #job-rows { overflow: visible; }
       .task-list-footer { min-height: 40px; gap: 8px; }
       .page-summary { display: inline; color: #6b7280; font-size: 10px; white-space: nowrap; }
@@ -928,6 +877,7 @@
     .schedule-row-menu button { display: block; width: 100%; padding: 7px 9px; border: 0; border-radius: 5px; background: transparent; color: #374151; font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
     .schedule-row-menu button:hover { background: #f3f4f6; }
     .schedule-row-menu button[data-delete-schedule] { color: #b91c1c; }
+    .schedule-row-menu button[data-sidebar-toggle] { margin-top: 4px; border-top: 1px solid #e5e7eb; border-radius: 0 0 5px 5px; }
     .schedule-mobile-list { display: none; }
     .schedule-mobile-card { display: grid; grid-template-columns: 28px minmax(0,1fr) minmax(0,1.25fr); align-items: stretch; gap: 0 12px; min-width: 0; padding: 12px; border-bottom: 1px solid #e5e7eb; background: #fff; cursor: pointer; }
     .schedule-mobile-card:last-child { border-bottom: 0; }
@@ -1639,14 +1589,6 @@
               <div class="job-rows" id="job-rows" hidden style="display: none;"></div>
             </div>
 
-            <div class="task-list-footer" id="task-list-footer" hidden>
-              <button type="button" class="schedule-footer-add" id="footer-add-schedule">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                Add a new task
-              </button>
-              <div class="task-pagination" id="task-pagination" aria-label="Schedule pages"></div>
-            </div>
-
             <!-- Empty State: No schedules found -->
             <div class="no-job" id="no-job-state" hidden>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1688,15 +1630,16 @@
                 </button>
                 <h3>Unable to load schedules</h3>
                 <p id="request-error-message">Something went wrong while communicating with the server.</p>
-                <div class="request-error-actions">
-                  <button id="request-error-add-task-cta" class="btn btn-dark" type="button" style="margin: 0; background-color: #111; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    <span>Add a new task</span>
-                  </button>
-                </div>
               </div>
             </div>
 
+            <div class="task-list-footer" id="task-list-footer" hidden>
+              <button type="button" class="schedule-footer-add" id="footer-add-schedule">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                Add a new task
+              </button>
+              <div class="task-pagination" id="task-pagination" aria-label="Schedule pages"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1803,11 +1746,19 @@
         const label = collapsed ? "Expand navigation" : "Collapse navigation";
         collapseBtn?.setAttribute("aria-label", label);
         collapseBtn?.setAttribute("title", label);
+        document.querySelectorAll("[data-sidebar-toggle]").forEach((button) => {
+          button.textContent = collapsed ? "Collapse" : "Expand";
+          button.setAttribute("aria-pressed", String(collapsed));
+        });
       }
 
       function toggleSidebar() {
-        setSidebarCollapsed(!sidebar?.classList.contains("collapsed"));
+        const collapsed = !sidebar?.classList.contains("collapsed");
+        setSidebarCollapsed(collapsed);
+        return collapsed;
       }
+
+      window.toggleSchedulesSidebar = toggleSidebar;
 
       function setDrawer(open) {
         overlay.classList.toggle("open", open);
@@ -2167,9 +2118,6 @@
 
   closeButton.addEventListener("click", closeEditor);
   cancelButton.addEventListener("click", closeEditor);
-  document.getElementById("request-error-add-task-cta")?.addEventListener("click", openCreate);
-  document.getElementById("add-task-error-cta")?.addEventListener("click", openCreate);
-
   composer.addEventListener("click", (event) => {
     if (event.target === composer) closeEditor();
   });

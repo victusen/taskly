@@ -9,7 +9,6 @@ const router = Router();
 router.get(
   '/',
   authMiddleware,
-  planUsageMiddleware,
   scheduleController.getSchedules
 );
 

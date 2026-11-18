@@ -186,10 +186,10 @@ export async function loadProject(id) {
 }
 
 /* The real backend stores no default mail account on a project yet, so email_connection_id is used only in mock mode. */
-export async function addProject({ project_name, business_name, email_connection_id }) {
+export async function addProject({ project_name, business_name, email_connection_id, project_type = "email" }) {
   let created = null;
   if (!USE_MOCK) {
-    const res = await createProject({ project_name, business_name });
+    const res = await createProject({ project_name, business_name, project_type });
     created = res?.data || res;
     if (!created?.id) throw new Error("The project was created without a valid ID.");
   }
@@ -199,6 +199,7 @@ export async function addProject({ project_name, business_name, email_connection
       id: `proj-${Date.now()}`,
       project_name,
       business_name,
+      project_type,
       email_connection_id: email_connection_id || null,
       schedule_count: 0,
       created_at: new Date().toISOString(),

@@ -485,6 +485,8 @@
     #business-modal .modal-header h3 { margin: 0; color: #111827; font-size: 23px !important; line-height: 1.2; font-weight: 750; }
     #business-modal .modal-header { gap: 16px; }
     #business-modal .project-modal-heading { min-width: 0; flex: 1; }
+    #business-modal .project-modal-title-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    #business-modal .project-modal-title-row h3 { min-width: 0; }
     #business-modal .project-type-step { display: flex; flex-direction: column; justify-content: center; }
     #business-modal .project-type-copy { margin: 4px 0 14px; color: #6b7280; font-size: 14px; line-height: 1.5; }
     #business-modal .project-type-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -503,8 +505,12 @@
       display: inline-flex; margin-top: 6px; padding: 3px 8px; border: 1px solid #16a34a;
       border-radius: 999px; color: #166534; font-size: 11px; font-weight: 650;
     }
-    #business-modal .project-type-back { border: 0; background: transparent; color: #4b5563; font: inherit; font-size: 13px; cursor: pointer; }
-    #business-modal .project-type-back:hover { color: #166534; }
+    #business-modal .project-type-back {
+      display: grid; flex: 0 0 28px; place-items: center; width: 28px; height: 28px;
+      padding: 0; border: 0; border-radius: 6px; background: transparent; color: #4b5563; cursor: pointer;
+    }
+    #business-modal .project-type-back:hover { background: #f3f4f6; color: #111827; }
+    #business-modal .project-type-back svg { width: 20px; height: 20px; transform: rotate(90deg); }
     #business-modal .business-field-label { display: block; margin-top: 16px; color: #1f2937; font-size: 13px; font-weight: 700; }
     #business-modal .business-field-input { width: 100%; padding: 11px 12px; margin-top: 7px; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; color: #111827; font: inherit; font-size: 14px; }
     #business-modal .business-field-input::placeholder { color: #c4c8d0; font-weight: 300; opacity: 1; }
@@ -710,10 +716,12 @@
       }
       .col-empty-third { display: none !important; }
       body.has-free-plan-banner .free-plan-banner {
-        position: fixed; top: 50px; left: 50%; right: auto; z-index: 45;
+        position: fixed; top: 0; left: 50%; right: auto; z-index: 45;
         width: min(760px, calc(100% - 32px));
         transform: translateX(-50%);
       }
+      body.has-free-plan-banner:not(.dashboard-content-scrolled) header { top: 50px; }
+      body.dashboard-content-scrolled.has-free-plan-banner header { top: 0; }
       body.has-free-plan-banner .asymmetric-wrapper { margin-top: 112px; }
       body.dashboard-content-scrolled.has-free-plan-banner .free-plan-banner {
         opacity: 0; visibility: hidden; pointer-events: none; transform: translate(-50%, -48px);
@@ -1081,10 +1089,14 @@
     <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="business-modal-title">
       <div class="modal-header">
         <div class="project-modal-heading">
-          <h3 id="business-modal-title">Choose project type</h3>
+          <div class="project-modal-title-row">
+            <button type="button" class="project-type-back" id="project-type-back" aria-label="Back to project type selection" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <h3 id="business-modal-title">Choose project type</h3>
+          </div>
           <span class="project-type-label" id="selected-project-type-label" hidden></span>
         </div>
-        <button type="button" class="project-type-back" id="project-type-back" hidden>Back</button>
         <div class="close-btn" id="modal-close" role="button" aria-label="Close">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </div>
@@ -1093,7 +1105,7 @@
         <p class="project-type-copy">Choose the kind of project you want to create.</p>
         <div class="project-type-options" role="group" aria-label="Project type">
           <button type="button" class="project-type-option" data-project-type="api" aria-pressed="false">API</button>
-          <button type="button" class="project-type-option" data-project-type="email" aria-pressed="false">Email Schedules</button>
+          <button type="button" class="project-type-option" data-project-type="email" aria-pressed="false">Email Schedule</button>
         </div>
       </div>
       <div class="project-create-step" id="project-create-step" hidden>

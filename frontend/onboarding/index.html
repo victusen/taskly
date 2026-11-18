@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Bzade</title>
+  <link rel="icon" type="image/png" href="../logo-2.png">
+  <style>
+    :root {
+      color-scheme: light;
+      --text: #111827;
+      --muted: #667085;
+      --subtle: #98a2b3;
+      --border: #e5e7eb;
+      --surface: #f8f9fb;
+      --dark: #17191c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #fcfcfd;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select { font: inherit; }
+    a { color: inherit; text-decoration: none; }
+    [hidden] { display: none !important; }
+
+    .topbar {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(18px, 4vw, 48px);
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand { display: inline-flex; align-items: center; }
+    .brand img { display: block; width: auto; height: 28px; }
+    .step-count { color: var(--muted); font-size: 12px; font-weight: 600; }
+
+    main {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 38px 20px 56px;
+    }
+    .onboarding-card {
+      width: min(720px, 100%);
+      align-self: flex-start;
+      padding: clamp(24px, 4vw, 38px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(16, 24, 40, .035);
+    }
+    .step[hidden] { display: none; }
+    h1 {
+      margin: 0;
+      color: #101828;
+      font-size: clamp(25px, 3.2vw, 32px);
+      font-weight: 700;
+      letter-spacing: -.035em;
+      line-height: 1.2;
+    }
+    .intro {
+      margin: 9px 0 27px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .form-grid { display: grid; gap: 20px; }
+    .field { display: grid; gap: 7px; min-width: 0; }
+    .field label { color: #344054; font-size: 13px; font-weight: 600; }
+    .field input, .field select {
+      width: 100%;
+      height: 44px;
+      padding: 0 12px;
+      border: 1px solid #d0d5dd;
+      border-radius: 5px;
+      outline: none;
+      background: #fff;
+      color: #101828;
+      font-size: 14px;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .field input::placeholder { color: #98a2b3; }
+    .field input:focus, .field select:focus {
+      border-color: #667085;
+      box-shadow: 0 0 0 3px rgba(16, 24, 40, .08);
+    }
+    .field-hint { color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .section-divider { height: 1px; margin: 26px 0 0; background: #f0f1f3; }
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .button {
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background .15s ease, border-color .15s ease;
+    }
+    .button-primary { background: var(--dark); color: #fff; }
+    .button-primary:hover { background: #30343a; }
+    .button-primary:disabled { background: #c8cbd0; cursor: not-allowed; }
+    .button-secondary { border-color: #d0d5dd; background: #fff; color: #344054; }
+    .button-secondary:hover { background: var(--surface); }
+    .actions .button-primary { margin-left: auto; }
+
+    .project-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .project-option {
+      min-height: 142px;
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      align-content: start;
+      column-gap: 13px;
+      padding: 19px;
+      border: 1px solid #dfe2e6;
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+    .project-option:hover { border-color: #98a2b3; background: #fafafa; }
+    .project-option.selected {
+      border-color: #344054;
+      background: #f7f8fa;
+      box-shadow: 0 0 0 1px #344054;
+    }
+    .project-icon {
+      grid-row: 1 / span 2;
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #eaecf0;
+      border-radius: 5px;
+      background: #f8f9fb;
+      color: #344054;
+    }
+    .project-icon svg { width: 18px; height: 18px; }
+    .project-name { align-self: center; font-size: 14px; font-weight: 650; }
+    .project-description {
+      grid-column: 2;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .project-type-summary {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 22px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--surface);
+      color: #344054;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .project-type-summary svg { width: 17px; height: 17px; flex: 0 0 auto; }
+    .form-error {
+      margin-top: 16px;
+      padding: 10px 12px;
+      border: 1px solid #fecdca;
+      border-radius: 5px;
+      background: #fffbfa;
+      color: #b42318;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .form-error:empty { display: none; }
+
+    @media (max-width: 620px) {
+      .topbar { height: 52px; padding: 0 16px; }
+      .brand img { height: 26px; }
+      main { padding: 22px 14px 36px; }
+      .onboarding-card { padding: 23px 18px; border-radius: 6px; }
+      .intro { margin-bottom: 22px; }
+      .form-grid { gap: 17px; }
+      .project-options { grid-template-columns: 1fr; gap: 10px; }
+      .project-option { min-height: 100px; padding: 15px; }
+      .actions { margin-top: 20px; }
+    }
+    @media (max-width: 360px) {
+      .onboarding-card { padding-right: 14px; padding-left: 14px; }
+      .button { padding: 0 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Bzade home">
+      <img src="../logo-bz.png" alt="Bzade">
+    </a>
+    <span class="step-count" id="step-count">Step 1 of 3</span>
+  </header>
+
+  <main>
+    <div class="onboarding-card">
+      <section class="step" id="step-1" aria-labelledby="step-1-title">
+        <h1 id="step-1-title">Tell us about you</h1>
+        <p class="intro">A few details will help us set up Bzade around the way you work.</p>
+
+        <form id="profile-form" novalidate>
+          <div class="form-grid">
+            <div class="field">
+              <label for="full-name">Full name</label>
+              <input id="full-name" name="fullName" type="text" autocomplete="name" placeholder="Adaeze Okafor" required>
+            </div>
+            <div class="field">
+              <label for="use-case">What will you use Bzade for?</label>
+              <select id="use-case" name="useCase" required>
+                <option value="">Choose an option</option>
+                <option value="other">Exploring Bzade</option>
+                <option value="email_scheduling">Customer schedules and email campaigns</option>
+                <option value="api_automation">API integration</option>
+                <option value="team_collaboration">Team and project workflows</option>
+                <option value="business_workflows">Business workflows</option>
+                <option value="cron_jobs">Scheduled cron jobs</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="timezone">Preferred timezone</label>
+              <select id="timezone" name="timezone" required></select>
+              <span class="field-hint" id="timezone-hint">Suggested from your device timezone.</span>
+            </div>
+          </div>
+          <div class="section-divider"></div>
+          <div class="form-error" id="step-1-error" role="alert"></div>
+          <div class="actions">
+            <span aria-hidden="true"></span>
+            <button class="button button-primary" type="submit">Continue</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="step" id="step-2" aria-labelledby="step-2-title" hidden>
+        <h1 id="step-2-title">Choose your first project</h1>
+        <p class="intro">Select the type of work you want to get started with.</p>
+        <div class="project-options" role="radiogroup" aria-label="First project type">
+          <button class="project-option" type="button" role="radio" aria-checked="false" data-project-type="email">
+            <span class="project-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+            </span>
+            <span class="project-name">Email Project</span>
+            <span class="project-description">For email campaigns, reminders, and recurring schedules.</span>
+          </button>
+          <button class="project-option" type="button" role="radio" aria-checked="false" data-project-type="api">
+            <span class="project-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></svg>
+            </span>
+            <span class="project-name">API Project</span>
+            <span class="project-description">Connect services and trigger email workflows through the API.</span>
+          </button>
+        </div>
+        <div class="section-divider"></div>
+        <div class="form-error" id="step-2-error" role="alert"></div>
+        <div class="actions">
+          <button class="button button-secondary" type="button" id="back-to-step-1">Back</button>
+          <button class="button button-primary" type="button" id="continue-to-step-3" disabled>Continue</button>
+        </div>
+      </section>
+
+      <section class="step" id="step-3" aria-labelledby="step-3-title" hidden>
+        <h1 id="step-3-title">Name your project</h1>
+        <p class="intro">Choose a project name and tell us the business it belongs to.</p>
+        <div class="project-type-summary" id="project-type-summary"></div>
+        <form id="project-form" novalidate>
+          <div class="form-grid">
+            <div class="field">
+              <label for="project-name">Project name</label>
+              <input id="project-name" name="projectName" type="text" maxlength="120" placeholder="e.g. Customer Welcome Emails" required>
+            </div>
+            <div class="field">
+              <label for="business-name">Business name</label>
+              <input id="business-name" name="businessName" type="text" maxlength="120" placeholder="e.g. Acme Corporation" required>
+            </div>
+          </div>
+          <div class="section-divider"></div>
+          <div class="form-error" id="step-3-error" role="alert"></div>
+          <div class="actions">
+            <button class="button button-secondary" type="button" id="back-to-step-2">Back</button>
+            <button class="button button-primary" type="submit" id="finish-onboarding">Create project</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="./onboarding.js"></script>
+</body>
+</html>

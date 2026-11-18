@@ -9,7 +9,8 @@ function fail(res, status, code, message, fieldErrors) {
   return res.status(status).json({ success: false, code, message, fieldErrors });
 }
 
-const COLUMNS = "id, project_name, business_name, status, created_at";
+const COLUMNS = "id, project_name, business_name, project_type, status, created_at";
+const PROJECT_TYPES = new Set(["email", "api", "payload"]);
 
 function projectLimitMessage(limit) {
   return limit === 1
@@ -57,12 +58,16 @@ export const projectController = {
     try {
       const enteredProjectName = typeof req.body?.project_name === "string" ? req.body.project_name.trim() : "";
       const enteredBusinessName = typeof req.body?.business_name === "string" ? req.body.business_name.trim() : "";
+      const projectType = req.body?.project_type ?? "email";
       const fieldErrors = {};
       if (!enteredProjectName && !enteredBusinessName) {
         fieldErrors.project_name = "Enter a project name or a business name.";
       }
       if (enteredProjectName.length > 120) fieldErrors.project_name = "Project name must be no more than 120 characters.";
       if (enteredBusinessName.length > 120) fieldErrors.business_name = "Business name must be no more than 120 characters.";
+      if (typeof projectType !== "string" || !PROJECT_TYPES.has(projectType)) {
+        fieldErrors.project_type = "Choose a supported project type.";
+      }
       if (Object.keys(fieldErrors).length > 0) {
         return fail(res, 400, "VALIDATION_FAILED", "Check the highlighted fields.", fieldErrors);
       }
@@ -76,7 +81,12 @@ export const projectController = {
 
       const { data, error } = await supabase
         .from("projects")
-        .insert({ user_id: req.user.id, project_name: projectName, business_name: businessName })
+        .insert({
+          user_id: req.user.id,
+          project_name: projectName,
+          business_name: businessName,
+          project_type: projectType,
+        })
         .select(COLUMNS)
         .single();
 

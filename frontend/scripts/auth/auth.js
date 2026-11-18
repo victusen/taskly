@@ -26,12 +26,16 @@ export function getAppRedirectUrl(targetFile = "dashboard.html") {
   return `${window.location.origin}${dir}${targetFile}`;
 }
 
+function getOnboardingRedirectUrl() {
+  return `${window.location.origin}/onboarding?t=1`;
+}
+
 export async function signInWithGoogle() {
   ensureNetworkConnection();
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: getAppRedirectUrl('dashboard.html')
+      redirectTo: getOnboardingRedirectUrl()
     }
   })
 }
@@ -41,7 +45,7 @@ export async function signInWithGithub() {
   return supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: getAppRedirectUrl('dashboard.html')
+      redirectTo: getOnboardingRedirectUrl()
     }
   })
 }
@@ -51,7 +55,7 @@ export async function signInWithFacebook() {
   return supabase.auth.signInWithOAuth({
     provider: 'facebook',
     options: {
-      redirectTo: getAppRedirectUrl('dashboard.html')
+      redirectTo: getOnboardingRedirectUrl()
     }
   })
 }
@@ -61,7 +65,7 @@ export async function signInWithX() {
   return supabase.auth.signInWithOAuth({
     provider: 'x',
     options: {
-      redirectTo: getAppRedirectUrl('dashboard.html')
+      redirectTo: getOnboardingRedirectUrl()
     }
   })
 }
@@ -89,7 +93,7 @@ export async function signUp(email, password, firstName, lastName) {
     password,
     options: {
       data: { first_name: firstName, last_name: lastName },
-      emailRedirectTo: getAppRedirectUrl('dashboard.html')
+      emailRedirectTo: getOnboardingRedirectUrl()
     }
   });
 

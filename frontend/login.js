@@ -80,7 +80,7 @@ form.addEventListener('submit', async (event) => {
 
     showToast('success', 'Signed in successfully. Redirecting...');
     setTimeout(() => {
-      window.location.href = 'dashboard.html';
+      window.location.href = '/onboarding?t=1';
     }, 400);
   } catch (error) {
     showToast('error', error.message || 'Invalid email or password.');
