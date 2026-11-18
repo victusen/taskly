@@ -715,18 +715,6 @@
         max-height: calc(100vh - auto);
       }
       .col-empty-third { display: none !important; }
-      body.has-free-plan-banner .free-plan-banner {
-        position: fixed; top: 0; left: 50%; right: auto; z-index: 45;
-        width: min(760px, calc(100% - 32px));
-        transform: translateX(-50%);
-      }
-      body.has-free-plan-banner:not(.dashboard-content-scrolled) header { top: 50px; }
-      body.dashboard-content-scrolled.has-free-plan-banner header { top: 0; }
-      body.has-free-plan-banner .asymmetric-wrapper { margin-top: 112px; }
-      body.dashboard-content-scrolled.has-free-plan-banner .free-plan-banner {
-        opacity: 0; visibility: hidden; pointer-events: none; transform: translate(-50%, -48px);
-      }
-      body.dashboard-content-scrolled.has-free-plan-banner .asymmetric-wrapper { margin-top: 68px; }
     }
     @media (max-width: 767px) {
       .banner-left { gap: 6px; }
