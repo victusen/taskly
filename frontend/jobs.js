@@ -637,8 +637,6 @@ function getScheduleFrequencyOption(schedule) {
   }
 
   if (schedule.schedule_type === "one_time") {
-    if (repeatOption === "now") return "now";
-
     const scheduledAt = Date.parse(schedule.scheduled_for || "");
     const createdAt = Date.parse(schedule.created_at || "");
     if (

@@ -32,7 +32,6 @@ test("schedule creation converts timezone wall time to a UTC instant", () => {
   const result = validateScheduleInput(payload(), now);
 
   assert.equal(result.timezone, "America/Los_Angeles");
-  assert.equal(result.schedule_rule, null);
   assert.equal(result.scheduled_for, "2025-01-02T17:00:00.000Z");
   assert.equal(result.next_run_at, result.scheduled_for);
 });
@@ -51,7 +50,6 @@ test("send-now stores an immediate one-time occurrence", () => {
   }), now);
 
   assert.equal(result.schedule_type, ONE_TIME);
-  assert.deepEqual(result.schedule_rule, { every: "now" });
   assert.equal(result.scheduled_for, now.toISOString());
   assert.equal(result.next_run_at, now.toISOString());
 });

@@ -10,12 +10,12 @@ import { showGoogleResult } from "./scripts/ui/shell.js";
 import { authenticatedFetch } from "./scripts/auth/api.js";
 
 // Stub navigations for Audiences and Team members (real pages come later)
-window.bzShowAudiences = () => showToast("info", "Audiences — coming soon. Track subscriber segments here.");
-window.bzShowTeam = () => showToast("info", "Team members — coming soon. Invite collaborators to your projects.");
+window.bzShowAudiences = () => showToast("info", "Audiences are coming soon. Track subscriber segments here.");
+window.bzShowTeam = () => showToast("info", "Team members are coming soon. Invite collaborators to your projects.");
 
 const NAV_TOAST_MESSAGES = {
   notifications: "Coming soon.",
-  "api-keys": "Coming soon.",
+  "api-keys": "API keys are coming soon. You will be able to create API projects soon.",
 };
 
 document.addEventListener("click", (event) => {

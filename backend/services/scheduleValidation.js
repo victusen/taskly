@@ -313,7 +313,7 @@ export function validateScheduleInput(input, now = new Date(), { allowImmediateS
     }
   }
 
-  let rule = requestedType === "immediate" ? { every: "now" } : null;
+  let rule = null;
 
   if (requestedType === RECURRING) {
     const parsedRule = parseRule(input.schedule_rule);
