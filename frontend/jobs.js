@@ -637,6 +637,8 @@ function getScheduleFrequencyOption(schedule) {
   }
 
   if (schedule.schedule_type === "one_time") {
+    if (repeatOption === "now") return "now";
+
     const scheduledAt = Date.parse(schedule.scheduled_for || "");
     const createdAt = Date.parse(schedule.created_at || "");
     if (
@@ -882,6 +884,46 @@ mailAccountBtn?.addEventListener("click", () => {
 const sidebar = document.getElementById("left-sidebar");
 const sidebarCollapseButton = document.getElementById("sidebar-collapse-btn");
 
+function closeScheduleMenus() {
+  jobRows?.querySelectorAll(".schedule-row-menu").forEach((menu) => {
+    menu.hidden = true;
+    menu.style.position = "";
+    menu.style.top = "";
+    menu.style.left = "";
+    menu.style.right = "";
+    menu.style.maxHeight = "";
+    menu.style.overflowY = "";
+  });
+  jobRows?.querySelectorAll(".schedule-menu-trigger").forEach((button) => {
+    button.setAttribute("aria-expanded", "false");
+  });
+}
+
+function positionScheduleMenu(menu, trigger) {
+  menu.hidden = false;
+  menu.style.position = "fixed";
+  menu.style.top = "0";
+  menu.style.left = "0";
+  menu.style.right = "auto";
+  menu.style.maxHeight = `${Math.max(0, window.innerHeight - 16)}px`;
+  menu.style.overflowY = "auto";
+
+  const menuRect = menu.getBoundingClientRect();
+  const triggerRect = trigger.getBoundingClientRect();
+  const left = Math.max(8, Math.min(
+    triggerRect.right - menuRect.width,
+    window.innerWidth - menuRect.width - 8,
+  ));
+  let top = triggerRect.bottom + 4;
+  if (top + menuRect.height > window.innerHeight - 8) {
+    top = triggerRect.top - menuRect.height - 4;
+  }
+  top = Math.max(8, Math.min(top, window.innerHeight - menuRect.height - 8));
+
+  menu.style.left = `${left}px`;
+  menu.style.top = `${top}px`;
+}
+
 function setSchedulesSidebarCollapsed(collapsed) {
   if (!sidebar) return;
   sidebar.classList.toggle("collapsed", collapsed);
@@ -1121,15 +1163,14 @@ jobRows?.addEventListener("click", async (event) => {
   if (menuTrigger) {
     const menu = menuTrigger.parentElement.querySelector(".schedule-row-menu");
     const opening = menu.hidden;
-    jobRows.querySelectorAll(".schedule-row-menu").forEach((item) => { item.hidden = true; });
-    jobRows.querySelectorAll(".schedule-menu-trigger").forEach((item) => item.setAttribute("aria-expanded", "false"));
+    closeScheduleMenus();
     const sidebarToggle = menu.querySelector("[data-sidebar-toggle]");
     const sidebarCollapsed = sidebar?.classList.contains("collapsed") || false;
     if (sidebarToggle) {
       sidebarToggle.textContent = sidebarCollapsed ? "Collapse" : "Expand";
       sidebarToggle.setAttribute("aria-pressed", String(sidebarCollapsed));
     }
-    menu.hidden = !opening;
+    if (opening) positionScheduleMenu(menu, menuTrigger);
     menuTrigger.setAttribute("aria-expanded", String(opening));
     event.stopPropagation();
     return;
@@ -1138,6 +1179,10 @@ jobRows?.addEventListener("click", async (event) => {
   const sidebarToggle = event.target.closest("[data-sidebar-toggle]");
   if (sidebarToggle) {
     toggleSchedulesSidebar();
+    const actions = sidebarToggle.closest(".schedule-row-actions");
+    const menu = actions?.querySelector(".schedule-row-menu");
+    const trigger = actions?.querySelector(".schedule-menu-trigger");
+    if (menu && trigger) positionScheduleMenu(menu, trigger);
     event.stopPropagation();
     return;
   }
@@ -1203,8 +1248,7 @@ jobRows?.addEventListener("keydown", (event) => {
 
 document.addEventListener("click", (event) => {
   if (event.target.closest(".schedule-row-actions")) return;
-  jobRows?.querySelectorAll(".schedule-row-menu").forEach((item) => { item.hidden = true; });
-  jobRows?.querySelectorAll(".schedule-menu-trigger").forEach((item) => item.setAttribute("aria-expanded", "false"));
+  closeScheduleMenus();
 });
 
 document.addEventListener("keydown", (event) => {
