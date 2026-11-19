@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.addEventListener('click', (e) => {
-    const link = e.target.closest('a[href*="dashboard.html"], a[href*="schedules.html"], a[href*="jobs.html"], a[href*="billing.html"], a[href*="account/billing"], a[href*="smtp.html"]');
+    const link = e.target.closest('a[href*="/dashboard"], a[href*="/schedules"], a[href*="/jobs"], a[href*="/account/billing"], a[href*="/smtp"]');
     if (link && !window.__BZ_IS_LOGGED_IN) {
       e.preventDefault();
       openAuthModal();
@@ -235,9 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {}
 
       if (isAuth || window.__BZ_IS_LOGGED_IN) {
-        window.location.href = 'dashboard.html';
+        window.location.href = '/dashboard';
       } else {
-        window.location.href = 'login.html';
+        window.location.href = '/login';
       }
     });
   });

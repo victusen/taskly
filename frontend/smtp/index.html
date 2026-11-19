@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SMTP Connection - Bzade</title>
-  <link rel="icon" type="image/png" href="logo-2.png" />
-  <link rel="stylesheet" href="./scripts/ui/toast.css">
+  <link rel="icon" type="image/png" href="../logo-2.png" />
+  <link rel="stylesheet" href="../scripts/ui/toast.css">
   <script>
     (function() {
       try {
@@ -34,7 +34,7 @@
       flex-direction: column;
     }
 
-    /* ── Transparent Sticky Header ── */
+    /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Transparent Sticky Header ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
     .smtp-header {
       position: sticky;
       top: 0;
@@ -57,7 +57,7 @@
       font-size: 16px;
     }
 
-    /* ── Page Content ── */
+    /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Page Content ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
     .smtp-main {
       flex: 1;
       display: flex;
@@ -229,7 +229,7 @@
     .smtp-disclaimer { font-size: 12px; color: #777; }
     .smtp-disclaimer a { color: green; text-decoration: underline; }
 
-    /* ── Footer ── */
+    /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Footer ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
     .smtp-footer {
       width: 100%;
       padding: 24px 120px;
@@ -249,7 +249,7 @@
       text-decoration: underline;
     }
 
-    /* ── Responsive ── */
+    /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Responsive ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
     @media (max-width: 1024px) {
       .smtp-header { padding: 16px 32px; }
       .smtp-footer { padding: 24px 32px; }
@@ -295,7 +295,7 @@
   <!-- Transparent Sticky Header -->
   <header class="smtp-header">
     <a href="/" class="smtp-header-brand">
-      <img src="logo-bz.png" alt="Bzade" style="height: 35px; width: auto; display: block;" />
+      <img src="../logo-bz.png" alt="Bzade" style="height: 35px; width: auto; display: block;" />
       Bzade.app
     </a>
   </header>
@@ -304,7 +304,7 @@
   <main class="smtp-main">
     <div class="smtp-wrapper">
 
-      <a href="dashboard.html" class="back-link">
+      <a href="/dashboard" class="back-link">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6"></polyline>
         </svg>
@@ -408,19 +408,19 @@
   <!-- Footer -->
    <aside class="smtp-notice" aria-label="Before you connect">
       <p><strong>Use a real mailbox.</strong> Be sure the email you connect has a built-in inbox with SMTP access, so Bzade can send your templates for you on the schedule you set. Forwarding-only addresses cannot send mails.</p>
-      <p class="smtp-disclaimer">Our <a href="/privacy-policy.html">privacy policy</a> and <a href="/terms.html">terms of use</a> are very clear. We won't sell or read your emails.</p>
+      <p class="smtp-disclaimer">Our <a href="/privacy-policy">privacy policy</a> and <a href="/terms">terms of use</a> are very clear. We won't sell or read your emails.</p>
     </aside>
   <!-- <footer class="smtp-footer">
     <span>Bzade.app &mdash; Automated customer email schedules.</span>
-    <span><a href="/privacy-policy.html">Privacy</a> &middot; <a href="/terms.html">Terms</a></span>
+    <span><a href="/privacy-policy">Privacy</a> &middot; <a href="/terms">Terms</a></span>
   </footer> -->
 
 
   
   <script type="module">
-  import { supabase } from "./scripts/auth/auth.js";
-  import { addEmailConnection } from "./scripts/api/emailConnections.js";
-  import { showToast } from "./scripts/ui/toast.js";
+  import { supabase } from "../scripts/auth/auth.js";
+  import { addEmailConnection } from "../scripts/api/emailConnections.js";
+  import { showToast } from "../scripts/ui/toast.js";
 
   const PROJECT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -490,7 +490,7 @@
       form.reset();
       showToast("success", "Mail account connected to this project.");
       setTimeout(() => {
-        window.location.href = `schedules.html?project=${encodeURIComponent(projectId)}`;
+        window.location.href = `/schedules?project=${encodeURIComponent(projectId)}`;
       }, 1200);
     } catch (err) {
       showToast("error", err.message || "Could not connect this mail account.");

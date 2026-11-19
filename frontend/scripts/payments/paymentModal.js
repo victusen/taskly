@@ -176,7 +176,7 @@ export function initPaymentModal() {
       <div class="currency">NGN</div>
       <div class="period"></div>
     `;
-    pricingInfo.querySelector(".price").textContent = `₦${plan.amount.toLocaleString("en-NG")}`;
+    pricingInfo.querySelector(".price").textContent = `Ã¢â€šÂ¦${plan.amount.toLocaleString("en-NG")}`;
     pricingInfo.querySelector(".period").textContent = `${plan.period === "monthly" ? "month" : "per year"}`;
     cycleText.textContent = plan.period === "monthly" ? "Monthly" : "Yearly";
 
@@ -218,7 +218,7 @@ export function initPaymentModal() {
       `;
       card.querySelector(".plan-name").textContent = plan.name;
       card.querySelector(".plan-desc").textContent = plan.period === "monthly" ? "Billed monthly" : "Billed yearly";
-      card.querySelector(".plan-price").textContent = `₦${plan.amount.toLocaleString("en-NG")}${plan.period === "monthly" ? " /month" : " / per year"}`;
+      card.querySelector(".plan-price").textContent = `Ã¢â€šÂ¦${plan.amount.toLocaleString("en-NG")}${plan.period === "monthly" ? " /month" : " / per year"}`;
       card.addEventListener("click", () => selectPlan(plan, card));
       options.append(card);
     });
@@ -229,7 +229,7 @@ export function initPaymentModal() {
   loginBackdrop.innerHTML = `
     <div class="payment-login-card" role="dialog" aria-modal="true" aria-labelledby="payment-login-title">
       <h3 id="payment-login-title">Log in to choose a plan and start payment.</h3>
-      <a class="payment-login-button" href="/login.html">Log in</a>
+      <a class="payment-login-button" href="/login">Log in</a>
     </div>
   `;
   document.body.append(loginBackdrop);

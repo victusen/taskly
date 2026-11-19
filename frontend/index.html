@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bzade - Automated Customer Email Schedules</title>
   <link rel="icon" type="image/png" href="logo-2.png" />
-  <link rel="stylesheet" href="index.css?v=2.0">
+  <link rel="stylesheet" href="index.css?v=3.0">
   <link rel="stylesheet" href="./scripts/ui/toast.css">
   <link rel="stylesheet" href="./scripts/ui/closeButtons.css">
   <script>
@@ -26,12 +26,12 @@
 </head>
 <body>
   <!-- 1. Topmost Sticky Container -->
-  <aside class="smartindex-bar" aria-label="Smartindex announcement">
+  <!-- <aside class="smartindex-bar" aria-label="Smartindex announcement">
     <a href="https://leakedprice.online" target="_blank" rel="noopener noreferrer" class="smartindex-link">
       <img src="Smartindex-logo.png" alt="Smartindex logo" style="height: 12px; width: auto; display: block;" />
       <span>Powered by</span><span style="color: black; font-weight: bold;">Smartindex</span>
     </a>
-  </aside>
+  </aside> -->
 
   <!-- 2. Main Header -->
   <header class="main-header">
@@ -54,8 +54,8 @@
     </div>
 
     <div class="header-right">
-      <a href="login.html" class="login-link">Log in</a>
-      <a href="signup.html" class="signup-btn">
+      <a href="/login" class="login-link">Log in</a>
+      <a href="/signup" class="signup-btn">
         <span class="signup-text-full">Sign up free</span>
         <span class="signup-text-mobile">Sign up</span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -194,8 +194,8 @@
         <a href="/jobs" class="mobile-nav-item" id="mobile-careers-link">Careers</a>
       </nav>
       <div class="mobile-drawer-auth">
-        <a href="login.html" class="mobile-auth-login">Log in</a>
-        <a href="signup.html" class="mobile-auth-signup">Sign up free</a>
+        <a href="/login" class="mobile-auth-login">Log in</a>
+        <a href="/signup" class="mobile-auth-signup">Sign up free</a>
       </div>
     </div>
   </div>
@@ -215,7 +215,7 @@
         </h1>
 
         <p class="hero-subtitle">
-          Schedule follow-ups, reminders, emails or call our API. We make you productive with schedules.
+          Schedule follow up, reminders, warm emails or call our API. We make you productive with more schedules.
         </p>
 
         <div class="hero-actions">
@@ -227,7 +227,7 @@
             </svg>
           </a>
 
-          <a href="" class="btn-secondary">
+          <a href="/signup" class="btn-secondary">
             <span>Get started</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -236,7 +236,7 @@
           </a>
         </div>
 
-        <p class="hero-footnote">Free tier available. No credit card required to start.</p>
+        <p class="hero-footnote">Free tier available. <span class="only-mobile">No credit card required to start.</span></p>
       </div>
     </section>
 
@@ -356,7 +356,7 @@
       </div>
     </section>
 
-    <!-- 5b. Zade Story — Sticky Scroll Cards -->
+    <!-- 5b. Zade Story Ã¢â‚¬â€ Sticky Scroll Cards -->
     <section class="zade-story-section" aria-label="How Bzade helps business owners like Zade">
 
       <!-- Card 1 -->
@@ -406,7 +406,7 @@
           <h2 class="zade-card-heading" style="color:#ffffff;">Zade signs up to Bzade.app</h2>
           <p class="zade-card-body" style="color:#9ca3af;">In under 3 minutes, she connects her Gmail account, uploads the customer list, and sets a weekly schedule. every Friday, her customers get a personal message automatically, on time, every time.</p>
           <div style="margin-top:24px;">
-            <a href="login.html" class="btn-primary" style="display:inline-flex;">
+            <a href="/login" class="btn-primary" style="display:inline-flex;">
               <span>Sign In</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -603,7 +603,7 @@
               </li>
             </ul>
           </div>
-          <a href="signup.html" class="plan-cta-btn">
+          <a href="/signup" class="plan-cta-btn">
             <span>Get started now</span>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
           </a>
@@ -782,14 +782,14 @@
           Join businesses using Bzade to send punctual updates, recurring notifications, and customer newsletters.
         </p>
         <div class="hero-actions" style="margin-top: 8px;">
-          <a href="login.html" class="btn-primary">
+          <a href="/login" class="btn-primary">
             <span>Sign in to Bzade</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="5" y1="12" x2="19" y2="12"></line>
               <polyline points="12 5 19 12 12 19"></polyline>
             </svg>
           </a>
-          <a href="login.html" class="btn-secondary">
+          <a href="/login" class="btn-secondary">
             <span>Go to dashboard</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="9 18 15 12 9 6"></polyline>
@@ -817,8 +817,8 @@
         <ul>
           <li><a href="#product" class="footer-link">Overview</a></li>
           <li><a href="/pricing" class="footer-link">Pricing Plans</a></li>
-          <li><a href="smtp.html" class="footer-link footer-link--ext">SMTP Configuration<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
-          <li><a href="dashboard.html" class="footer-link footer-link--ext">Dashboard<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
+          <li><a href="/smtp" class="footer-link footer-link--ext">SMTP Configuration<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
+          <li><a href="/dashboard" class="footer-link footer-link--ext">Dashboard<svg class="footer-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a></li>
         </ul>
       </div>
 
@@ -835,9 +835,9 @@
           <div class="footer-col">
         <h4>Legal</h4>
         <ul>
-          <li><a href="terms.html" class="footer-link legal-link"><span>Terms of Service</span><svg class="claude-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></li>
-          <li><a href="privacy-policy.html" class="footer-link legal-link"><span>Privacy Policy</span><svg class="claude-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></li>
-          <li><a href="data-protection.html" class="footer-link legal-link"><span>Data Protection</span><svg class="claude-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></li>
+          <li><a href="/terms" class="footer-link legal-link"><span>Terms of Service</span><svg class="claude-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></li>
+          <li><a href="/privacy-policy" class="footer-link legal-link"><span>Privacy Policy</span><svg class="claude-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></li>
+          <li><a href="/data-protection" class="footer-link legal-link"><span>Data Protection</span><svg class="claude-ext-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a></li>
         </ul>
       </div>
     </div>
@@ -870,7 +870,7 @@
       </div>
       <h3 class="auth-modal-title">Log in to continue.</h3>
       <div class="auth-modal-actions">
-        <a href="/login.html" class="btn-primary auth-modal-btn">Log in</a>
+        <a href="/login" class="btn-primary auth-modal-btn">Log in</a>
       </div>
     </div>
   </div>

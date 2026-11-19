@@ -111,15 +111,15 @@ function ensureMarkup() {
       <p class="cm-sub" id="cm-sub">Connect your business mail for this project. All schedules on this business will go through this account.</p>
       <button type="button" class="cm-option" data-cm-choice="gmail">
         <span>Connect Gmail</span>
-        <img class="cm-option-icon" src="gmail-btn.png" alt="" aria-hidden="true">
+        <img class="cm-option-icon" src="/gmail-btn.png" alt="" aria-hidden="true">
       </button>
       <button type="button" class="cm-option" data-cm-choice="yahoo">
         <span>Connect Yahoo</span>
-        <img class="cm-option-icon" src="Yahoo-icon.png" alt="" aria-hidden="true">
+        <img class="cm-option-icon" src="/Yahoo-icon.png" alt="" aria-hidden="true">
       </button>
       <button type="button" class="cm-option" data-cm-choice="custom">
         <span>Connect custom domain</span>
-        <img class="cm-option-icon" src="Custom-email.png" alt="" aria-hidden="true">
+        <img class="cm-option-icon" src="/Custom-email.png" alt="" aria-hidden="true">
       </button>
       <p class="cm-project" id="cm-project"></p>
     </div>
@@ -147,7 +147,7 @@ function ensureMarkup() {
       return;
     }
     if (choice === "custom") {
-      window.location.href = `smtp.html?project=${encodeURIComponent(projectId)}`;
+      window.location.href = `/smtp?project=${encodeURIComponent(projectId)}`;
     }
   });
 

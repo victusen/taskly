@@ -17,17 +17,12 @@ if (typeof window !== "undefined" && window.location.hostname !== "localhost" &&
   console.log = () => {};
 }
 
-export function getAppRedirectUrl(targetFile = "dashboard.html") {
-  const path = window.location.pathname;
-  let dir = path.substring(0, path.lastIndexOf('/') + 1) || '/';
-  if (dir.endsWith('/job/')) {
-    dir = dir.substring(0, dir.length - 4);
-  }
-  return `${window.location.origin}${dir}${targetFile}`;
+export function getAppRedirectUrl(targetFile = "dashboard") {
+  return `${window.location.origin}/${targetFile.replace(/^\/+/, "")}`;
 }
 
 function getDashboardRedirectUrl() {
-  return `${window.location.origin}/dashboard.html`;
+  return `${window.location.origin}/dashboard`;
 }
 
 export async function signInWithGoogle() {
@@ -107,7 +102,7 @@ export async function signUp(email, password, firstName, lastName) {
 export async function resetPassword(email) {
   ensureNetworkConnection();
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: getAppRedirectUrl('reset-password.html')
+    redirectTo: getAppRedirectUrl('/reset-password')
   });
 
   if (error) {

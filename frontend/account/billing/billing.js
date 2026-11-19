@@ -23,7 +23,7 @@ initInviteModal();
 initPaymentModal();
 
 const emailEl = document.getElementById("user-billing-email");
-if (emailEl) emailEl.textContent = session.user?.email || "—";
+if (emailEl) emailEl.textContent = session.user?.email || "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â";
 
 async function loadBillingPlan() {
   const planDisplayEl = document.getElementById("plan-title-display");
@@ -105,7 +105,7 @@ function loadSavedBillingInfo() {
       if (info.address) parts.push(escapeHtml(info.address));
       if (info.vat) parts.push(`VAT: ${escapeHtml(info.vat)}`);
       if (displayCompanyEl) {
-        displayCompanyEl.innerHTML = parts.join(" • ");
+        displayCompanyEl.innerHTML = parts.join(" ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ ");
       }
       const compInput = document.getElementById("input-company-name");
       const addrInput = document.getElementById("input-billing-address");
@@ -230,7 +230,7 @@ async function loadBillingProjects() {
           <tr>
             <td colspan="6" style="text-align: center; padding: 32px 20px; color: #6b7280;">
               <p style="font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 4px;">No projects created yet</p>
-              <p style="font-size: 13px;">Create a project in the <a href="../../dashboard.html" style="color: #4f46e5; text-decoration: underline;">Overview Dashboard</a> to view project billing details.</p>
+              <p style="font-size: 13px;">Create a project in the <a href="/dashboard" style="color: #4f46e5; text-decoration: underline;">Overview Dashboard</a> to view project billing details.</p>
             </td>
           </tr>
         `;
@@ -246,7 +246,7 @@ async function loadBillingProjects() {
     const sidebarHtml = activeProjects
       .map(
         (p) =>
-          `<a href="../../schedules.html?project=${encodeURIComponent(p.id)}" class="nav-item sub-item">${escapeHtml(
+          `<a href="/schedules?project=${encodeURIComponent(p.id)}" class="nav-item sub-item">${escapeHtml(
             p.project_name || p.business_name || "Untitled Project"
           )}</a>`
       )
@@ -283,9 +283,9 @@ async function loadBillingProjects() {
                 <span style="font-weight: 600; color: #111827;">0</span>
                 <span style="font-size: 12px; color: #6b7280;"> / 1,000 emails</span>
               </td>
-              <td><span class="badge-paid">✓ Included</span></td>
+              <td><span class="badge-paid">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Included</span></td>
               <td style="text-align: right;">
-                <a href="../../schedules.html?project=${encodeURIComponent(p.id)}" class="btn-outline-sm">View Schedules</a>
+                <a href="/schedules?project=${encodeURIComponent(p.id)}" class="btn-outline-sm">View Schedules</a>
               </td>
             </tr>
           `;

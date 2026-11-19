@@ -126,7 +126,7 @@ export async function requireAuth() {
   } catch (err) {
     console.warn("Session check:", err);
   }
-  window.location.replace(new URL("/login.html", window.location.origin).href);
+  window.location.replace(new URL("/login", window.location.origin).href);
   return null;
 }
 

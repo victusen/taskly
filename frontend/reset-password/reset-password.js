@@ -1,5 +1,5 @@
-import { resetPassword, updatePassword, signOut, supabase } from './scripts/auth/auth.js';
-import { showToast } from './scripts/ui/toast.js';
+import { resetPassword, updatePassword, signOut, supabase } from '../scripts/auth/auth.js';
+import { showToast } from '../scripts/ui/toast.js';
 
 const requestForm = document.getElementById('request-reset-form');
 const updateForm = document.getElementById('update-password-form');
@@ -102,7 +102,7 @@ updateForm.addEventListener('submit', async (event) => {
     }
 
     setTimeout(() => {
-      window.location.href = 'login.html';
+      window.location.href = '/login';
     }, 1200);
 
   } catch (error) {

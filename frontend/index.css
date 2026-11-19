@@ -1510,6 +1510,9 @@ a {
     padding: 8px 18px;
     font-size: 14px;
   }
+  /* .only-mobile {
+    display: block;
+  } */
   .header-right { gap: 8px; }
   .hero-actions .btn-primary {
     display: flex;
@@ -1626,6 +1629,9 @@ a {
   .hero-actions {
     flex-direction: column;
     width: 100%;
+  }
+  .only-mobile {
+    display: block;
   }
 
   @media (max-width: 768px) {

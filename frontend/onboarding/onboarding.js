@@ -57,7 +57,7 @@ function detectedTimezone() {
 }
 
 function timezoneLabel(value) {
-  return value === "UTC" ? "UTC — Coordinated Universal Time" : value.replace(/_/g, " ");
+  return value === "UTC" ? "UTC Ã¢â‚¬â€ Coordinated Universal Time" : value.replace(/_/g, " ");
 }
 
 function stateStorageKey() {
@@ -203,7 +203,7 @@ function restoreInputs() {
 async function ensureSignedInAndNewUser() {
   session = await getCurrentSession();
   if (!session?.user?.id) {
-    window.location.replace("/login.html");
+    window.location.replace("/login");
     return false;
   }
 
@@ -215,7 +215,7 @@ async function ensureSignedInAndNewUser() {
   if (error) throw error;
 
   if (profile?.onboarding_completed_at) {
-    window.location.replace("/dashboard.html");
+    window.location.replace("/dashboard");
     return false;
   }
   return true;
@@ -251,7 +251,7 @@ async function finishOnboarding(event) {
   saveDraft();
   isSubmitting = true;
   finishButton.disabled = true;
-  finishButton.textContent = "Creating project…";
+  finishButton.textContent = "Creating projectÃ¢â‚¬Â¦";
 
   try {
     const projects = await loadProjects();
@@ -286,7 +286,7 @@ async function finishOnboarding(event) {
     } catch (error) {
       console.warn("Could not clear the completed onboarding draft.", error);
     }
-    window.location.assign("/dashboard.html");
+    window.location.assign("/dashboard");
   } catch (error) {
     console.error("[ONBOARDING] Could not finish setup:", error);
     stepErrors[2].textContent = error.message || "We could not finish setting up your account. Please try again.";

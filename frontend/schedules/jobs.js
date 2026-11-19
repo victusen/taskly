@@ -1,8 +1,8 @@
-import { showToast, error as toastError } from "./scripts/ui/toast.js";
-import { signOut } from "./scripts/auth/auth.js";
-import { initShell, showGoogleResult } from "./scripts/ui/shell.js";
-import { initAccountMenu } from "./scripts/ui/accountMenu.js";
-import { initInviteModal } from "./scripts/ui/inviteModal.js";
+import { showToast, error as toastError } from "../scripts/ui/toast.js";
+import { signOut } from "../scripts/auth/auth.js";
+import { initShell, showGoogleResult } from "../scripts/ui/shell.js";
+import { initAccountMenu } from "../scripts/ui/accountMenu.js";
+import { initInviteModal } from "../scripts/ui/inviteModal.js";
 import {
   startGoogleSheetsConnection,
   listProjectScheduleDatabaseConnections,
@@ -10,11 +10,11 @@ import {
   disconnectGoogleSheetsConnection,
   listSpreadsheetSheets,
   listSpreadsheetColumns,
-} from "./scripts/api/googleSheets.js";
-import { inspectTemplateVariables } from "./scripts/utils/scheduleSheets.js";
-import { openConnectModal, openDatabaseConnectModal } from "./scripts/ui/connectModal.js?v=20261118";
-import { initPaymentModal } from "./scripts/payments/paymentModal.js";
-import { sendNow } from "./scripts/api/schedules.js"
+} from "../scripts/api/googleSheets.js";
+import { inspectTemplateVariables } from "../scripts/utils/scheduleSheets.js";
+import { openConnectModal, openDatabaseConnectModal } from "../scripts/ui/connectModal.js?v=20261118";
+import { initPaymentModal } from "../scripts/payments/paymentModal.js";
+import { sendNow } from "../scripts/api/schedules.js"
 import {
   loadProject,
   loadProjects,
@@ -24,8 +24,8 @@ import {
   updateSchedule,
   addSchedule,
   removeProject,
-} from "./scripts/data/source.js";
-import { saveDraft, readDrafts, deleteDraft } from "./scripts/data/drafts.js";
+} from "../scripts/data/source.js";
+import { saveDraft, readDrafts, deleteDraft } from "../scripts/data/drafts.js";
 
 const PROJECT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const urlParams = new URLSearchParams(window.location.search);
@@ -36,7 +36,7 @@ const SCHEDULE_FETCH_PAGE_SIZE = 50;
 const navigationEntry = window.performance?.getEntriesByType?.("navigation")?.[0];
 
 if (!projectId) {
-  window.location.replace("dashboard.html");
+  window.location.replace("/dashboard");
   throw new Error("Missing or invalid project id.");
 }
 
@@ -211,7 +211,7 @@ function renderVariableTags() {
       body.dispatchEvent(new Event("input", { bubbles: true }));
     });
 
-    const remove = el("button", "sheet-variable-remove", "×");
+    const remove = el("button", "sheet-variable-remove", "Ãƒâ€”");
     remove.type = "button";
     remove.setAttribute("aria-label", `Remove spreadsheet variable ${name}`);
     remove.addEventListener("click", () => {
@@ -230,7 +230,7 @@ function renderPickerVariables() {
   if (!sheetPickerVariableList) return;
   sheetPickerVariableList.replaceChildren();
   for (const [name, column] of Object.entries(sheetPlan?.variableColumns || {})) {
-    const item = el("span", "sheet-variable-tag", `{${name}} · ${column}`);
+    const item = el("span", "sheet-variable-tag", `{${name}} Ã‚Â· ${column}`);
     sheetPickerVariableList.append(item);
   }
 }
@@ -238,7 +238,7 @@ function renderPickerVariables() {
 function setColumnOptions(select, placeholder, columns, selected = "") {
   setSelectOptions(select, placeholder, columns.map((column) => ({
     value: column.letter,
-    label: `${column.letter} — ${column.header}`,
+    label: `${column.letter} Ã¢â‚¬â€ ${column.header}`,
   })), selected);
 }
 
@@ -293,7 +293,7 @@ function setSheetPlan(plan) {
 }
 
 async function loadSheetConnections() {
-  setSheetPickerMessage("Loading Google Sheets accounts…");
+  setSheetPickerMessage("Loading Google Sheets accountsÃ¢â‚¬Â¦");
   try {
     scheduleDatabaseConnections = await listProjectScheduleDatabaseConnections(projectId);
     const callbackConnectionId = urlParams.get("google_connection_id");
@@ -344,7 +344,7 @@ async function loadSheetConnections() {
 
 async function loadSheetTabs(spreadsheetId) {
   spreadsheetSheets = [];
-  setSelectOptions(sheetPickerTab, "Loading sheet tabs…", []);
+  setSelectOptions(sheetPickerTab, "Loading sheet tabsÃ¢â‚¬Â¦", []);
   if (sheetPickerTab) sheetPickerTab.disabled = true;
   const applyButton = document.getElementById("sheet-picker-apply");
   if (applyButton) applyButton.disabled = true;
@@ -369,8 +369,8 @@ async function loadSheetTabs(spreadsheetId) {
 
 async function loadSheetColumns(spreadsheetId, sheetId, headerRow) {
   spreadsheetColumns = [];
-  setColumnOptions(sheetPickerEmailColumn, "Loading columns…", []);
-  setColumnOptions(sheetPickerVariableColumn, "Loading columns…", []);
+  setColumnOptions(sheetPickerEmailColumn, "Loading columnsÃ¢â‚¬Â¦", []);
+  setColumnOptions(sheetPickerVariableColumn, "Loading columnsÃ¢â‚¬Â¦", []);
   if (sheetPickerEmailColumn) sheetPickerEmailColumn.disabled = true;
   if (sheetPickerVariableColumn) sheetPickerVariableColumn.disabled = true;
   const row = Number(headerRow);
@@ -461,7 +461,7 @@ async function browseGoogleSheets() {
   }
   const browseButton = document.getElementById("sheet-picker-browse");
   if (browseButton) browseButton.disabled = true;
-  setSheetPickerMessage("Opening Google Picker…");
+  setSheetPickerMessage("Opening Google PickerÃ¢â‚¬Â¦");
   try {
     const [config] = await Promise.all([
       getGoogleSheetsPickerConfig(projectId, activeScheduleDatabaseId),
@@ -784,21 +784,21 @@ function renderPagination() {
   const canGoBack = hasSchedules && currentPage > 1;
   const canGoForward = hasSchedules && hasMoreSchedules;
   taskPagination.innerHTML = `
-    <span class="page-summary">${firstItem}–${lastItem} of ${totalSchedules} schedules</span>
+    <span class="page-summary">${firstItem}Ã¢â‚¬â€œ${lastItem} of ${totalSchedules} schedules</span>
     <span class="page-mobile-summary">${totalSchedules} ${totalSchedules === 1 ? "schedule" : "schedules"}</span>
     <span class="page-current">${hasSchedules ? currentPage : "0 / 0"}</span>
     <span class="page-mobile-current">${hasSchedules ? `${currentPage} / ${totalSchedules}` : "0 / 0"}</span>
-    <button type="button" class="page-btn" data-page="${currentPage - 1}" ${canGoBack ? "" : "disabled"} aria-label="Previous schedule page">‹</button>
-    <button type="button" class="page-btn" data-page="${currentPage + 1}" ${canGoForward ? "" : "disabled"} aria-label="Next schedule page">›</button>`;
+    <button type="button" class="page-btn" data-page="${currentPage - 1}" ${canGoBack ? "" : "disabled"} aria-label="Previous schedule page">Ã¢â‚¬Â¹</button>
+    <button type="button" class="page-btn" data-page="${currentPage + 1}" ${canGoForward ? "" : "disabled"} aria-label="Next schedule page">Ã¢â‚¬Âº</button>`;
   taskPagination.hidden = false;
   taskPagination.style.display = "flex";
   if (taskListFooter) taskListFooter.hidden = false;
 }
 
 function formatScheduleDateTime(value, timezone = "UTC") {
-  if (!value) return "—";
+  if (!value) return "Ã¢â‚¬â€";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
+  if (Number.isNaN(date.getTime())) return "Ã¢â‚¬â€";
   try {
     const formattedDate = new Intl.DateTimeFormat("en-US", {
       month: "2-digit", day: "2-digit", year: "2-digit", timeZone: timezone,
@@ -806,9 +806,9 @@ function formatScheduleDateTime(value, timezone = "UTC") {
     const formattedTime = new Intl.DateTimeFormat(undefined, {
       hour: "numeric", minute: "2-digit", timeZone: timezone,
     }).format(date);
-    return `${formattedDate} · ${formattedTime}`;
+    return `${formattedDate} Ã‚Â· ${formattedTime}`;
   } catch {
-    return `${new Intl.DateTimeFormat("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" }).format(date)} · ${date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+    return `${new Intl.DateTimeFormat("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" }).format(date)} Ã‚Â· ${date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
   }
 }
 
@@ -839,7 +839,7 @@ function getScheduleFrequency(schedule) {
     now: "Now",
     once: "Once",
     daily: "Daily",
-    weekday: "Every weekday (Mon–Fri)",
+    weekday: "Every weekday (MonÃ¢â‚¬â€œFri)",
     weekends: "Every weekend",
     weekly: "Weekly",
     monthly: "Monthly",
@@ -850,7 +850,7 @@ function getScheduleFrequency(schedule) {
     "new years-eve": "New Year's Eve",
     valentines: "Valentine's Day",
   };
-  return labels[getScheduleFrequencyOption(schedule)] || "—";
+  return labels[getScheduleFrequencyOption(schedule)] || "Ã¢â‚¬â€";
 }
 
 /**
@@ -897,9 +897,9 @@ function renderRows() {
           <td class="schedule-name-cell" title="${esc(name)}"><button type="button" class="schedule-name-button" data-view-schedule>${esc(name)}</button></td>
           <td class="schedule-type-cell">${esc(type)}</td>
           <td class="schedule-frequency-cell">${esc(frequency)}</td>
-          <td><div class="schedule-date-time"><strong>${esc(createdAt.split(" · ")[0])}</strong><span>${esc(createdAt.split(" · ")[1] || "")}</span></div></td>
-          <td><div class="schedule-date-time"><strong>${esc(nextRun.split(" · ")[0])}</strong><span>${esc(nextRun.split(" · ")[1] || "—")}</span></div></td>
-          <td><div class="schedule-date-time"><strong>${esc(lastRun.split(" · ")[0])}</strong><span>${esc(lastRun.split(" · ")[1] || "—")}</span></div></td>
+          <td><div class="schedule-date-time"><strong>${esc(createdAt.split(" Ã‚Â· ")[0])}</strong><span>${esc(createdAt.split(" Ã‚Â· ")[1] || "")}</span></div></td>
+          <td><div class="schedule-date-time"><strong>${esc(nextRun.split(" Ã‚Â· ")[0])}</strong><span>${esc(nextRun.split(" Ã‚Â· ")[1] || "Ã¢â‚¬â€")}</span></div></td>
+          <td><div class="schedule-date-time"><strong>${esc(lastRun.split(" Ã‚Â· ")[0])}</strong><span>${esc(lastRun.split(" Ã‚Â· ")[1] || "Ã¢â‚¬â€")}</span></div></td>
           <td>${recipients.length}</td>
           <td>${statusBadge(row.status)}</td>
           <td class="schedule-actions-cell">
@@ -922,14 +922,14 @@ function renderRows() {
       const name = row.name || row.config?.subject || "Untitled task";
       const type = String(row.job_type || "email").replace(/^./, (letter) => letter.toUpperCase());
       const frequency = getScheduleFrequency(row);
-      const createdAt = formatScheduleDateTime(row.created_at).split(" · ");
-      const nextRun = formatScheduleDateTime(row.next_run_at).split(" · ");
-      const lastRun = formatScheduleDateTime(row.last_run_at).split(" · ");
+      const createdAt = formatScheduleDateTime(row.created_at).split(" Ã‚Â· ");
+      const nextRun = formatScheduleDateTime(row.next_run_at).split(" Ã‚Â· ");
+      const lastRun = formatScheduleDateTime(row.last_run_at).split(" Ã‚Â· ");
       const statusAction = row.status === "active" ? "Pause" : row.status === "paused" ? "Resume" : "";
       const statusActionIcon = statusAction === "Pause" ? scheduleMenuIcons.pause : scheduleMenuIcons.resume;
       const canEditSchedule = row.status === "active" || row.status === "paused";
       const canDeleteSchedule = ["active", "paused", "failed"].includes(row.status);
-      const dateValue = (parts) => `<span class="schedule-mobile-date"><strong>${esc(parts[0] || "—")}</strong><span>${esc(parts[1] || "")}</span></span>`;
+      const dateValue = (parts) => `<span class="schedule-mobile-date"><strong>${esc(parts[0] || "Ã¢â‚¬â€")}</strong><span>${esc(parts[1] || "")}</span></span>`;
       return `
         <article class="schedule-mobile-card" data-schedule='${esc(JSON.stringify(row))}'>
           <label class="schedule-select-cell schedule-mobile-select" aria-label="Select ${esc(name)}">
@@ -1293,7 +1293,7 @@ async function updateProjectUI(project) {
   try {
     const loadedProjects = await loadProjects();
     const allProjects = Array.isArray(loadedProjects) ? loadedProjects : [];
-    // schedules.html clones the nav template (data-sub-nav); jobs.html still
+    // /schedules clones the nav template (data-sub-nav).
     // uses the legacy side-panel ids. Support both so neither page regresses.
     const subNavs = document.querySelectorAll(
       "[data-sub-nav], #desktop-sibling-projects, #mobile-sibling-projects"
@@ -1307,11 +1307,11 @@ async function updateProjectUI(project) {
         const projectName = p.project_name || p.business_name || "Untitled Project";
         const item = el("a", `nav-item ${isCurrent ? "active" : ""}`);
         item.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5-9 4.5-9-4.5Z"/><path d="M3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5"/></svg><span>${esc(projectName)}</span>`;
-        item.href = `schedules.html?project=${encodeURIComponent(p.id)}`;
+        item.href = `/schedules?project=${encodeURIComponent(p.id)}`;
         item.style.padding = "6px 10px";
         item.style.fontSize = "13px";
         item.title = p.business_name && p.business_name !== projectName
-          ? `${projectName} — ${p.business_name}`
+          ? `${projectName} Ã¢â‚¬â€ ${p.business_name}`
           : projectName;
         item.setAttribute("aria-label", item.title);
         container.appendChild(item);
@@ -1437,7 +1437,7 @@ function openScheduleDetails(rowElement) {
   const config = schedule.config || {};
   const value = (id, content) => {
     const node = document.getElementById(id);
-    if (node) node.textContent = content || "—";
+    if (node) node.textContent = content || "Ã¢â‚¬â€";
   };
   const recipients = Array.isArray(config.recipients) ? config.recipients.join(", ") : "";
   const parser = new DOMParser();
@@ -1609,10 +1609,10 @@ window.addEventListener("resize", () => {
 });
 
 const NAV_TOASTS = {
-  audiences: "Audiences — coming soon. Track subscriber segments here.",
+  audiences: "Audiences Ã¢â‚¬â€ coming soon. Track subscriber segments here.",
   notifications: "Coming soon.",
   "api-keys": "Coming soon.",
-  "email-template": "Email templates — coming soon. Save and reuse your best emails here.",
+  "email-template": "Email templates Ã¢â‚¬â€ coming soon. Save and reuse your best emails here.",
 };
 
 let draftsOverlay = null;
@@ -2043,7 +2043,7 @@ async function init() {
       showToast("success", "Project deleted successfully.");
       closeDeleteModal();
       setTimeout(() => {
-        window.location.href = "dashboard.html";
+        window.location.href = "/dashboard";
       }, 500);
     } catch (err) {
       showToast("error", err.message || "Could not delete project.");
@@ -2084,8 +2084,8 @@ async function init() {
     });
   }
 
-  // Phone drawer. schedules.html also wires this inline; the calls are
-  // idempotent so double-binding is harmless and jobs.html keeps working.
+  // Phone drawer. /schedules also wires this inline; the calls are
+  // Idempotent so double-binding is harmless.
   const drawerOverlay = document.getElementById("mobile-sidebar-overlay");
   const drawerOpenBtn = document.getElementById("hamburger-btn");
   const drawerCloseBtn = document.getElementById("sidebar-close-btn");
@@ -2137,7 +2137,7 @@ if (
 }
 
 /* The sidebar drawer, project sub-list and help dropdown are wired by the
-   inline layout script in schedules.html, so only the invite modal is left. */
+   inline layout script in /schedules, so only the invite modal is left. */
 inviteModal = initInviteModal();
 initAccountMenu({ onInvite: () => inviteModal.open() });
 initPaymentModal();

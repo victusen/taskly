@@ -73,7 +73,7 @@ document.querySelectorAll(".pricing-card").forEach((card) => {
     try {
       const session = await getActiveSession();
       if (session?.access_token) {
-        window.location.assign("/dashboard.html");
+        window.location.assign("/dashboard");
       } else {
         openAuthModal();
       }
@@ -86,7 +86,7 @@ document.querySelectorAll(".pricing-card").forEach((card) => {
 
 document.addEventListener("click", async (event) => {
   const link = event.target.closest(
-    'a[href*="dashboard.html"], a[href*="schedules.html"], a[href*="billing.html"], a[href*="account/billing"], a[href*="smtp.html"]',
+    'a[href*="/dashboard"], a[href*="/schedules"], a[href*="/account/billing"], a[href*="/smtp"]',
   );
   if (!link) return;
 

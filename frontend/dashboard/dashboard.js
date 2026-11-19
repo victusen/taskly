@@ -1,13 +1,13 @@
-import { requireAuth, resolveUserInitial, applyUserAvatar } from "./scripts/auth/session.js";
-import { signOut } from "./scripts/auth/auth.js";
-import { showToast, showToastAction } from "./scripts/ui/toast.js";
-import { initPaymentModal } from "./scripts/payments/paymentModal.js";
-import { loadConnections, addProject, loadProjects, loadSchedules, removeProject, setProjectStatus } from "./scripts/data/source.js";
-import { initInviteModal } from "./scripts/ui/inviteModal.js";
-import { initAccountMenu } from "./scripts/ui/accountMenu.js";
-import { openConnectModal } from "./scripts/ui/connectModal.js";
-import { showGoogleResult } from "./scripts/ui/shell.js";
-import { authenticatedFetch } from "./scripts/auth/api.js";
+import { requireAuth, resolveUserInitial, applyUserAvatar } from "../scripts/auth/session.js";
+import { signOut } from "../scripts/auth/auth.js";
+import { showToast, showToastAction } from "../scripts/ui/toast.js";
+import { initPaymentModal } from "../scripts/payments/paymentModal.js";
+import { loadConnections, addProject, loadProjects, loadSchedules, removeProject, setProjectStatus } from "../scripts/data/source.js";
+import { initInviteModal } from "../scripts/ui/inviteModal.js";
+import { initAccountMenu } from "../scripts/ui/accountMenu.js";
+import { openConnectModal } from "../scripts/ui/connectModal.js";
+import { showGoogleResult } from "../scripts/ui/shell.js";
+import { authenticatedFetch } from "../scripts/auth/api.js";
 
 // Stub navigations for Audiences and Team members (real pages come later)
 window.bzShowAudiences = () => showToast("info", "Audiences are coming soon. Track subscriber segments here.");
@@ -348,7 +348,7 @@ async function renderDashboardProjects({ fallbackProject = null, useFallback = f
     }
   }
 
-  // Always fade out skeleton loaders — errors or success, skeleton must go
+  // Always fade out skeleton loaders Ã¢â‚¬â€ errors or success, skeleton must go
   document.querySelectorAll("#subnav-skeleton").forEach((el) => {
     el.style.transition = "opacity 0.25s ease";
     el.style.opacity = "0";
@@ -358,7 +358,7 @@ async function renderDashboardProjects({ fallbackProject = null, useFallback = f
   // If we got a network/timeout error, check cache flag first
   if (loadError) {
     console.error("[LOAD PROJECTS ERROR]", loadError);
-    // If __fromCache is set, projects already loaded from cache — don't error-state
+    // If __fromCache is set, projects already loaded from cache Ã¢â‚¬â€ don't error-state
     // (This path only runs if cache also failed)
     showToast("error", "Could not reach the server. Check your connection.");
 
@@ -390,7 +390,7 @@ async function renderDashboardProjects({ fallbackProject = null, useFallback = f
     // Still clear metric skeletons with zeroes
     ["metric-dispatched", "metric-delivered", "metric-bounced", "metric-failed"].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.textContent = "—";
+      if (el) el.textContent = "Ã¢â‚¬â€";
     });
     return;
   }
@@ -444,7 +444,7 @@ async function renderDashboardProjects({ fallbackProject = null, useFallback = f
   const sidebarItemsHtml = activeProjects
     .map(
       (p) =>
-        `<a href="schedules.html?project=${encodeURIComponent(p.id)}" class="nav-item sub-item">${escapeHtml(
+        `<a href="/schedules?project=${encodeURIComponent(p.id)}" class="nav-item sub-item">${escapeHtml(
           p.project_name || p.business_name || "Untitled Project"
         )}</a>`
     )
@@ -468,7 +468,7 @@ async function renderDashboardProjects({ fallbackProject = null, useFallback = f
         const count = 0;
         return `
           <div class="proj-card-wrapper" data-project-id="${escapeHtml(p.id)}">
-            <a href="schedules.html?project=${encodeURIComponent(p.id)}" style="text-decoration: none; color: inherit; display: block; height: 100%;">
+            <a href="/schedules?project=${encodeURIComponent(p.id)}" style="text-decoration: none; color: inherit; display: block; height: 100%;">
               <div class="projs">
                 <div style="padding-right: 28px;">
                   <h4 class="title">${escapeHtml(pName)}</h4>
@@ -489,7 +489,7 @@ async function renderDashboardProjects({ fallbackProject = null, useFallback = f
 
             <!-- Popover toggle menu -->
             <div class="proj-menu-dropdown" style="display: none;" data-menu-dropdown>
-              <a href="schedules.html?project=${encodeURIComponent(p.id)}" class="proj-menu-item">
+              <a href="/schedules?project=${encodeURIComponent(p.id)}" class="proj-menu-item">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                 Open project
               </a>

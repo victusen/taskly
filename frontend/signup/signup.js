@@ -1,0 +1,69 @@
+import { signUp, signInWithGoogle, signInWithFacebook, signInWithX } from "../scripts/auth/auth.js";
+import { getCurrentSession } from "../scripts/auth/session.js";
+import { showToast } from "../scripts/ui/toast.js";
+
+const form = document.getElementById("signup-form");
+
+void getCurrentSession()
+  .then((session) => {
+    if (session) window.location.replace("/dashboard");
+  })
+  .catch((error) => console.warn("[SIGNUP] Could not check the existing session:", error));
+
+document.getElementById("google")?.addEventListener("click", () => signInWithGoogle().catch((e) => showToast("error", e.message || "Google sign-in failed.")));
+document.getElementById("facebook")?.addEventListener("click", () => signInWithFacebook().catch((e) => showToast("error", e.message || "Facebook sign-in failed.")));
+document.getElementById("X")?.addEventListener("click", () => signInWithX().catch((e) => showToast("error", e.message || "X sign-in failed.")));
+
+// Password visibility eye toggle
+document.querySelectorAll('.eye-toggle').forEach((btn) => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const targetId = btn.getAttribute('data-target');
+    const input = document.getElementById(targetId);
+    if (!input) return;
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    const eyeShow = btn.querySelector('.eye-show');
+    const eyeHide = btn.querySelector('.eye-hide');
+    if (eyeShow && eyeHide) {
+      eyeShow.style.display = isPassword ? 'none' : 'block';
+      eyeHide.style.display = isPassword ? 'block' : 'none';
+    }
+  });
+});
+
+form?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = form.querySelector("button[type=submit]");
+  button.disabled = true;
+  try {
+    const businessName = document.getElementById("business")?.value.trim() || "";
+    const firstName = document.getElementById("first")?.value.trim() || "";
+    const emailVal = document.getElementById("email")?.value.trim() || "";
+    const initial = (firstName || businessName || emailVal || "U").charAt(0).toUpperCase();
+    try {
+      localStorage.setItem("bzade_user_initial", initial);
+      if (businessName) {
+        localStorage.setItem("bzade_user_business", businessName);
+      }
+    } catch (_) {}
+    const result = await signUp(
+      emailVal,
+      document.getElementById("password").value,
+      firstName,
+      document.getElementById("last").value.trim()
+    );
+    if (result.session) {
+      showToast("success", "Account created successfully! Redirecting...");
+      setTimeout(() => {
+        window.location.replace("/dashboard");
+      }, 400);
+    } else {
+      showToast("info", "Check your email to confirm your account.");
+    }
+  } catch (error) {
+    showToast("error", error.message || "Could not create account.");
+  } finally {
+    button.disabled = false;
+  }
+});

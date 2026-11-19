@@ -27,7 +27,7 @@ const GOOGLE_DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 const projectBack = (result, projectId, connectionId = null) => {
   const params = new URLSearchParams({ project: projectId, google: result });
   if (connectionId) params.set("google_connection_id", connectionId);
-  return `${FRONTEND_URL}/schedules.html?${params}`;
+  return   `${FRONTEND_URL}/schedules?${params}`;
 };
 
 export async function startGoogleOAuth(
@@ -115,7 +115,7 @@ export async function googleOAuthCallback(req, res) {
   const resultUrl = (result) =>
     projectIdFromState.value
       ? projectBack(result, projectIdFromState.value)
-      : `${FRONTEND_URL}/dashboard.html?google=${result}`;
+      : `${FRONTEND_URL}/dashboard?google=${result}`;
 
   try {
     const { code, state, error: oauthError } = req.query;

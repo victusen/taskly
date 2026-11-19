@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bzade Documentation - API, Email Scheduling & Payload Dispatch</title>
-  <link rel="icon" type="image/png" href="../logo-2.png" />
+  <link rel="icon" type="image/png" href="../../logo-2.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../scripts/ui/toast.css">
+  <link rel="stylesheet" href="../../scripts/ui/toast.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -289,7 +289,7 @@
   <header class="docs-header">
     <div class="docs-brand">
       <a href="/" style="display: flex; align-items: center; gap: 8px;">
-        <img src="../logo-bz.png" alt="Bzade" />
+        <img src="../../logo-bz.png" alt="Bzade" />
         <span>Bzade</span>
       </a>
       <span class="docs-badge">Docs</span>
@@ -298,7 +298,7 @@
       <a href="#overview">Overview</a>
       <a href="#api">API Reference</a>
       <a href="#payloads">Payloads</a>
-      <a href="../dashboard.html" class="btn-dashboard">Console</a>
+      <a href="/dashboard" class="btn-dashboard">Console</a>
     </nav>
   </header>
 
@@ -321,10 +321,10 @@
 
       <div class="sidebar-label">Quick Links</div>
       <ul class="sidebar-menu">
-        <li><a href="../dashboard.html" class="sidebar-link">Dashboard Overview</a></li>
-        <li><a href="../schedules.html" class="sidebar-link">Task Schedules</a></li>
-        <li><a href="../account/billing" class="sidebar-link">Account &amp; Billing</a></li>
-        <li><a href="../terms.html" class="sidebar-link">Terms of Service</a></li>
+        <li><a href="/dashboard" class="sidebar-link">Dashboard Overview</a></li>
+        <li><a href="/schedules" class="sidebar-link">Task Schedules</a></li>
+        <li><a href="/account/billing" class="sidebar-link">Account &amp; Billing</a></li>
+        <li><a href="/terms" class="sidebar-link">Terms of Service</a></li>
       </ul>
     </aside>
 
@@ -598,7 +598,7 @@ export async function scheduleEmailReminder(userEmail, appointmentDate) {
     </main>
   </div>
 
-  <script type="module" src="../scripts/ui/toast.js"></script>
+  <script type="module" src="../../scripts/ui/toast.js"></script>
   <script>
     function copyCode(btn) {
       const code = btn.closest('.code-box').querySelector('pre').innerText;

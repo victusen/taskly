@@ -82,7 +82,7 @@ async function loadBillingProjects() {
           <tr>
             <td colspan="6" style="text-align: center; padding: 40px 20px; color: #6b7280;">
               <p style="font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 4px;">No projects created yet</p>
-              <p style="font-size: 13px;">Create a project in the <a href="dashboard.html" style="color: green; text-decoration: underline;">Overview Dashboard</a> to view billing details.</p>
+              <p style="font-size: 13px;">Create a project in the <a href="/dashboard" style="color: green; text-decoration: underline;">Overview Dashboard</a> to view billing details.</p>
             </td>
           </tr>
         `;
@@ -98,7 +98,7 @@ async function loadBillingProjects() {
     const sidebarHtml = activeProjects
       .map(
         (p) =>
-          `<a href="schedules.html?project=${encodeURIComponent(p.id)}" class="nav-item sub-item">${escapeHtml(
+          `<a href="/schedules?project=${encodeURIComponent(p.id)}" class="nav-item sub-item">${escapeHtml(
             p.project_name || p.business_name || "Untitled Project"
           )}</a>`
       )
@@ -137,7 +137,7 @@ async function loadBillingProjects() {
               </td>
               <td><span class="badge-status">Included</span></td>
               <td style="text-align: right;">
-                <a href="schedules.html?project=${encodeURIComponent(p.id)}" class="btn-outline" style="text-decoration: none;">View Schedules</a>
+                <a href="/schedules?project=${encodeURIComponent(p.id)}" class="btn-outline" style="text-decoration: none;">View Schedules</a>
               </td>
             </tr>
           `;

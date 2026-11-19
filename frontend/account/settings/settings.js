@@ -34,7 +34,7 @@ let settingsProjects = [];
 
 const displayName = metadata.full_name || metadata.name || metadata.first_name || user.email?.split("@")[0] || "Your profile";
 if (accountName) accountName.textContent = displayName;
-if (accountEmail) accountEmail.textContent = user.email || "—";
+if (accountEmail) accountEmail.textContent = user.email || "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â";
 if (profileName) profileName.textContent = displayName;
 if (removeButton) removeButton.hidden = !savedAvatar;
 
@@ -75,7 +75,7 @@ function renderTeamMembers(error = null) {
   const projectRows = settingsProjects.map((project) => {
     const name = project.project_name || project.business_name || "Untitled Project";
     const role = String(project.role || "Owner").replace(/^./, (letter) => letter.toUpperCase());
-    const href = `../../schedules.html?project=${encodeURIComponent(project.id)}`;
+    const href = `/schedules?project=${encodeURIComponent(project.id)}`;
     return `
       <a class="project-access-row" href="${escapeHtml(href)}">
         <span>${escapeHtml(name)}</span>
@@ -130,7 +130,7 @@ async function loadProjectNavigation() {
 
     const projectLinks = activeProjects.map((project) => {
       const name = project.project_name || project.business_name || "Untitled Project";
-      return `<a class="nav-item sub-item" href="../../schedules.html?project=${encodeURIComponent(project.id)}">${escapeHtml(name)}</a>`;
+      return `<a class="nav-item sub-item" href="/schedules?project=${encodeURIComponent(project.id)}">${escapeHtml(name)}</a>`;
     }).join("");
     subNavs.forEach((nav) => {
       nav.innerHTML = projectLinks;
