@@ -1,7 +1,14 @@
 import { signUp, signInWithGoogle, signInWithFacebook, signInWithX } from "./scripts/auth/auth.js";
+import { getCurrentSession } from "./scripts/auth/session.js";
 import { showToast } from "./scripts/ui/toast.js";
 
 const form = document.getElementById("signup-form");
+
+void getCurrentSession()
+  .then((session) => {
+    if (session) window.location.replace("/dashboard.html");
+  })
+  .catch((error) => console.warn("[SIGNUP] Could not check the existing session:", error));
 
 document.getElementById("google")?.addEventListener("click", () => signInWithGoogle().catch((e) => showToast("error", e.message || "Google sign-in failed.")));
 document.getElementById("facebook")?.addEventListener("click", () => signInWithFacebook().catch((e) => showToast("error", e.message || "Facebook sign-in failed.")));
@@ -49,7 +56,7 @@ form?.addEventListener("submit", async (event) => {
     if (result.session) {
       showToast("success", "Account created successfully! Redirecting...");
       setTimeout(() => {
-        window.location.href = "/onboarding?t=1";
+        window.location.replace("/dashboard.html");
       }, 400);
     } else {
       showToast("info", "Check your email to confirm your account.");

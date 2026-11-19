@@ -26,8 +26,8 @@ export function getAppRedirectUrl(targetFile = "dashboard.html") {
   return `${window.location.origin}${dir}${targetFile}`;
 }
 
-function getOnboardingRedirectUrl() {
-  return `${window.location.origin}/onboarding?t=1`;
+function getDashboardRedirectUrl() {
+  return `${window.location.origin}/dashboard.html`;
 }
 
 export async function signInWithGoogle() {
@@ -35,7 +35,7 @@ export async function signInWithGoogle() {
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: getOnboardingRedirectUrl()
+      redirectTo: getDashboardRedirectUrl()
     }
   })
 }
@@ -45,7 +45,7 @@ export async function signInWithGithub() {
   return supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: getOnboardingRedirectUrl()
+      redirectTo: getDashboardRedirectUrl()
     }
   })
 }
@@ -55,7 +55,7 @@ export async function signInWithFacebook() {
   return supabase.auth.signInWithOAuth({
     provider: 'facebook',
     options: {
-      redirectTo: getOnboardingRedirectUrl()
+      redirectTo: getDashboardRedirectUrl()
     }
   })
 }
@@ -65,7 +65,7 @@ export async function signInWithX() {
   return supabase.auth.signInWithOAuth({
     provider: 'x',
     options: {
-      redirectTo: getOnboardingRedirectUrl()
+      redirectTo: getDashboardRedirectUrl()
     }
   })
 }
@@ -93,7 +93,7 @@ export async function signUp(email, password, firstName, lastName) {
     password,
     options: {
       data: { first_name: firstName, last_name: lastName },
-      emailRedirectTo: getOnboardingRedirectUrl()
+      emailRedirectTo: getDashboardRedirectUrl()
     }
   });
 

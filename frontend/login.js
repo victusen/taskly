@@ -14,6 +14,12 @@ const facebookButton = document.querySelector('#facebook')
 const googleButton = document.querySelector('#google')
 const xButton = document.querySelector('#X')
 
+void getCurrentSession()
+  .then((session) => {
+    if (session) window.location.replace("/dashboard.html");
+  })
+  .catch((error) => console.warn("[LOGIN] Could not check the existing session:", error));
+
 // Password visibility eye toggle
 document.querySelectorAll('.eye-toggle').forEach((btn) => {
   btn.addEventListener('click', (e) => {
@@ -80,7 +86,7 @@ form.addEventListener('submit', async (event) => {
 
     showToast('success', 'Signed in successfully. Redirecting...');
     setTimeout(() => {
-      window.location.href = '/onboarding?t=1';
+      window.location.replace('/dashboard.html');
     }, 400);
   } catch (error) {
     showToast('error', error.message || 'Invalid email or password.');
