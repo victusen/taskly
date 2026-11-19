@@ -1,7 +1,7 @@
 import express from "express";
 
+import { startGoogleSheetsOAuth } from "../controllers/googleOAuthController.js";
 import {
-  startGoogleSheetsOAuth,
   listProjectScheduleDatabaseConnections,
   getGoogleSheetsPickerConfig,
   disconnectGoogleSheetsConnection,
