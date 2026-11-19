@@ -6,7 +6,6 @@ const GOOGLE_IDENTITY_SCOPES = [
   "profile",
 ];
 const GMAIL_SEND_SCOPE = "https://www.googleapis.com/auth/gmail.send";
-const GOOGLE_SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
 const GOOGLE_DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 
 function getOAuthClient() {
@@ -25,7 +24,7 @@ export function createGoogleAuthorizationUrl(state, { purpose = "mail", includeS
   const client = getOAuthClient();
   const isSheetsConnection = purpose === "database" || includeSheets;
   const scopes = isSheetsConnection
-    ? [...GOOGLE_IDENTITY_SCOPES, GOOGLE_SHEETS_SCOPE, GOOGLE_DRIVE_FILE_SCOPE]
+    ? [...GOOGLE_IDENTITY_SCOPES, GOOGLE_DRIVE_FILE_SCOPE]
     : [...GOOGLE_IDENTITY_SCOPES, GMAIL_SEND_SCOPE];
 
   return client.generateAuthUrl({

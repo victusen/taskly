@@ -63,8 +63,8 @@ test("Google Sheets OAuth is independent of Gmail and prompts for account select
   assert.equal(authorizationUrl.searchParams.get("access_type"), "offline");
   assert.equal(authorizationUrl.searchParams.get("prompt"), "select_account consent");
   assert.ok(!scopes.has("https://www.googleapis.com/auth/gmail.send"));
-  assert.ok(scopes.has("https://www.googleapis.com/auth/spreadsheets.readonly"));
   assert.ok(scopes.has("https://www.googleapis.com/auth/drive.file"));
+  assert.equal(scopes.size, 4);
 });
 
 test("Gmail OAuth does not request Sheets or Drive permissions", () => {
@@ -72,6 +72,5 @@ test("Gmail OAuth does not request Sheets or Drive permissions", () => {
   const scopes = new Set(authorizationUrl.searchParams.get("scope").split(" "));
 
   assert.ok(scopes.has("https://www.googleapis.com/auth/gmail.send"));
-  assert.ok(!scopes.has("https://www.googleapis.com/auth/spreadsheets.readonly"));
   assert.ok(!scopes.has("https://www.googleapis.com/auth/drive.file"));
 });

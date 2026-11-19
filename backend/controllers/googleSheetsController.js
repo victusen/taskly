@@ -78,7 +78,7 @@ export async function getGoogleSheetsPickerConfig(req, res) {
       projectId,
       getConnectionId(req),
     );
-    const auth = await getGoogleSheetsClient(connection, { requireDriveScope: true });
+    const auth = await getGoogleSheetsClient(connection);
     const tokenResult = await auth.getAccessToken();
     const accessToken = typeof tokenResult === "string" ? tokenResult : tokenResult?.token;
     if (!accessToken) {

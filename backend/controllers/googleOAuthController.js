@@ -23,7 +23,6 @@ import {
 const STATE_EXPIRY_MINUTES = 10;
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || "https://bzade.app").replace(/\/+$/, "");
-const GOOGLE_SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
 const GOOGLE_DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 const projectBack = (result, projectId, connectionId = null) => {
   const params = new URLSearchParams({ project: projectId, google: result });
@@ -165,12 +164,6 @@ export async function googleOAuthCallback(req, res) {
 
     const { client, tokens } = await exchangeGoogleCode(code);
 
-    if (
-      databaseProjectId &&
-      !String(tokens.scope || "").split(" ").includes(GOOGLE_SHEETS_SCOPE)
-    ) {
-      return res.redirect(resultUrl("missing_sheets_scope"));
-    }
     if (
       databaseProjectId &&
       !String(tokens.scope || "").split(" ").includes(GOOGLE_DRIVE_FILE_SCOPE)

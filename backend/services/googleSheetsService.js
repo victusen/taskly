@@ -7,7 +7,6 @@ import { createGoogleOAuthClient } from "./googleOAuthService.js";
 import { decryptJson } from "../utils/credentialCrypto.js";
 import { LIMITS } from "./scheduleValidation.js";
 
-export const SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
 export const DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 export const MAX_SHEET_ROW = 1_000_000;
 export const MAX_SHEET_RECIPIENTS = LIMITS.MAX_SHEET_RECIPIENTS;
@@ -48,7 +47,7 @@ export function columnLetter(index) {
   return letter;
 }
 
-export async function getGoogleSheetsClient(connection, { requireDriveScope = false } = {}) {
+export async function getGoogleSheetsClient(connection) {
   let credentials;
   try {
     credentials = decryptJson(connection.credentials);
@@ -65,12 +64,12 @@ export async function getGoogleSheetsClient(connection, { requireDriveScope = fa
     credentials.scope || connection.connection_config?.scopes?.join(" ") || "",
   ).split(/\s+/).filter(Boolean));
 
-  if (!grantedScopes.has(SHEETS_SCOPE) || (requireDriveScope && !grantedScopes.has(DRIVE_FILE_SCOPE))) {
+  if (!grantedScopes.has(DRIVE_FILE_SCOPE)) {
     await markGoogleSheetsRequiresReauth(connection);
     throw new GoogleSheetsAccessError(
       409,
       "GOOGLE_REAUTH_REQUIRED",
-      "Reconnect this Google Sheets account and approve the requested Sheets and Drive access.",
+      "Reconnect this Google Sheets account and approve Google Drive file access.",
     );
   }
   if (!credentials.refresh_token) {
