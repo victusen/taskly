@@ -15,7 +15,6 @@ import {
 import {
   authMiddleware,
 } from "../middleware/authMiddleware.js";
-import { planUsageMiddleware } from "../middleware/planUsageMiddleware.js";
 
 const router =
   express.Router();
@@ -23,27 +22,23 @@ const router =
 router.post(
   "/",
   authMiddleware,
-  planUsageMiddleware,
   createEmailConnection
 );
 
 router.get(
   "/", 
   authMiddleware, 
-  planUsageMiddleware,
   listEmailConnections);
 
 router.get(
   "/project/:projectId",
   authMiddleware,
-  planUsageMiddleware,
   getProjectEmailConnection
 );
 
 router.get(
   "/google/start",
   authMiddleware,
-  planUsageMiddleware,
   startGoogleOAuth
 );
 
@@ -55,7 +50,6 @@ router.get(
 router.delete(
   "/:id", 
   authMiddleware, 
-  planUsageMiddleware,
   deleteEmailConnection);
 
 export default router;

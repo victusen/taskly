@@ -12,14 +12,14 @@ const DATABASE_OPTIONS = [
     icon: new URL("../../icon-gsheet.png", import.meta.url).href,
   },
   {
-    id: "excel",
-    name: "Excel",
-    icon: new URL("../../icon-excel.png", import.meta.url).href,
-  },
-  {
     id: "supabase",
     name: "Supabase",
     icon: new URL("../../icon-supabase.png", import.meta.url).href,
+  },
+  {
+    id: "excel",
+    name: "Excel",
+    icon: new URL("../../icon-excel.png", import.meta.url).href,
   },
   {
     id: "firebase",
@@ -59,15 +59,17 @@ function injectStyles() {
     .cm-sub { font-size: 13px; line-height: 1.55; color: #4b5563; margin: 0 0 2px; }
     .cm-option { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; font: inherit; font-weight: 500; color: #111; text-align: left; cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease; }
     .cm-option:hover { border-color: #111; background: #fafafa; }
+    .cm-option.cm-db-option:hover { border-color: #16a34a; background: #f0fdf4; }
     .cm-option:disabled { opacity: 0.5; cursor: not-allowed; }
     .cm-option-icon { width: 22px; height: 22px; object-fit: contain; margin-left: auto; flex-shrink: 0; }
     .cm-project { margin: 4px 0 0; padding-top: 14px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; }
     .cm-database-backdrop .cm-card { max-height: calc(100vh - 32px); overflow-y: auto; }
-    .cm-db-option { min-height: 48px; }
+    .cm-database-card { max-width: 360px; padding: 20px; gap: 10px; }
+    .cm-db-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .cm-db-option { min-height: 68px; flex-direction: column; justify-content: center; gap: 5px; padding: 8px; border-radius: 7px; font-size: 12px; text-align: center; }
     .cm-db-icon { display: grid; place-items: center; flex: 0 0 24px; width: 24px; height: 24px; color: #16803c; }
     .cm-db-icon svg { width: 22px; height: 22px; }
     .cm-db-icon img { display: block; width: 24px; height: 24px; object-fit: contain; }
-    .cm-db-soon { margin-left: auto; color: #6b7280; font-size: 11px; font-weight: 500; white-space: nowrap; }
   `;
   document.head.appendChild(style);
 }
@@ -189,7 +191,7 @@ function ensureDatabaseMarkup() {
   databaseRoot.setAttribute("aria-modal", "true");
   databaseRoot.setAttribute("aria-labelledby", "cm-database-title");
   databaseRoot.innerHTML = `
-    <div class="cm-card">
+    <div class="cm-card cm-database-card">
       <div class="cm-head">
         <h3 class="cm-title" id="cm-database-title">Connect a database</h3>
         <button type="button" class="cm-close" data-db-close aria-label="Close">
@@ -197,13 +199,14 @@ function ensureDatabaseMarkup() {
         </button>
       </div>
       <p class="cm-sub">Choose a data source for this schedule.</p>
-      ${DATABASE_OPTIONS.map((option) => `
-        <button type="button" class="cm-option cm-db-option" data-db-choice="${option.id}">
-          <span class="cm-db-icon" aria-hidden="true"><img src="${option.icon}" alt=""></span>
-          <span>${option.name}</span>
-          ${option.id === "google-sheets" ? "" : '<span class="cm-db-soon">Coming soon</span>'}
-        </button>
-      `).join("")}
+      <div class="cm-db-grid">
+        ${DATABASE_OPTIONS.map((option) => `
+          <button type="button" class="cm-option cm-db-option" data-db-choice="${option.id}">
+            <span class="cm-db-icon" aria-hidden="true"><img src="${option.icon}" alt=""></span>
+            <span>${option.name}</span>
+          </button>
+        `).join("")}
+      </div>
     </div>
   `;
   document.body.appendChild(databaseRoot);

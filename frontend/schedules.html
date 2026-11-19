@@ -184,30 +184,21 @@
       transition: background 0.12s ease;
     }
     .header-dd-item:hover { background: #f3f4f6; color: #111827; }
-    .drop-down {
-      display: none;
-      position: absolute;
-      top: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 1000;
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      width: 220px;
-      white-space: nowrap;
+    .drop-wrap { position: relative; display: flex; }
+    .drop-arrow { height: 20px; cursor: pointer; }
+    .drop {
+      display: none; position: absolute; top: 34px; left: 0; width: 200px; z-index: 12;
+      border-radius: 4px; overflow: hidden; background: #fff;
+      border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    .drop-down.show { display: block; }
-    .taskly-projs {
-      padding: 10px 12px;
-      width: 100%;
-      display: flex; align-items: center; gap: 10px; 
+    .drop.show { display: block; }
+    .drop-upgrade {
+      width: 100%; padding: 10px 12px; display: flex; align-items: center; gap: 9px;
+      border: 0; border-radius: 0; background: #fff; color: #374151;
+      font: inherit; font-size: 13px; text-align: left; cursor: pointer;
     }
-    .taskly-projs:hover {
-      background-color: #e6f4ea;
-      color: green;
-    }
+    .drop-upgrade:hover { background: #f3f4f6; color: #111827; }
+    .drop-upgrade svg { width: 16px; height: 16px; }
 
     /* Asymmetric Desktop Layout Wrapper */
     .asymmetric-wrapper {
@@ -597,14 +588,14 @@
     }
 
     @media (max-width: 767px) {
-      html, body { background-color: #fff; }
-      header { position: static; }
+      html, body { background-color: #fff; overflow-y: auto; }
+      header { position: fixed; top: 0; }
       .banner-left { gap: 6px; }
       .asymmetric-wrapper {
         display: flex;
         flex-direction: column;
         width: 100%;
-        margin: 12px 0 2rem;
+        margin: 62px 0 2rem;
         padding: 0;
         min-height: calc(100vh - 74px);
       }
@@ -855,8 +846,10 @@
     .schedule-table th:nth-child(8) { width: 7%; }
     .schedule-table th:nth-child(9) { width: 8%; }
     .schedule-table th:nth-child(10) { width: 44px; }
-    .schedule-table tbody tr { cursor: pointer; }
+    .schedule-table tbody tr { cursor: default; }
     .schedule-name-cell { color: #111827; font-size: 14px; font-weight: 700; }
+    .schedule-name-button { display: inline; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+    .schedule-name-button:hover, .schedule-name-button:focus-visible { text-decoration: underline; text-decoration-color: #000; text-underline-offset: 3px; }
     .schedule-type-cell, .schedule-frequency-cell { color: #111827; font-weight: 700; }
     .schedule-date-time { display: flex; flex-direction: column; line-height: 1.35; }
     .schedule-date-time strong { color: #1f2937; font-size: 13px; font-weight: 650; }
@@ -874,16 +867,16 @@
     .schedule-menu-trigger svg { width: 18px; height: 18px; }
     .schedule-row-menu { position: absolute; z-index: 15; top: calc(100% + 4px); right: 0; min-width: 144px; padding: 4px; border: 1px solid #d1d5db; border-radius: 0; background: #fff; box-shadow: 0 8px 20px rgba(17,24,39,.12); }
     .schedule-row-menu[hidden] { display: none; }
-    .schedule-row-menu button { display: block; width: 100%; padding: 7px 9px; border: 0; border-radius: 0; background: transparent; color: #374151; font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+    .schedule-row-menu button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 9px; border: 0; border-radius: 0; background: transparent; color: #374151; font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
     .schedule-row-menu button:hover { background: #f3f4f6; }
     .schedule-row-menu button[data-delete-schedule] { color: #b91c1c; }
-    .schedule-row-menu button[data-sidebar-toggle] { margin-top: 4px; border-top: 1px solid #e5e7eb; }
+    .schedule-row-menu button svg { width: 14px; height: 14px; flex: 0 0 14px; }
     .schedule-mobile-list { display: none; }
-    .schedule-mobile-card { display: grid; grid-template-columns: 28px minmax(0,1fr) minmax(0,1.25fr); align-items: stretch; gap: 0 12px; min-width: 0; padding: 12px; border-bottom: 1px solid #e5e7eb; background: #fff; cursor: pointer; }
+    .schedule-mobile-card { display: grid; grid-template-columns: 28px minmax(0,1fr) minmax(0,1.25fr); align-items: stretch; gap: 0 12px; min-width: 0; padding: 12px; border-bottom: 1px solid #e5e7eb; background: #fff; }
     .schedule-mobile-card:last-child { border-bottom: 0; }
     .schedule-mobile-select { grid-column: 1; grid-row: 1 / span 2; display: flex; justify-content: center; align-items: flex-start; padding-top: 6px; }
     .schedule-mobile-header { grid-column: 2 / 4; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; min-width: 0; }
-    .schedule-mobile-title { min-width: 0; color: #111827; font-size: 16px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+    .schedule-mobile-title { display: block; min-width: 0; max-width: 100%; padding: 0; border: 0; background: transparent; color: #111827; font-size: 16px; font-weight: 700; line-height: 1.4; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
     .schedule-mobile-meta { grid-column: 2 / 4; display: grid; grid-template-columns: minmax(92px,.8fr) minmax(0,1.2fr); gap: 0; margin-top: 7px; }
     .schedule-mobile-field { display: contents; min-width: 0; }
     .schedule-mobile-label, .schedule-mobile-value { display: flex; align-items: center; min-width: 0; padding: 7px 4px; border-bottom: 1px solid #e5e7eb; }
@@ -896,27 +889,32 @@
     .schedule-mobile-meta .schedule-mobile-field:last-child > * { border-bottom: 0; }
     .schedule-detail-overlay { position: fixed; inset: 0; z-index: 4200; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(17,24,39,.52); }
     .schedule-detail-overlay.open { display: flex; }
-    .schedule-detail-card { width: min(660px,100%); max-height: min(760px,90vh); overflow: auto; border: 1px solid #e5e7eb; border-radius: 14px; background: #fff; box-shadow: 0 24px 70px rgba(0,0,0,.2); }
-    .schedule-detail-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 22px; border-bottom: 1px solid #e5e7eb; }
-    .schedule-detail-kicker { color: #6b7280; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-    .schedule-detail-title { margin-top: 3px; color: #111827; font-size: 20px; font-weight: 700; overflow-wrap: anywhere; }
+    .schedule-detail-card { width: min(580px,100%); max-height: min(760px,90vh); overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; box-shadow: 0 24px 70px rgba(0,0,0,.2); }
+    .schedule-detail-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 20px; border-bottom: 1px solid #e5e7eb; }
+    .schedule-detail-title { color: #111827; font-size: 20px; font-weight: 700; }
     .schedule-detail-close { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: #6b7280; cursor: pointer; }
     .schedule-detail-close:hover { background: #f3f4f6; color: #111827; }
-    .schedule-detail-body { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; padding: 20px 22px; }
-    .schedule-detail-item { min-width: 0; }
-    .schedule-detail-item.full { grid-column: 1/-1; }
-    .schedule-detail-label { margin-bottom: 4px; color: #6b7280; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-    .schedule-detail-value { color: #1f2937; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
-    .schedule-detail-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 22px; border-top: 1px solid #e5e7eb; }
-    .schedule-detail-footer button { padding: 8px 13px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #374151; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .schedule-detail-body { display: flex; flex-direction: column; padding: 4px 20px; }
+    .schedule-detail-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; min-width: 0; padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
+    .schedule-detail-item.full { grid-column: auto; }
+    .schedule-detail-label { flex: 0 0 32%; color: #374151; font-size: 13px; font-weight: 700; }
+    .schedule-detail-value { flex: 1 1 0; min-width: 0; color: #111827; font-size: 14px; font-weight: 600; line-height: 1.5; text-align: right; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .schedule-detail-status .badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 999px; color: #fff; font-size: 11px; font-weight: 650; line-height: 1.3; }
+    .schedule-detail-status .badge-green { background: #15803d; }
+    .schedule-detail-status .badge-warn { background: #b45309; }
+    .schedule-detail-status .badge-red { background: #b91c1c; }
+    .schedule-detail-status .badge-blue { background: #2563eb; }
+    .schedule-detail-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 20px; border-top: 1px solid #e5e7eb; }
+    .schedule-detail-footer button { padding: 9px 16px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #374151; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
     .schedule-detail-footer [data-detail-edit] { border-color: #111827; background: #111827; color: #fff; }
     @media (max-width: 767px) {
       .banner-left > img { height: 26px !important; }
-      .schedule-list-shell { flex: 1 0 320px; min-height: 320px; border: 1.5px solid #374151; border-radius: 12px; background: #fff; overflow: hidden; }
+      .schedule-mobile-title { text-decoration: underline; text-decoration-color: #000; text-underline-offset: 3px; }
+      .schedule-list-shell { flex: 1 0 320px; min-height: 320px; border: 1px solid #f3f4f6; border-radius: 12px; background: #fff; overflow: hidden; }
       .schedule-list-shell #job-rows { flex: 1 1 auto; min-height: 0; }
       .schedule-table-scroll { display: none; }
       .schedule-mobile-list { display: flex; flex-direction: column; }
-      .task-list-footer { min-height: 48px; margin-top: 0; padding: 5px 10px; border-radius: 10px; }
+      .task-list-footer { min-height: 48px; margin-top: 8px; padding: 5px 10px; border-radius: 10px; }
       .schedule-footer-add { font-size: 11px; }
       .page-current { display: none; }
       .page-mobile-current { display: inline; min-width: 42px; color: #111827; font-size: 12px; font-weight: 700; text-align: center; }
@@ -926,8 +924,8 @@
       .schedule-detail-overlay { padding: 12px; }
       .schedule-detail-card { max-height: 94vh; }
       .schedule-detail-header, .schedule-detail-body { padding-left: 16px; padding-right: 16px; }
-      .schedule-detail-body { grid-template-columns: 1fr; gap: 12px; }
-      .schedule-detail-footer { padding: 12px 16px; }
+      .schedule-detail-footer { padding: 8px 16px; }
+      .schedule-row-menu button[data-sidebar-toggle] { display: none; }
     }
     @media (min-width: 768px) and (max-width: 1050px) {
       .schedule-table th:nth-child(3), .schedule-table td:nth-child(3) { display: none; }
@@ -1157,21 +1155,15 @@
         <img src="logo-bz.png" alt="" style="height: 30px;">
         <p style="font-size: 20px; font-weight: 600;">Bzade.app</p>
       </a>
-      <div style="position: relative; display: flex;">
-        <img onclick="document.querySelector('.drop-down').classList.toggle('show');" src="drop-arrow.png" style="height: 20px; cursor: pointer;"/>
-        <div class="drop-down">
-          <div class="taskly-projs" onclick="window.location.href='dashboard.html'">
-            <img src="Check.png" style="height: 12px;">
-            <p style="font-size: 13px;">Overview</p>
-          </div>
-          <div class="taskly-projs" onclick="window.location.href='schedules.html'">
-            <img src="Check.png" style="height: 12px;">
-            <p style="font-size: 13px;">Schedules</p>
-          </div>
-          <div class="taskly-projs" onclick="window.location.href='smtp.html'">
-            <img src="Check.png" style="height: 12px;">
-            <p style="font-size: 13px;">Mail Connections</p>
-          </div>
+      <div class="drop-wrap">
+        <img id="drop-toggle" class="drop-arrow" src="drop-arrow.png" alt="Switch view" />
+        <div class="drop" id="drop">
+          <button type="button" class="drop-upgrade" data-upgrade>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/>
+            </svg>
+            <span>Upgrade to Paid</span>
+          </button>
         </div>
       </div>
     </div>
@@ -1191,11 +1183,11 @@
           </svg>
         </button>
         <div class="header-dropdown-menu" id="help-dropdown-menu">
-          <a href="documentation.html" class="header-dd-item">
+          <a href="/documentation" class="header-dd-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
             <span>Bzade Docs</span>
           </a>
-          <a href="documentation.html#api" class="header-dd-item">
+          <a href="/documentation#api" class="header-dd-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
             <span>API Reference</span>
           </a>
@@ -1234,7 +1226,7 @@
                 <span id="avatar-account-email"></span>
               </div>
             </div>
-            <a class="avatar-menu-action" href="./account/settings/" role="menuitem">Settings</a>
+            <a class="avatar-menu-action" href="/account/settings" role="menuitem">Settings</a>
             <button type="button" class="avatar-menu-action" id="avatar-theme-open" role="menuitem">
               <span>Theme</span><span aria-hidden="true">&gt;</span>
             </button>
@@ -1308,7 +1300,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span>Notifications</span>
         </a>
-        <a href="./account/settings/" class="nav-item">
+        <a href="/account/settings" class="nav-item">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           <span>Settings</span>
         </a>
@@ -1316,7 +1308,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
           <span>API keys</span>
         </a>
-        <a href="account/billing/" class="nav-item">
+        <a href="/account/billing" class="nav-item">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
           <span>Billing</span>
         </a>
@@ -2268,17 +2260,15 @@
   <div class="schedule-detail-overlay" id="schedule-detail-overlay" aria-hidden="true">
     <section class="schedule-detail-card" role="dialog" aria-modal="true" aria-labelledby="schedule-detail-title">
       <div class="schedule-detail-header">
-        <div>
-          <p class="schedule-detail-kicker">Schedule details</p>
-          <h2 class="schedule-detail-title" id="schedule-detail-title"></h2>
-        </div>
+        <h2 class="schedule-detail-title" id="schedule-detail-title">Edit schedule</h2>
         <button type="button" class="schedule-detail-close" data-detail-close aria-label="Close schedule details">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg>
         </button>
       </div>
       <div class="schedule-detail-body">
+        <div class="schedule-detail-item"><p class="schedule-detail-label">Schedule</p><p class="schedule-detail-value" id="schedule-detail-name"></p></div>
         <div class="schedule-detail-item"><p class="schedule-detail-label">Type</p><p class="schedule-detail-value" id="schedule-detail-type"></p></div>
-        <div class="schedule-detail-item"><p class="schedule-detail-label">Status</p><p class="schedule-detail-value" id="schedule-detail-status"></p></div>
+        <div class="schedule-detail-item"><p class="schedule-detail-label">Status</p><p class="schedule-detail-value schedule-detail-status" id="schedule-detail-status"></p></div>
         <div class="schedule-detail-item"><p class="schedule-detail-label">Created at</p><p class="schedule-detail-value" id="schedule-detail-created"></p></div>
         <div class="schedule-detail-item"><p class="schedule-detail-label">Frequency</p><p class="schedule-detail-value" id="schedule-detail-frequency"></p></div>
         <div class="schedule-detail-item"><p class="schedule-detail-label">Next run</p><p class="schedule-detail-value" id="schedule-detail-next"></p></div>
@@ -2321,6 +2311,7 @@
       </div>
       
       <div class="payment-modal-body">
+        <p class="payment-modal-note">Choose a plan; we handle payment securely using <strong>Paystack</strong>.</p>
         <div class="plan-options" id="plan-options">
           <!-- Options will be shown via JS -->
         </div>
@@ -2330,6 +2321,7 @@
           <div class="pricing-info" id="pricing-info"></div>
           <div class="billing-cycle" id="billing-cycle" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
             <span>Billing cycle: <span id="billing-cycle-text">Monthly</span></span>
+            <span>Starts today: <span id="start-date-text"></span></span>
           </div>
           <div class="end-date" id="end-date" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb; display: none;">
             <span>If paid today, this plan will end on <span id="end-date-text">Calculating...</span></span>
@@ -2339,7 +2331,7 @@
       
       <div class="payment-modal-footer">
         <button type="button" class="payment-cancel-btn" id="payment-cancel">Cancel</button>
-        <button type="button" class="payment-submit-btn" id="payment-subscribe">Subscribe</button>
+        <button type="button" class="payment-submit-btn" id="payment-subscribe" disabled>Start payment</button>
       </div>
     </div>
   </div></body>

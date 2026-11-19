@@ -364,29 +364,41 @@ export async function loadSchedules(projectId, options = {}) {
   };
 }
 
-/* action: "pause", "resume" or "remove". Returns how many of the ids failed. */
+/* action: "pause", "resume" or "remove". */
 export async function changeStatus(action, ids) {
   if (USE_MOCK) {
     await delay(600);
     const store = schedulesStore();
+    const updated = [];
 
     for (const key of Object.keys(store)) {
       store[key] = store[key].flatMap((row) => {
         if (!ids.includes(row.id)) return [row];
-        if (action === "remove") return [];
+        if (action === "remove") {
+          updated.push({ ...row, status: "cancelled", next_run_at: null, updated_at: new Date().toISOString() });
+          return [];
+        }
         if (action === "pause" && row.status === "active") {
-          return [{ ...row, status: "paused", next_run_at: null, updated_at: new Date().toISOString() }];
+          const paused = { ...row, status: "paused", next_run_at: null, updated_at: new Date().toISOString() };
+          updated.push(paused);
+          return [paused];
         }
         if (action === "resume" && row.status === "paused") {
-          return [{ ...row, status: "active", next_run_at: new Date(Date.now() + HOUR).toISOString(), updated_at: new Date().toISOString() }];
+          const resumed = { ...row, status: "active", next_run_at: new Date(Date.now() + HOUR).toISOString(), updated_at: new Date().toISOString() };
+          updated.push(resumed);
+          return [resumed];
         }
         return [row];
       });
     }
-    return 0;
+    return { failedCount: 0, updated };
   }
 
   const call = { pause: pauseSchedule, resume: resumeSchedule, remove: cancelSchedule }[action];
   const results = await Promise.allSettled(ids.map((id) => call(id)));
-  return results.filter((result) => result.status === "rejected").length;
+  const successful = results.filter((result) => result.status === "fulfilled");
+  return {
+    failedCount: results.length - successful.length,
+    updated: successful.map((result) => result.value?.data ?? result.value),
+  };
 }

@@ -14,9 +14,7 @@ export function initInviteModal(options = {}) {
     };
   }
 
-  // Determine relative path to documentation.html
-  const isSubdir = window.location.pathname.includes("/account/") || window.location.pathname.includes("/job/");
-  const docsUrl = isSubdir ? "../documentation.html#team" : "documentation.html#team";
+  const docsUrl = "/documentation#team";
 
   // Create Styles
   const style = document.createElement("style");
@@ -259,7 +257,7 @@ export function initInviteModal(options = {}) {
     <aside class="invite-drawer" id="invite-drawer">
       <div class="invite-drawer-header">
         <div>
-          <h3 class="invite-drawer-title" id="invite-drawer-title">Invite a Member /Collaborator</h3>
+          <h3 class="invite-drawer-title" id="invite-drawer-title">Invite a Team Member</h3>
           <p class="invite-drawer-sub">Collaborate on email schedules, review dispatches, or manage mail connections together.</p>
         </div>
         <button type="button" class="invite-close-btn" id="invite-drawer-close" aria-label="Close invite modal">

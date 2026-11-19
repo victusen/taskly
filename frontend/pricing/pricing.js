@@ -86,7 +86,7 @@ document.querySelectorAll(".pricing-card").forEach((card) => {
 
 document.addEventListener("click", async (event) => {
   const link = event.target.closest(
-    'a[href*="dashboard.html"], a[href*="schedules.html"], a[href*="billing.html"], a[href*="account/billing/"], a[href*="smtp.html"]',
+    'a[href*="dashboard.html"], a[href*="schedules.html"], a[href*="billing.html"], a[href*="account/billing"], a[href*="smtp.html"]',
   );
   if (!link) return;
 

@@ -11,11 +11,11 @@ import { authenticatedFetch } from "./scripts/auth/api.js";
 
 // Stub navigations for Audiences and Team members (real pages come later)
 window.bzShowAudiences = () => showToast("info", "Audiences are coming soon. Track subscriber segments here.");
-window.bzShowTeam = () => showToast("info", "Team members are coming soon. Invite collaborators to your projects.");
+window.bzShowTeam = () => showToast("info", "Coming soon. Invite collaborators to your projects.");
 
 const NAV_TOAST_MESSAGES = {
   notifications: "Coming soon.",
-  "api-keys": "API keys are coming soon. You will be able to create API projects soon.",
+  "api-keys": "You will be able to create API project soon.",
 };
 
 document.addEventListener("click", (event) => {
@@ -85,6 +85,10 @@ async function updateUpgradeLink() {
 }
 
 void updateUpgradeLink();
+document.getElementById("free-plan-banner-dismiss")?.addEventListener("click", () => {
+  const banner = document.getElementById("free-plan-banner");
+  if (banner) banner.hidden = true;
+});
 
 // Initialize right-side team member invite drawer modal
 const inviteModal = initInviteModal();

@@ -40,6 +40,8 @@ function addPaymentModalStyles() {
     .pricing-info .price{font-size:32px;font-weight:700;color:#111827}
     .pricing-info .currency,.pricing-info .period{font-size:13px;color:#6b7280}
     .billing-cycle,.end-date{margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:13px;color:#6b7280}
+    .billing-cycle{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+    .billing-cycle-item{min-width:0}
     .end-date{margin-top:12px;padding-top:12px;line-height:1.5}
     .payment-modal-footer{padding:16px 28px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:12px}
     .payment-cancel-btn,.payment-submit-btn{padding:8px 24px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer}
@@ -48,6 +50,7 @@ function addPaymentModalStyles() {
     .payment-submit-btn{border:0;background:#16a34a;color:#fff;font-weight:600}
     .payment-submit-btn:hover{background:#15803d}
     .payment-submit-btn:disabled{opacity:.6;cursor:wait}
+    .payment-submit-btn:disabled:not(.has-selection){background:#d1d5db;color:#6b7280;opacity:1;cursor:not-allowed}
     .payment-login-backdrop{display:none;position:fixed;inset:0;z-index:4100;align-items:center;justify-content:center;padding:16px;background:rgba(17,24,39,.52)}
     .payment-login-backdrop.open{display:flex}
     .payment-login-card{width:min(380px,100%);padding:30px 26px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;box-shadow:0 20px 55px rgba(0,0,0,.2);text-align:center}
@@ -75,12 +78,15 @@ function createPaymentModal() {
         </button>
       </div>
       <div class="payment-modal-body">
-        <p class="payment-modal-note">Choose a plan, then pay securely with Paystack and select an available payment method.</p>
+        <p class="payment-modal-note">Choose a plan; we handle payment securely using <strong>Paystack</strong>.</p>
         <div class="plan-options" id="plan-options"></div>
         <div class="payment-details" id="payment-details" hidden>
           <div class="plan-type" id="plan-type"></div>
           <div class="pricing-info" id="pricing-info"></div>
-          <div class="billing-cycle">Billing cycle: <span id="billing-cycle-text"></span><br>Starts today: <span id="start-date-text"></span></div>
+          <div class="billing-cycle">
+            <span class="billing-cycle-item">Billing cycle: <span id="billing-cycle-text"></span></span>
+            <span class="billing-cycle-item">Starts today: <span id="start-date-text"></span></span>
+          </div>
           <div class="end-date" id="end-date" hidden>Ends on <span id="end-date-text"></span>.</div>
         </div>
       </div>
@@ -107,7 +113,7 @@ export function initPaymentModal() {
   if (!modal.querySelector(".payment-modal-note")) {
     const note = document.createElement("p");
     note.className = "payment-modal-note";
-    note.textContent = "Choose a plan, then pay securely with Paystack and select an available payment method.";
+    note.innerHTML = "Choose a plan; we handle payment securely using <strong>Paystack</strong>.";
     modal.querySelector(".payment-modal-body")?.prepend(note);
   }
   const options = modal.querySelector("#plan-options");
@@ -182,6 +188,8 @@ export function initPaymentModal() {
     details.style.display = "block";
     endDate.hidden = false;
     endDate.style.display = "block";
+    submitButton.classList.add("has-selection");
+    submitButton.textContent = "Pay for plan";
     submitButton.disabled = false;
   }
 
@@ -192,6 +200,8 @@ export function initPaymentModal() {
     endDate.hidden = true;
     endDate.style.display = "none";
     submitButton.disabled = true;
+    submitButton.classList.remove("has-selection");
+    submitButton.textContent = "Start payment";
     selectedPlan = null;
 
     PLANS.forEach((plan) => {
@@ -208,7 +218,7 @@ export function initPaymentModal() {
       `;
       card.querySelector(".plan-name").textContent = plan.name;
       card.querySelector(".plan-desc").textContent = plan.period === "monthly" ? "Billed monthly" : "Billed yearly";
-      card.querySelector(".plan-price").textContent = `₦${plan.amount.toLocaleString("en-NG")} / per ${plan.period === "monthly" ? "month" : "year"}`;
+      card.querySelector(".plan-price").textContent = `₦${plan.amount.toLocaleString("en-NG")}${plan.period === "monthly" ? " /month" : " / per year"}`;
       card.addEventListener("click", () => selectPlan(plan, card));
       options.append(card);
     });

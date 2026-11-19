@@ -48,7 +48,7 @@ function createMenu() {
           <span id="avatar-account-email"></span>
         </div>
       </div>
-      <a class="avatar-menu-action" href="/account/settings/" role="menuitem">Settings</a>
+      <a class="avatar-menu-action" href="/account/settings" role="menuitem">Settings</a>
       <button type="button" class="avatar-menu-action" id="avatar-theme-open" role="menuitem"><span>Theme</span><span aria-hidden="true">&gt;</span></button>
       <button type="button" class="avatar-menu-action" id="avatar-invite" role="menuitem">Invite someone</button>
       <button type="button" class="avatar-menu-action" id="avatar-sign-out" role="menuitem">Sign out</button>

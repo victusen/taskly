@@ -29,6 +29,9 @@ const PROJECT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-
 const urlParams = new URLSearchParams(window.location.search);
 const rawProjectId = urlParams.get("project");
 const projectId = rawProjectId && PROJECT_ID_PATTERN.test(rawProjectId) ? rawProjectId : null;
+const SCHEDULE_CACHE_TTL_MS = 5 * 60 * 1000;
+const SCHEDULE_FETCH_PAGE_SIZE = 50;
+const navigationEntry = window.performance?.getEntriesByType?.("navigation")?.[0];
 
 if (!projectId) {
   window.location.replace("dashboard.html");
@@ -37,6 +40,9 @@ if (!projectId) {
 
 let currentProject = null;
 let isFetchingSchedules = false;
+let forceScheduleRefreshOnInit = navigationEntry?.type === "reload";
+let reloadAfterCurrentFetchForce = false;
+const scheduleMemoryCache = new Map();
 
 // DOM references
 const taskList = document.getElementById("task-list");
@@ -82,7 +88,7 @@ let currentFilter = "all";
 let currentChannel = "emails";
 let schedules = [];
 let currentPage = 1;
-let pageSize = window.matchMedia("(max-width: 767px)").matches ? 1 : 5;
+let pageSize = window.matchMedia("(max-width: 767px)").matches ? 1 : 4;
 let totalSchedules = 0;
 let hasMoreSchedules = false;
 let reloadAfterCurrentFetch = false;
@@ -99,6 +105,13 @@ if (mailAccountBtn) mailAccountBtn.disabled = true;
 // Helper functions
 const esc = (value) =>
   String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+
+const scheduleMenuIcons = {
+  edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14"/><path d="M16 5v14"/></svg>',
+  resume: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 5 12 7-12 7z"/></svg>',
+  delete: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>',
+};
 
 const formatDateTime = (iso) =>
   iso ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso)) : "None";
@@ -706,12 +719,13 @@ function renderRows() {
       const nextRun = formatScheduleDateTime(row.next_run_at);
       const lastRun = formatScheduleDateTime(row.last_run_at);
       const statusAction = row.status === "active" ? "Pause" : row.status === "paused" ? "Resume" : "";
+      const statusActionIcon = statusAction === "Pause" ? scheduleMenuIcons.pause : scheduleMenuIcons.resume;
       const canEditSchedule = row.status === "active" || row.status === "paused";
       const canDeleteSchedule = ["active", "paused", "failed"].includes(row.status);
       return `
-        <tr data-id="${esc(row.id)}" data-schedule='${esc(JSON.stringify(row))}' tabindex="0" aria-label="View schedule ${esc(name)}">
+        <tr data-id="${esc(row.id)}" data-schedule='${esc(JSON.stringify(row))}'>
           <td class="schedule-select-cell"><input type="checkbox" aria-label="Select ${esc(name)}"></td>
-          <td class="schedule-name-cell" title="${esc(name)}">${esc(name)}</td>
+          <td class="schedule-name-cell" title="${esc(name)}"><button type="button" class="schedule-name-button" data-view-schedule>${esc(name)}</button></td>
           <td class="schedule-type-cell">${esc(type)}</td>
           <td class="schedule-frequency-cell">${esc(frequency)}</td>
           <td><div class="schedule-date-time"><strong>${esc(createdAt.split(" · ")[0])}</strong><span>${esc(createdAt.split(" · ")[1] || "")}</span></div></td>
@@ -725,10 +739,10 @@ function renderRows() {
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
               </button>
               <div class="schedule-row-menu" hidden>
-                ${canEditSchedule ? `<button type="button" data-edit="${esc(row.id)}">Edit</button>` : ""}
-                ${statusAction ? `<button type="button" data-schedule-action="${statusAction.toLowerCase()}" data-id="${esc(row.id)}">${statusAction}</button>` : ""}
-                ${canDeleteSchedule ? `<button type="button" data-delete-schedule="${esc(row.id)}">Delete</button>` : ""}
                 <button type="button" data-sidebar-toggle aria-pressed="false">Expand</button>
+                ${canEditSchedule ? `<button type="button" data-edit="${esc(row.id)}">${scheduleMenuIcons.edit}<span>Edit</span></button>` : ""}
+                ${statusAction ? `<button type="button" data-schedule-action="${statusAction.toLowerCase()}" data-id="${esc(row.id)}">${statusActionIcon}<span>${statusAction}</span></button>` : ""}
+                ${canDeleteSchedule ? `<button type="button" data-delete-schedule="${esc(row.id)}">${scheduleMenuIcons.delete}<span>Delete</span></button>` : ""}
               </div>
             </div>
           </td>
@@ -743,25 +757,26 @@ function renderRows() {
       const nextRun = formatScheduleDateTime(row.next_run_at).split(" · ");
       const lastRun = formatScheduleDateTime(row.last_run_at).split(" · ");
       const statusAction = row.status === "active" ? "Pause" : row.status === "paused" ? "Resume" : "";
+      const statusActionIcon = statusAction === "Pause" ? scheduleMenuIcons.pause : scheduleMenuIcons.resume;
       const canEditSchedule = row.status === "active" || row.status === "paused";
       const canDeleteSchedule = ["active", "paused", "failed"].includes(row.status);
       const dateValue = (parts) => `<span class="schedule-mobile-date"><strong>${esc(parts[0] || "—")}</strong><span>${esc(parts[1] || "")}</span></span>`;
       return `
-        <article class="schedule-mobile-card" data-schedule='${esc(JSON.stringify(row))}' tabindex="0" aria-label="View schedule ${esc(name)}">
+        <article class="schedule-mobile-card" data-schedule='${esc(JSON.stringify(row))}'>
           <label class="schedule-select-cell schedule-mobile-select" aria-label="Select ${esc(name)}">
-            <input type="checkbox" aria-label="Select ${esc(name)}">
+            <input type="checkbox" aria-label="Open actions for ${esc(name)}">
           </label>
           <div class="schedule-mobile-header">
-            <h3 class="schedule-mobile-title">${esc(name)}</h3>
+            <button type="button" class="schedule-mobile-title schedule-name-button" data-view-schedule>${esc(name)}</button>
             <div class="schedule-row-actions">
               <button type="button" class="schedule-menu-trigger" aria-label="Schedule actions" aria-expanded="false">
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
               </button>
               <div class="schedule-row-menu" hidden>
-                ${canEditSchedule ? `<button type="button" data-edit="${esc(row.id)}">Edit</button>` : ""}
-                ${statusAction ? `<button type="button" data-schedule-action="${statusAction.toLowerCase()}" data-id="${esc(row.id)}">${statusAction}</button>` : ""}
-                ${canDeleteSchedule ? `<button type="button" data-delete-schedule="${esc(row.id)}">Delete</button>` : ""}
                 <button type="button" data-sidebar-toggle aria-pressed="false">Expand</button>
+                ${canEditSchedule ? `<button type="button" data-edit="${esc(row.id)}">${scheduleMenuIcons.edit}<span>Edit</span></button>` : ""}
+                ${statusAction ? `<button type="button" data-schedule-action="${statusAction.toLowerCase()}" data-id="${esc(row.id)}">${statusActionIcon}<span>${statusAction}</span></button>` : ""}
+                ${canDeleteSchedule ? `<button type="button" data-delete-schedule="${esc(row.id)}">${scheduleMenuIcons.delete}<span>Delete</span></button>` : ""}
               </div>
             </div>
           </div>
@@ -795,17 +810,151 @@ function renderRows() {
   }
 }
 
-/**
- * Loads schedules from data source once per page load.
- * Guarded against concurrent runs with an 8-second request timeout,
- * and guaranteed to end loading in a finally block.
- */
+function scheduleCacheKey(jobType) {
+  return `bzade:schedules:${projectId}:${jobType}`;
+}
 
-async function loadRows(filter = currentFilter) {
+function readScheduleCache(jobType) {
+  const key = scheduleCacheKey(jobType);
+  let cached = scheduleMemoryCache.get(key) || null;
+
+  if (!cached) {
+    try {
+      cached = JSON.parse(sessionStorage.getItem(key) || "null");
+    } catch (error) {
+      console.warn("Could not read the schedule cache:", error);
+      return null;
+    }
+  }
+
+  if (
+    !cached ||
+    !Array.isArray(cached.items) ||
+    !Number.isFinite(cached.cachedAt) ||
+    Date.now() - cached.cachedAt >= SCHEDULE_CACHE_TTL_MS
+  ) {
+    scheduleMemoryCache.delete(key);
+    try {
+      sessionStorage.removeItem(key);
+    } catch (error) {
+      console.warn("Could not clear the expired schedule cache:", error);
+    }
+    return null;
+  }
+
+  scheduleMemoryCache.set(key, cached);
+  return cached;
+}
+
+function writeScheduleCache(jobType, items, cachedAt = Date.now()) {
+  const key = scheduleCacheKey(jobType);
+  const cached = { cachedAt, items };
+  scheduleMemoryCache.set(key, cached);
+  try {
+    sessionStorage.setItem(key, JSON.stringify(cached));
+  } catch (error) {
+    console.warn("Could not persist the schedule cache for this tab:", error);
+  }
+}
+
+function invalidateScheduleCache(jobType = null) {
+  const jobTypes = jobType ? [jobType] : ["email", "payload"];
+  for (const type of jobTypes) {
+    const key = scheduleCacheKey(type);
+    scheduleMemoryCache.delete(key);
+    try {
+      sessionStorage.removeItem(key);
+    } catch (error) {
+      console.warn("Could not invalidate the schedule cache:", error);
+    }
+  }
+}
+
+function updateScheduleCache(updatedRows) {
+  const rows = Array.isArray(updatedRows) ? updatedRows : [updatedRows];
+  for (const row of rows) {
+    if (!row?.id) continue;
+    const jobType = row.job_type === "payload" ? "payload" : "email";
+    const cached = readScheduleCache(jobType);
+    if (!cached) continue;
+
+    const updatedItems = cached.items.map((item) =>
+      item.id === row.id ? { ...item, ...row } : item,
+    );
+    writeScheduleCache(jobType, updatedItems, cached.cachedAt);
+  }
+}
+
+async function fetchAllSchedules(jobType) {
+  const items = [];
+  let page = 1;
+
+  while (true) {
+    const result = await loadSchedules(projectId, {
+      page,
+      pageSize: SCHEDULE_FETCH_PAGE_SIZE,
+      filter: "all",
+      jobType,
+    });
+    if (Array.isArray(result)) return result;
+    if (!result || !Array.isArray(result.items)) {
+      throw new Error("The schedules response was not in the expected format.");
+    }
+
+    items.push(...result.items);
+    if (!result.hasMore) return items;
+    if (result.items.length === 0) {
+      throw new Error("The schedules response indicated more results but returned none.");
+    }
+    page += 1;
+  }
+}
+
+function prefetchOtherChannelSchedules(jobType) {
+  const otherJobType = jobType === "payload" ? "email" : "payload";
+  if (readScheduleCache(otherJobType)) return;
+  fetchAllSchedules(otherJobType)
+    .then((items) => writeScheduleCache(otherJobType, items))
+    .catch((error) => console.warn(`Could not prefetch ${otherJobType} schedules:`, error));
+}
+
+function renderCachedSchedules(allSchedules, filter = currentFilter) {
+  const filtered = allSchedules.filter((schedule) => {
+    if (schedule.status === "cancelled") return false;
+    if (filter === "running") return schedule.status === "active";
+    if (filter === "new") return Number(schedule.run_count || 0) === 0;
+    if (filter === "paused") return schedule.status === "paused";
+    return true;
+  });
+  totalSchedules = filtered.length;
+  const lastPage = Math.max(1, Math.ceil(totalSchedules / pageSize));
+  currentPage = Math.min(currentPage, lastPage);
+  const start = (currentPage - 1) * pageSize;
+  schedules = filtered.slice(start, start + pageSize);
+  hasMoreSchedules = start + schedules.length < totalSchedules;
+  renderRows();
+}
+
+/**
+ * Reuses schedule data for five minutes; explicit refreshes and successful
+ * schedule creation bypass the cache.
+ */
+async function loadRows(filter = currentFilter, { forceRefresh = false } = {}) {
   if (isFetchingSchedules) {
     reloadAfterCurrentFetch = true;
+    reloadAfterCurrentFetchForce ||= forceRefresh;
     return;
   }
+
+  const jobType = currentChannel === "payload" ? "payload" : "email";
+  const shouldForceRefresh = forceRefresh || forceScheduleRefreshOnInit;
+  const cached = shouldForceRefresh ? null : readScheduleCache(jobType);
+  if (cached) {
+    setLoading(false);
+    renderCachedSchedules(cached.items, filter);
+    return;
+  }
+
   isFetchingSchedules = true;
   const startedAt = Date.now();
   setLoading(true);
@@ -813,23 +962,19 @@ async function loadRows(filter = currentFilter) {
   const TIMEOUT_MS = 6000;
   const MIN_LOADER_MS = 700;
   let fetchError = null;
+  let fetchedItems = null;
   let timer = null;
 
   try {
-    const result = await Promise.race([
-      loadSchedules(projectId, {
-        page: currentPage,
-        pageSize,
-        filter,
-        jobType: currentChannel === "payload" ? "payload" : "email",
-      }),
+    fetchedItems = await Promise.race([
+      fetchAllSchedules(jobType),
       new Promise((_, reject) => {
         timer = setTimeout(() => reject(new Error("timeout")), TIMEOUT_MS);
       }),
     ]);
-    schedules = Array.isArray(result) ? result : (result?.items || []);
-    totalSchedules = Number(result?.total || schedules.length);
-    hasMoreSchedules = Boolean(result?.hasMore);
+    writeScheduleCache(jobType, fetchedItems);
+    forceScheduleRefreshOnInit = false;
+    prefetchOtherChannelSchedules(jobType);
   } catch (err) {
     fetchError = err;
     schedules = [];
@@ -851,17 +996,19 @@ async function loadRows(filter = currentFilter) {
         ? "Loading schedules timed out. Check your connection and try again."
         : fetchError.message);
     } else {
-      renderRows();
+      renderCachedSchedules(fetchedItems, filter);
     }
     if (reloadAfterCurrentFetch) {
+      const forceQueuedRefresh = reloadAfterCurrentFetchForce;
       reloadAfterCurrentFetch = false;
-      await loadRows(currentFilter);
+      reloadAfterCurrentFetchForce = false;
+      await loadRows(currentFilter, { forceRefresh: forceQueuedRefresh });
     }
   }
 }
 
 retryBtn?.addEventListener("click", () => {
-  loadRows(currentFilter);
+  loadRows(currentFilter, { forceRefresh: true });
 });
 
 mailAccountBtn?.addEventListener("click", () => {
@@ -881,6 +1028,18 @@ mailAccountBtn?.addEventListener("click", () => {
 
 const sidebar = document.getElementById("left-sidebar");
 const sidebarCollapseButton = document.getElementById("sidebar-collapse-btn");
+const viewMenuToggle = document.getElementById("drop-toggle");
+const viewMenu = document.getElementById("drop");
+
+viewMenuToggle?.addEventListener("click", () => {
+  viewMenu?.classList.toggle("show");
+});
+viewMenu?.querySelector("[data-upgrade]")?.addEventListener("click", () => {
+  viewMenu.classList.remove("show");
+});
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".drop-wrap")) viewMenu?.classList.remove("show");
+});
 
 function closeScheduleMenus() {
   jobRows?.querySelectorAll(".schedule-row-menu").forEach((menu) => {
@@ -1114,9 +1273,10 @@ function openScheduleDetails(rowElement) {
   const recipients = Array.isArray(config.recipients) ? config.recipients.join(", ") : "";
   const parser = new DOMParser();
   const message = parser.parseFromString(String(config.body || ""), "text/html").body.textContent.trim();
-  value("schedule-detail-title", schedule.name || config.subject || "Untitled task");
+  value("schedule-detail-name", schedule.name || config.subject || "Untitled task");
   value("schedule-detail-type", schedule.job_type || "email");
-  value("schedule-detail-status", schedule.status);
+  const statusNode = document.getElementById("schedule-detail-status");
+  if (statusNode) statusNode.innerHTML = statusBadge(schedule.status);
   value("schedule-detail-created", formatScheduleDateTime(schedule.created_at));
   value("schedule-detail-frequency", getScheduleFrequency(schedule));
   value("schedule-detail-next", formatScheduleDateTime(schedule.next_run_at));
@@ -1157,6 +1317,21 @@ scheduleDetailOverlay?.addEventListener("click", (event) => {
 });
 
 jobRows?.addEventListener("click", async (event) => {
+  const mobileCheckbox = event.target.closest(".schedule-mobile-select input");
+  if (mobileCheckbox) {
+    event.preventDefault();
+    mobileCheckbox.closest(".schedule-mobile-card")?.querySelector(".schedule-menu-trigger")?.click();
+    event.stopPropagation();
+    return;
+  }
+
+  const detailButton = event.target.closest("[data-view-schedule]");
+  if (detailButton) {
+    const row = detailButton.closest("[data-schedule]");
+    if (row) openScheduleDetails(row);
+    return;
+  }
+
   const menuTrigger = event.target.closest(".schedule-menu-trigger");
   if (menuTrigger) {
     const menu = menuTrigger.parentElement.querySelector(".schedule-row-menu");
@@ -1201,8 +1376,9 @@ jobRows?.addEventListener("click", async (event) => {
     if (!id || !window.confirm("Delete this schedule? This cannot be undone.")) return;
     deleteButton.disabled = true;
     try {
-      const failed = await changeStatus("remove", [id]);
-      if (failed) throw new Error("Could not delete this schedule.");
+      const result = await changeStatus("remove", [id]);
+      if (result.failedCount) throw new Error("Could not delete this schedule.");
+      updateScheduleCache(result.updated);
       showToast("success", "Schedule deleted.");
       await loadRows(currentFilter);
     } catch (error) {
@@ -1219,8 +1395,9 @@ jobRows?.addEventListener("click", async (event) => {
     if (!["pause", "resume"].includes(action) || !id) return;
     actionButton.disabled = true;
     try {
-      const failed = await changeStatus(action, [id]);
-      if (failed) throw new Error(`Could not ${action} this schedule.`);
+      const result = await changeStatus(action, [id]);
+      if (result.failedCount) throw new Error(`Could not ${action} this schedule.`);
+      updateScheduleCache(result.updated);
       showToast("success", `Schedule ${action === "pause" ? "paused" : "resumed"}.`);
       await loadRows(currentFilter);
     } catch (error) {
@@ -1230,18 +1407,6 @@ jobRows?.addEventListener("click", async (event) => {
     return;
   }
 
-  if (event.target.closest("button, input, a")) return;
-  const row = event.target.closest("[data-schedule]");
-  if (row) openScheduleDetails(row);
-});
-
-jobRows?.addEventListener("keydown", (event) => {
-  if (event.key !== "Enter" && event.key !== " ") return;
-  if (event.target.closest("button, input")) return;
-  const row = event.target.closest("[data-schedule]");
-  if (!row) return;
-  event.preventDefault();
-  openScheduleDetails(row);
 });
 
 document.addEventListener("click", (event) => {
@@ -1258,7 +1423,7 @@ footerAddScheduleBtn?.addEventListener("click", () => {
 });
 
 window.addEventListener("resize", () => {
-  const nextPageSize = window.matchMedia("(max-width: 767px)").matches ? 1 : 5;
+  const nextPageSize = window.matchMedia("(max-width: 767px)").matches ? 1 : 4;
   if (nextPageSize === pageSize) return;
   pageSize = nextPageSize;
   currentPage = 1;
@@ -1393,6 +1558,7 @@ try {
 // Sign out buttons in the cloned sidebar/drawer
 document.querySelectorAll("[data-logout]").forEach((button) => {
   button.addEventListener("click", async () => {
+    invalidateScheduleCache();
     try {
       await signOut();
     } catch (err) {
@@ -1485,6 +1651,7 @@ scheduleForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   closeScheduleModal();
   setLoading(true);
+  let created = false;
 
   try {
     const form = new FormData(scheduleForm);
@@ -1512,12 +1679,18 @@ scheduleForm?.addEventListener("submit", async (event) => {
     };
 
     await addSchedule(payload);
+    created = true;
     currentPage = 1;
     showToast("success", "Schedule created successfully.");
   } catch (err) {
     toastError(err.message || "Unable to create schedule.");
   } finally {
-    await loadRows();
+    if (created) {
+      invalidateScheduleCache();
+      await loadRows(currentFilter, { forceRefresh: true });
+    } else {
+      await loadRows();
+    }
   }
 });
 
@@ -1561,6 +1734,7 @@ window.bzComposer.refreshSender = refreshSenderField;
 window.bzComposer.onSubmit = async (draft) => {
   setLoading(true);
   let saved = false;
+  let created = false;
   let succeeded = false;
   try {
     const sender = await senderFor(draft);
@@ -1574,6 +1748,7 @@ window.bzComposer.onSubmit = async (draft) => {
     } else {
       await addSchedule(payload);
       saved = true;
+      created = true;
     }
     succeeded = true;
   } catch (err) {
@@ -1581,9 +1756,13 @@ window.bzComposer.onSubmit = async (draft) => {
     toastError(err.message || "Could not save task.");
     throw err;
   } finally {
-    // Always re-fetch from server with loader — so the UI reflects real DB state
-    if (saved) currentPage = 1;
-    await loadRows();
+    if (created) {
+      currentPage = 1;
+      invalidateScheduleCache();
+      await loadRows(currentFilter, { forceRefresh: true });
+    } else {
+      await loadRows();
+    }
     if (succeeded && typeof window.bzShowSuccess === "function") {
       window.bzShowSuccess();
     }
@@ -1593,15 +1772,19 @@ window.bzComposer.onSubmit = async (draft) => {
 window.bzComposer.onUpdate = async (id, draft) => {
   setLoading(true);
   let saved = false;
+  let updatedSchedule = null;
   try {
     const sender = await senderFor(draft);
-    await updateSchedule(id, payloadFor(draft, sender));
+    updatedSchedule = await updateSchedule(id, payloadFor(draft, sender));
     saved = true;
   } catch (err) {
     toastError(err.message || "Could not update task.");
     throw err;
   } finally {
-    if (saved) currentPage = 1;
+    if (saved) {
+      currentPage = 1;
+      updateScheduleCache(updatedSchedule);
+    }
     await loadRows();
     if (saved && typeof window.bzShowSuccess === "function") {
       window.bzShowSuccess();

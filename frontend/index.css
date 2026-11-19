@@ -75,9 +75,9 @@ a {
 .smartindex-bar {
   position: relative;
   width: 100%;
-  background-color: #ffffff;
+  background-color: #f3f4f6;
   border-bottom: 1px solid #ededed;
-  padding: 8px 56px;
+  padding: 3px 56px;
   display: flex;
   justify-content: flex-start;
   align-items: center;
@@ -1466,7 +1466,7 @@ a {
 /* 11. Responsive Media Queries */
 @media (max-width: 1024px) {
   .smartindex-bar {
-    padding: 8px 32px;
+    padding: 3px 32px;
   }
   .main-header {
     padding: 0 32px;
@@ -1548,7 +1548,7 @@ a {
     display: none !important;
   }
   .smartindex-bar {
-    padding: 8px 16px;
+    padding: 3px 16px;
   }
   .main-header {
     padding: 0 16px;
