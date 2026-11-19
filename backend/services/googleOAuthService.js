@@ -1,11 +1,13 @@
 import { google } from "googleapis";
 
-const GOOGLE_SCOPES = [
+const GOOGLE_IDENTITY_SCOPES = [
   "openid",
   "email",
   "profile",
-  "https://www.googleapis.com/auth/gmail.send",
 ];
+const GMAIL_SEND_SCOPE = "https://www.googleapis.com/auth/gmail.send";
+const GOOGLE_SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
+const GOOGLE_DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 
 function getOAuthClient() {
   return new google.auth.OAuth2(
@@ -19,18 +21,17 @@ export function createGoogleOAuthClient() {
   return getOAuthClient();
 }
 
-export function createGoogleAuthorizationUrl(state, { includeSheets = false } = {}) {
+export function createGoogleAuthorizationUrl(state, { purpose = "mail", includeSheets = false } = {}) {
   const client = getOAuthClient();
-  const scopes = [...GOOGLE_SCOPES];
-  if (includeSheets) {
-    scopes.push("https://www.googleapis.com/auth/spreadsheets.readonly");
-    scopes.push("https://www.googleapis.com/auth/drive.file");
-  }
+  const isSheetsConnection = purpose === "database" || includeSheets;
+  const scopes = isSheetsConnection
+    ? [...GOOGLE_IDENTITY_SCOPES, GOOGLE_SHEETS_SCOPE, GOOGLE_DRIVE_FILE_SCOPE]
+    : [...GOOGLE_IDENTITY_SCOPES, GMAIL_SEND_SCOPE];
 
   return client.generateAuthUrl({
     access_type: "offline",
-    prompt: "consent",
-    include_granted_scopes: true,
+    prompt: isSheetsConnection ? "select_account consent" : "consent",
+    include_granted_scopes: !isSheetsConnection,
     scope: scopes,
     state,
   });
@@ -76,6 +77,7 @@ export async function getGoogleAccount(client) {
   }
 
   return {
+    id: data.id || null,
     email: data.email,
     name: data.name || null,
     picture: data.picture || null,

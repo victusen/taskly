@@ -1,9 +1,10 @@
-import { google } from "googleapis";
-
-import { supabase } from "../config/supabase.js";
-import { assertOwnedProject } from "./emailConnectionService.js";
+import {
+  markGoogleSheetsRequiresReauth,
+  markGoogleSheetsUsed,
+  updateGoogleSheetsCredentials,
+} from "./scheduleDatabaseService.js";
 import { createGoogleOAuthClient } from "./googleOAuthService.js";
-import { decryptJson, encryptJson } from "../utils/credentialCrypto.js";
+import { decryptJson } from "../utils/credentialCrypto.js";
 import { LIMITS } from "./scheduleValidation.js";
 
 export const SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
@@ -47,47 +48,37 @@ export function columnLetter(index) {
   return letter;
 }
 
-export async function getProjectGoogleConnection(userId, projectId) {
-  await assertOwnedProject(userId, projectId);
-
-  const { data: connection, error } = await supabase
-    .from("email_connections")
-    .select("id, project_id, provider, connection_type, status, credentials")
-    .eq("project_id", projectId)
-    .maybeSingle();
-
-  if (error) throw error;
-  if (
-    !connection ||
-    connection.provider !== "google" ||
-    connection.connection_type !== "oauth2" ||
-    connection.status !== "active"
-  ) {
+export async function getGoogleSheetsClient(connection, { requireDriveScope = false } = {}) {
+  let credentials;
+  try {
+    credentials = decryptJson(connection.credentials);
+  } catch (error) {
+    if (/BZADE_CREDENTIAL_ENCRYPTION_KEY/.test(error.message || "")) throw error;
+    await markGoogleSheetsRequiresReauth(connection);
     throw new GoogleSheetsAccessError(
       409,
-      "GOOGLE_CONNECTION_REQUIRED",
-      "Connect an active Google account to this project before choosing a spreadsheet.",
+      "GOOGLE_REAUTH_REQUIRED",
+      "Reconnect this Google Sheets account to restore spreadsheet access.",
     );
   }
-  return connection;
-}
-
-export async function getGoogleSheetsClient(connection, { requireDriveScope = false } = {}) {
-  const credentials = decryptJson(connection.credentials);
-  const grantedScopes = new Set(String(credentials.scope || "").split(/\s+/).filter(Boolean));
+  const grantedScopes = new Set(String(
+    credentials.scope || connection.connection_config?.scopes?.join(" ") || "",
+  ).split(/\s+/).filter(Boolean));
 
   if (!grantedScopes.has(SHEETS_SCOPE) || (requireDriveScope && !grantedScopes.has(DRIVE_FILE_SCOPE))) {
+    await markGoogleSheetsRequiresReauth(connection);
     throw new GoogleSheetsAccessError(
       409,
-      "GOOGLE_SCOPES_REQUIRED",
-      "Reconnect Google and approve the requested Sheets and Drive access.",
+      "GOOGLE_REAUTH_REQUIRED",
+      "Reconnect this Google Sheets account and approve the requested Sheets and Drive access.",
     );
   }
   if (!credentials.refresh_token) {
+    await markGoogleSheetsRequiresReauth(connection);
     throw new GoogleSheetsAccessError(
       409,
-      "GOOGLE_RECONNECT_REQUIRED",
-      "Reconnect Google to restore spreadsheet access.",
+      "GOOGLE_REAUTH_REQUIRED",
+      "Reconnect this Google Sheets account to restore spreadsheet access.",
     );
   }
 
@@ -103,10 +94,11 @@ export async function getGoogleSheetsClient(connection, { requireDriveScope = fa
         error?.response?.data?.error === "invalid_grant" ||
         String(error?.message || "").toLowerCase().includes("invalid_grant")
       ) {
+        await markGoogleSheetsRequiresReauth(connection);
         throw new GoogleSheetsAccessError(
           409,
-          "GOOGLE_RECONNECT_REQUIRED",
-          "Google spreadsheet access has expired. Reconnect Google and try again.",
+          "GOOGLE_REAUTH_REQUIRED",
+          "Google Sheets access has expired. Reconnect this Google account and try again.",
         );
       }
       throw error;
@@ -118,16 +110,36 @@ export async function getGoogleSheetsClient(connection, { requireDriveScope = fa
       refresh_token: refreshed.refresh_token || credentials.refresh_token,
       scope: refreshed.scope || credentials.scope,
     };
-    const { error } = await supabase
-      .from("email_connections")
-      .update({ credentials: encryptJson(nextCredentials) })
-      .eq("id", connection.id)
-      .eq("project_id", connection.project_id);
-    if (error) throw error;
+    await updateGoogleSheetsCredentials(connection, nextCredentials);
     client.setCredentials(nextCredentials);
   }
 
+  await markGoogleSheetsUsed(connection).catch((error) => {
+    console.warn("[GOOGLE SHEETS] Could not update last_used_at:", error.message);
+  });
   return client;
+}
+
+export function normalizeGoogleSheetsError(error) {
+  if (error instanceof GoogleSheetsAccessError) return error;
+  const status = Number(error?.response?.status || error?.status);
+  const apiErrors = error?.response?.data?.error?.errors;
+  const reasons = Array.isArray(apiErrors) ? apiErrors.map((item) => item.reason) : [];
+  const denied = status === 404 || reasons.some((reason) => [
+    "insufficientPermissions",
+    "permissionDenied",
+    "notFound",
+    "forbidden",
+  ].includes(reason));
+  if (!denied) return error;
+
+  const accessError = new GoogleSheetsAccessError(
+    409,
+    "SHEET_ACCESS_DENIED",
+    "This Google Sheets account cannot access the selected spreadsheet. Share it with the connected Google account, then try again.",
+  );
+  accessError.permanent = true;
+  return accessError;
 }
 
 export async function getSheetMetadata(sheetsApi, spreadsheetId, sheetId) {
@@ -139,7 +151,9 @@ export async function getSheetMetadata(sheetsApi, spreadsheetId, sheetId) {
     ({ properties }) => Number(properties?.sheetId) === Number(sheetId),
   );
   if (!sheet?.properties?.title) {
-    throw new GoogleSheetsAccessError(404, "SHEET_NOT_FOUND", "That sheet tab is no longer available.");
+    const error = new GoogleSheetsAccessError(404, "SHEET_NOT_FOUND", "That sheet tab is no longer available.");
+    error.permanent = true;
+    throw error;
   }
   return sheet.properties;
 }
@@ -166,24 +180,6 @@ export async function getSpreadsheetColumns(sheetsApi, spreadsheetId, sheetId, h
       header: value || `Column ${letter}`,
     };
   });
-}
-
-export async function listAccessibleSpreadsheets(driveApi) {
-  const files = [];
-  let pageToken;
-  do {
-    const { data } = await driveApi.files.list({
-      q: "mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false",
-      fields: "nextPageToken,files(id,name)",
-      orderBy: "name",
-      pageSize: 1000,
-      spaces: "drive",
-      ...(pageToken ? { pageToken } : {}),
-    });
-    files.push(...(data.files || []));
-    pageToken = data.nextPageToken;
-  } while (pageToken);
-  return files;
 }
 
 export async function readSpreadsheetRecipients(sheetsApi, spreadsheetId, plan) {

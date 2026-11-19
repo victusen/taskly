@@ -3,8 +3,7 @@ import {
   encryptJson,
   decryptJson,
 } from "../utils/credentialCrypto.js";
-
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { assertProjectAccess } from "./projectAccessService.js";
 
 export class EmailConnectionError extends Error {
   constructor(status, code, message) {
@@ -15,25 +14,10 @@ export class EmailConnectionError extends Error {
 }
 
 export async function assertOwnedProject(userId, projectId) {
-  if (!UUID_PATTERN.test(String(projectId || ""))) {
-    throw new EmailConnectionError(400, "INVALID_PROJECT", "A valid project is required.");
-  }
-
-  const { data, error } = await supabase
-    .from("projects")
-    .select("id")
-    .eq("id", projectId)
-    .eq("user_id", userId)
-    .eq("status", "active")
-    .maybeSingle();
-
-  if (error) throw error;
-  if (!data) {
-    throw new EmailConnectionError(404, "NOT_FOUND", "Project not found or you do not have permission to access it.");
-  }
+  return assertProjectAccess(userId, projectId, { allowedStatuses: ["active"] });
 }
 
-export async function assertProjectCanConnect(userId, projectId, { allowExistingGoogle = false } = {}) {
+export async function assertProjectCanConnect(userId, projectId) {
   await assertOwnedProject(userId, projectId);
   const { data, error } = await supabase
     .from("email_connections")
@@ -42,13 +26,7 @@ export async function assertProjectCanConnect(userId, projectId, { allowExisting
     .maybeSingle();
 
   if (error) throw error;
-  if (allowExistingGoogle && data && data.provider !== "google") {
-    throw new EmailConnectionError(409, "NON_GOOGLE_CONNECTION", "This project's mail account is not a Google account.");
-  }
-  if (
-    data?.status === "active" &&
-    !(allowExistingGoogle && data.provider === "google")
-  ) {
+  if (data?.status === "active") {
     throw new EmailConnectionError(409, "CONNECTION_EXISTS", "This project already has a mail account.");
   }
   return data;

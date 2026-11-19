@@ -4,7 +4,7 @@
 
 import { computeNextRun } from "../services/scheduleRule.js";
 import { sendPersonalizedEmails, sendScheduledEmail } from "../services/sendService.js";
-import { buildSpreadsheetMessages } from "../services/spreadsheetDelivery.js";
+import { dispatchRecipientSource } from "../services/recipientSourceDispatcher.js";
 import { decryptJson } from "../utils/credentialCrypto.js";
 import { consumePlanUsage, releasePlanUsage } from "../services/planUsageService.js";
 import { armAt, release, occurrenceKey } from "./scheduleQueue.js";
@@ -78,6 +78,16 @@ async function attempt({ scheduleId, projectId, runFor, number, retryFailures = 
 
       if (
         readiness.schedule?.status === "active" &&
+        readiness.code === "schedule_database_reconnect_required"
+      ) {
+        await updateScheduleAfterOccurrence(scheduleId, projectId, {
+          status: "paused",
+          next_run_at: null,
+          last_run_at: new Date().toISOString(),
+          last_failure_reason: message.slice(0, 500),
+        });
+      } else if (
+        readiness.schedule?.status === "active" &&
         !["schedule_inactive", "project_inactive"].includes(readiness.code)
       ) {
         await updateScheduleAfterOccurrence(scheduleId, projectId, {
@@ -131,21 +141,9 @@ async function send({ current, ownerId, connection, runFor, key, runId, number, 
 
   try {
     const credentials = decryptJson(connection.credentials);
+    const recipientSource = await dispatchRecipientSource(current);
+    const recipientCount = recipientSource.recipientCount;
     let result;
-    let messages;
-    let rowFailures = [];
-    if (current.config.spreadsheet) {
-      const prepared = await buildSpreadsheetMessages(
-        connection,
-        current.config,
-      );
-      messages = prepared.messages;
-      rowFailures = prepared.failures;
-    }
-
-    const recipientCount = current.config.spreadsheet
-      ? messages.reduce((total, message) => total + message.recipients.length, 0)
-      : current.config.recipients.length;
     reservation = await consumePlanUsage(ownerId, "recipients", recipientCount);
     if (!reservation.allowed) {
       const error = new Error(
@@ -156,9 +154,13 @@ async function send({ current, ownerId, connection, runFor, key, runId, number, 
       throw error;
     }
 
-    if (current.config.spreadsheet) {
-      result = await sendPersonalizedEmails({ connection, credentials, messages });
-      result.failures.unshift(...rowFailures);
+    if (recipientSource.type === "database") {
+      result = await sendPersonalizedEmails({
+        connection,
+        credentials,
+        messages: recipientSource.messages,
+      });
+      result.failures.unshift(...recipientSource.failures);
     } else {
       result = await sendScheduledEmail({ connection, credentials, config: current.config });
     }
@@ -232,6 +234,27 @@ async function send({ current, ownerId, connection, runFor, key, runId, number, 
 
     if (err?.code === "GMAIL_REVOKED") {
       await markConnectionNeedsReconnect(current.email_connection_id, current.project_id);
+    }
+
+    if ([
+      "GOOGLE_REAUTH_REQUIRED",
+      "SCHEDULE_DATABASE_MISSING",
+      "SCHEDULE_DATABASE_REAUTH_REQUIRED",
+      "SCHEDULE_DATABASE_DISCONNECTED",
+      "SCHEDULE_DATABASE_UNAVAILABLE",
+      "SCHEDULE_DATABASE_RECONNECT_REQUIRED",
+      "SHEET_ACCESS_DENIED",
+      "SHEET_NOT_FOUND",
+    ].includes(err?.code)) {
+      await updateScheduleAfterOccurrence(current.id, current.project_id, {
+        status: "paused",
+        next_run_at: null,
+        last_run_at: new Date().toISOString(),
+        last_failure_reason: message.slice(0, 500),
+      });
+      console.warn(`[RUN] schedule ${current.id} paused for Google Sheets access: ${message}`);
+      release(key);
+      return { status: "paused", code: err.code, error: message };
     }
 
     if (retryFailures && !err?.permanent && number <= MAX_RETRIES) {

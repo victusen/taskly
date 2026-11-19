@@ -4,7 +4,12 @@ import { test } from "node:test";
 process.env.SUPABASE_URL ||= "https://example.supabase.co";
 process.env.SUPABASE_SECRET_KEY ||= "test-service-role-key";
 
-const { MAX_SHEET_RECIPIENTS, readSpreadsheetRecipients } = await import("../services/googleSheetsService.js");
+const {
+  GoogleSheetsAccessError,
+  MAX_SHEET_RECIPIENTS,
+  normalizeGoogleSheetsError,
+  readSpreadsheetRecipients,
+} = await import("../services/googleSheetsService.js");
 
 function createSheetsApi(valueRanges) {
   let requestedRanges;
@@ -69,4 +74,21 @@ test("spreadsheet row reading fails permanently above its recipient safety limit
     }),
     (error) => error.code === "SHEET_RECIPIENT_LIMIT" && error.permanent === true,
   );
+});
+
+test("Google permission errors are actionable without disguising other API errors", () => {
+  const permissionError = normalizeGoogleSheetsError({
+    response: {
+      status: 403,
+      data: { error: { errors: [{ reason: "forbidden" }] } },
+    },
+  });
+  assert.equal(permissionError.code, "SHEET_ACCESS_DENIED");
+  assert.equal(permissionError.permanent, true);
+
+  const quotaError = { response: { status: 429 }, message: "Rate limit exceeded" };
+  assert.equal(normalizeGoogleSheetsError(quotaError), quotaError);
+
+  const missingTab = new GoogleSheetsAccessError(404, "SHEET_NOT_FOUND", "That sheet tab is no longer available.");
+  assert.equal(normalizeGoogleSheetsError(missingTab), missingTab);
 });

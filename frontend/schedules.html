@@ -780,13 +780,15 @@
     .sheet-picker-primary { padding: 8px 13px; border: 1px solid #111827; border-radius: 7px; background: #111827; color: #fff; font: inherit; font-size: 13px; cursor: pointer; }
     .sheet-picker-primary:disabled, .sheet-picker-secondary:disabled { opacity: .55; cursor: wait; }
     .sheet-picker-section-title { margin: 0; color: #111827; font-size: 13px; font-weight: 650; }
-    .sheet-picker-connect-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 9px; background: #f9fafb; }
-    .sheet-picker-connect-row p { margin: 0; color: #374151; font-size: 12px; line-height: 1.45; }
+    .sheet-picker-connect-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 9px; background: #f9fafb; }
+    .sheet-picker-connect-actions { display: flex; flex-wrap: wrap; gap: 8px; }
     .sheet-picker-confirm:disabled { opacity: .5; cursor: not-allowed; }
     @media (max-width: 600px) {
       .sheet-picker-overlay { padding: 0; }
       .sheet-picker-card { width: 100%; height: 100%; max-height: none; border: 0; border-radius: 0; }
       .sheet-picker-header, .sheet-picker-body, .sheet-picker-footer { padding-left: 16px; padding-right: 16px; }
+      .sheet-picker-connect-row { grid-template-columns: 1fr; }
+      .sheet-picker-connect-actions > button { flex: 1; }
     }
     .sched-editor-body .cmp-code { min-height: 350px; }
     .sched-editor-body .cmp-editor { border-radius: 10px; }
@@ -1658,13 +1660,20 @@
       </div>
       <div class="sheet-picker-body">
         <div class="sheet-picker-connect-row">
-          <p>Google account access is securely managed for this project.</p>
-          <button type="button" class="sheet-picker-secondary" id="sheet-picker-connect">Connect Google Sheets</button>
+          <label class="sheet-picker-field" for="sheet-picker-connection">
+            Google Sheets account
+            <select id="sheet-picker-connection"><option value="">Connect an account</option></select>
+          </label>
+          <div class="sheet-picker-connect-actions">
+            <button type="button" class="sheet-picker-secondary" id="sheet-picker-connect">Connect another account</button>
+            <button type="button" class="sheet-picker-secondary" id="sheet-picker-disconnect" disabled>Disconnect</button>
+          </div>
         </div>
         <p class="sheet-picker-message" id="sheet-picker-message" role="status">Loading spreadsheets…</p>
         <label class="sheet-picker-field">
-          Spreadsheet
-          <select id="sheet-picker-file"><option value="">Select a spreadsheet</option></select>
+          Choose a spreadsheet
+          <button type="button" class="sheet-picker-secondary" id="sheet-picker-browse" disabled>Browse with Google Picker</button>
+          <select id="sheet-picker-file" aria-label="Selected spreadsheet" disabled><option value="">No spreadsheet selected</option></select>
         </label>
         <label class="sheet-picker-field">
           Sheet tab

@@ -17,6 +17,7 @@ const validPayload = () => ({
     body: "<p>Your balance is {balance + 5}</p>",
     body_type: "html",
     spreadsheet: {
+      connection_id: "33333333-3333-4333-8333-333333333333",
       file: { id: "spreadsheet_123", name: "Clients" },
       sheet: { id: "0", title: "Sheet1" },
       headerRow: 1,
@@ -38,6 +39,20 @@ test("valid spreadsheet schedules preserve selected columns and allow 500 recipi
     balance: "C",
   });
   assert.equal(result.config.spreadsheet.endRow, null);
+  assert.deepEqual(result.config.recipient_source, {
+    type: "database",
+    provider: "google_sheets",
+    connection_id: "33333333-3333-4333-8333-333333333333",
+  });
+});
+
+test("spreadsheet schedules require an independent Google Sheets connection", () => {
+  const payload = validPayload();
+  delete payload.config.spreadsheet.connection_id;
+  assert.throws(
+    () => validateScheduleInput(payload, now),
+    (error) => Boolean(error.fieldErrors.spreadsheet),
+  );
 });
 
 test("spreadsheet schedules require mappings for every template variable", () => {

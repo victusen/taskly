@@ -8,6 +8,7 @@ import {
 import { computeNextRun } from "./scheduleRule.js";
 import { syncSchedule } from "../workers/planDay.js";
 import { runImmediateOccurrence } from "../workers/runSchedule.js";
+import { assertActiveScheduleDatabase } from "./scheduleDatabaseService.js";
 
 class ServiceError extends Error {
   constructor(status, code, message) {
@@ -73,7 +74,7 @@ async function assertProject(userId, projectId) {
 }
 
 /* The mail account must belong to this user's project and be usable. */
-async function assertConnection(userId, projectId, connectionId, requiresGoogle = false) {
+async function assertConnection(userId, projectId, connectionId) {
   const { data, error } = await supabase
     .from("email_connections")
     .select("id, project_id, provider, connection_type, status")
@@ -91,14 +92,17 @@ async function assertConnection(userId, projectId, connectionId, requiresGoogle 
   if (data.status !== "active") {
     throw new ValidationError({ email_connection_id: "This mail account needs to be reconnected." });
   }
-  if (
-    requiresGoogle &&
-    (data.provider !== "google" || data.connection_type !== "oauth2")
-  ) {
+}
+
+async function assertScheduleDatabase(userId, projectId, config) {
+  if (!config.spreadsheet) return;
+  const source = config.recipient_source;
+  if (source?.type !== "database" || source.provider !== "google_sheets" || !source.connection_id) {
     throw new ValidationError({
-      email_connection_id: "Spreadsheet delivery requires this project's Google mail account.",
+      recipient_source: "Reconnect Google Sheets and select its project connection before saving this schedule.",
     });
   }
+  await assertActiveScheduleDatabase(userId, projectId, source.connection_id);
 }
 
 async function assertUnderPlanLimit(userId, projectId) {
@@ -226,12 +230,8 @@ export const scheduleService = {
     if (project.status !== "active") {
       throw new ServiceError(409, "PROJECT_PAUSED", "Resume this project before creating schedules.");
     }
-    await assertConnection(
-      userId,
-      value.project_id,
-      value.email_connection_id,
-      Boolean(value.config.spreadsheet),
-    );
+    await assertConnection(userId, value.project_id, value.email_connection_id);
+    await assertScheduleDatabase(userId, value.project_id, value.config);
     await assertUnderPlanLimit(userId, value.project_id);
 
     const data = await insertSchedule(value);
@@ -284,13 +284,25 @@ export const scheduleService = {
     const timingKeys = ["schedule_type", "scheduled_for", "timezone", "schedule_rule"];
     const changesTiming = timingKeys.some((key) => patch[key] !== undefined);
 
+    const mergedConfig = {
+      ...row.config,
+      ...(patch.config && typeof patch.config === "object" ? patch.config : {}),
+    };
+    if (
+      patch.config &&
+      Object.hasOwn(patch.config, "spreadsheet") &&
+      !Object.hasOwn(patch.config, "recipient_source")
+    ) {
+      delete mergedConfig.recipient_source;
+    }
+
     /* Stored values fill every field the caller did not send. The merged result is validated as a whole. */
     const merged = {
       project_id: row.project_id,
       job_type: row.job_type,
       name: patch.name !== undefined ? patch.name : row.name,
       email_connection_id: patch.email_connection_id ?? row.email_connection_id,
-      config: { ...row.config, ...(patch.config && typeof patch.config === "object" ? patch.config : {}) },
+      config: mergedConfig,
       timezone: row.timezone || "UTC",
       /* No timing change: validate as "immediate" so only the content is checked, then ignore the timing result. */
       schedule_type: changesTiming ? patch.schedule_type : "immediate",
@@ -302,12 +314,8 @@ export const scheduleService = {
       allowImmediateSpreadsheet: !changesTiming,
     });
 
-    await assertConnection(
-      userId,
-      row.project_id,
-      value.email_connection_id,
-      Boolean(value.config.spreadsheet),
-    );
+    await assertConnection(userId, row.project_id, value.email_connection_id);
+    await assertScheduleDatabase(userId, row.project_id, value.config);
 
     const changes = {
       name: value.name,
@@ -350,7 +358,7 @@ export const scheduleService = {
 
     const { data: row, error } = await supabase
       .from("schedules")
-      .select("project_id, status, schedule_type, scheduled_for, schedule_rule, timezone")
+      .select("project_id, status, schedule_type, scheduled_for, schedule_rule, timezone, config")
       .eq("id", id)
       .maybeSingle();
 
@@ -369,6 +377,7 @@ export const scheduleService = {
     }
 
     await assertUnderPlanLimit(userId, row.project_id);
+    await assertScheduleDatabase(userId, row.project_id, row.config || {});
     const updated = await changeStatus(userId, id, ["paused"], { status: "active", next_run_at: nextRunAt });
 
     if (process.env.ENABLE_SCHEDULER === "true") {

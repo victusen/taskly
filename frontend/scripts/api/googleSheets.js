@@ -10,20 +10,53 @@ function assertProject(projectId) {
   }
 }
 
-export async function listProjectSpreadsheets(projectId) {
+export async function startGoogleSheetsConnection(projectId) {
   assertProject(projectId);
-  const body = await authenticatedFetch(`/api/google-sheets/files?${queryString({ project_id: projectId })}`);
-  if (!Array.isArray(body.data) || body.data.some((file) => !file?.id || typeof (file.name || file.title) !== "string")) {
-    throw new Error("The spreadsheet list response was invalid.");
+  const body = await authenticatedFetch(
+    `/api/google-sheets/oauth/start?${queryString({ project_id: projectId })}`,
+    { method: "GET" },
+  );
+  if (!body.authorizationUrl) {
+    throw new Error("Google Sheets authorization URL was not returned.");
   }
-  return body.data.map((file) => ({ id: String(file.id), name: file.name || file.title }));
+  window.location.href = body.authorizationUrl;
 }
 
-export async function listSpreadsheetSheets(projectId, spreadsheetId) {
+export async function listProjectScheduleDatabaseConnections(projectId) {
   assertProject(projectId);
-  if (!spreadsheetId) throw new Error("Choose a spreadsheet first.");
+  const body = await authenticatedFetch(`/api/google-sheets/connections?${queryString({ project_id: projectId })}`);
+  if (!Array.isArray(body.data) || body.data.some((connection) => !connection?.id || !connection?.account_email)) {
+    throw new Error("The Google Sheets connection response was invalid.");
+  }
+  return body.data;
+}
+
+export async function getGoogleSheetsPickerConfig(projectId, connectionId) {
+  assertProject(projectId);
+  if (!connectionId) throw new Error("Choose a Google Sheets connection first.");
   const body = await authenticatedFetch(
-    `/api/google-sheets/${encodeURIComponent(spreadsheetId)}/sheets?${queryString({ project_id: projectId })}`
+    `/api/google-sheets/picker-config?${queryString({ project_id: projectId, connection_id: connectionId })}`
+  );
+  if (!body.data?.apiKey || !body.data?.appId || !body.data?.accessToken) {
+    throw new Error("Google Picker configuration was incomplete.");
+  }
+  return body.data;
+}
+
+export async function disconnectGoogleSheetsConnection(projectId, connectionId) {
+  assertProject(projectId);
+  if (!connectionId) throw new Error("Choose a Google Sheets connection to disconnect.");
+  return authenticatedFetch(
+    `/api/google-sheets/connections/${encodeURIComponent(connectionId)}?${queryString({ project_id: projectId })}`,
+    { method: "DELETE" },
+  );
+}
+
+export async function listSpreadsheetSheets(projectId, connectionId, spreadsheetId) {
+  assertProject(projectId);
+  if (!connectionId || !spreadsheetId) throw new Error("Choose a Google Sheets connection and spreadsheet first.");
+  const body = await authenticatedFetch(
+    `/api/google-sheets/${encodeURIComponent(spreadsheetId)}/sheets?${queryString({ project_id: projectId, connection_id: connectionId })}`
   );
   if (!Array.isArray(body.data) || body.data.some((sheet) => sheet?.id === undefined || typeof (sheet.title || sheet.name) !== "string")) {
     throw new Error("The sheet list response was invalid.");
@@ -31,12 +64,13 @@ export async function listSpreadsheetSheets(projectId, spreadsheetId) {
   return body.data.map((sheet) => ({ id: String(sheet.id), title: sheet.title || sheet.name }));
 }
 
-export async function listSpreadsheetColumns(projectId, spreadsheetId, sheetId, headerRow) {
+export async function listSpreadsheetColumns(projectId, connectionId, spreadsheetId, sheetId, headerRow) {
   assertProject(projectId);
-  if (!spreadsheetId || !sheetId) throw new Error("Choose a spreadsheet and sheet first.");
+  if (!connectionId || !spreadsheetId || !sheetId) throw new Error("Choose a Google Sheets connection, spreadsheet, and sheet first.");
   const body = await authenticatedFetch(
     `/api/google-sheets/${encodeURIComponent(spreadsheetId)}/columns?${queryString({
       project_id: projectId,
+      connection_id: connectionId,
       sheet_id: sheetId,
       header_row: headerRow,
     })}`

@@ -60,6 +60,24 @@ export async function getScheduleReadiness(scheduleId, projectId) {
     connection = data;
   }
 
+  let scheduleDatabase = null;
+  const recipientSource = schedule?.config?.recipient_source;
+  if (
+    recipientSource?.type === "database" &&
+    recipientSource.provider === "google_sheets" &&
+    recipientSource.connection_id
+  ) {
+    const { data, error } = await supabase
+      .from("schedule_databases")
+      .select("id, status")
+      .eq("id", recipientSource.connection_id)
+      .eq("project_id", projectId)
+      .eq("provider", "google_sheets")
+      .maybeSingle();
+    if (error) throw error;
+    scheduleDatabase = data;
+  }
+
   const issues = [];
   if (!schedule) issues.push({ code: "schedule_missing", reason: "Schedule was deleted or is unavailable." });
   else if (schedule.status !== "active") {
@@ -83,6 +101,26 @@ export async function getScheduleReadiness(scheduleId, projectId) {
       reason: `Mail account connection type ${connection.connection_type} is unsupported.`,
     });
   }
+  if (schedule?.config?.spreadsheet && (
+    recipientSource?.type !== "database" ||
+    recipientSource.provider !== "google_sheets" ||
+    !recipientSource.connection_id
+  )) {
+    issues.push({
+      code: "schedule_database_reconnect_required",
+      reason: "Reconnect Google Sheets and edit this legacy spreadsheet schedule before it can run.",
+    });
+  } else if (recipientSource?.type === "database" && !scheduleDatabase) {
+    issues.push({
+      code: "schedule_database_reconnect_required",
+      reason: "The selected Google Sheets connection is unavailable. Reconnect Google Sheets and edit this schedule.",
+    });
+  } else if (scheduleDatabase && scheduleDatabase.status !== "active") {
+    issues.push({
+      code: "schedule_database_reconnect_required",
+      reason: `The Google Sheets connection is ${scheduleDatabase.status}. Reconnect it and resume this schedule.`,
+    });
+  }
 
   return {
     eligible: issues.length === 0,
@@ -92,6 +130,7 @@ export async function getScheduleReadiness(scheduleId, projectId) {
     schedule,
     project,
     connection,
+    scheduleDatabase,
   };
 }
 

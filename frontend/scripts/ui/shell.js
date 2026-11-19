@@ -8,12 +8,10 @@ const GOOGLE_RESULTS = {
   database_connected: ["success", "Google Sheets database connected."],
   database_cancelled: ["warning", "Google Sheets connection cancelled."],
   database_failed: ["error", "Could not connect Google Sheets. Try again."],
-  database_account_mismatch: ["warning", "Connect Google Sheets with the same Google account used for this project's mail account."],
-  database_missing_scope: ["warning", "Google Sheets connection also needs Gmail send access. Approve both permissions to continue."],
   cancelled: ["warning", "Gmail connection cancelled."],
   missing_scope: ["warning", "Gmail needs the send permission. Connect again and keep it ticked."],
   missing_sheets_scope: ["warning", "Google Sheets access is needed. Connect again and approve the Sheets permission."],
-  missing_drive_scope: ["warning", "Google Drive file access is needed to choose a spreadsheet. Connect again and approve the Drive file permission."],
+  missing_drive_scope: ["warning", "Google Picker needs Google Drive file access. Connect again and approve the Drive file permission."],
   failed: ["error", "Could not connect Gmail. Try again."],
 };
 

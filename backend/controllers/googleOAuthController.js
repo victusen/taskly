@@ -13,6 +13,8 @@ import {
   assertProjectCanConnect,
   assertOwnedProject,
 } from "../services/emailConnectionService.js";
+import { assertProjectAccess } from "../services/projectAccessService.js";
+import { upsertGoogleSheetsDatabase } from "../services/scheduleDatabaseService.js";
 
 import {
   hashState,
@@ -21,29 +23,34 @@ import {
 const STATE_EXPIRY_MINUTES = 10;
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || "https://bzade.app").replace(/\/+$/, "");
-const GMAIL_SEND_SCOPE = "https://www.googleapis.com/auth/gmail.send";
 const GOOGLE_SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
 const GOOGLE_DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
-const projectBack = (result, projectId) =>
-  `${FRONTEND_URL}/schedules.html?project=${encodeURIComponent(projectId)}&google=${result}`;
+const projectBack = (result, projectId, connectionId = null) => {
+  const params = new URLSearchParams({ project: projectId, google: result });
+  if (connectionId) params.set("google_connection_id", connectionId);
+  return `${FRONTEND_URL}/schedules.html?${params}`;
+};
 
 export async function startGoogleOAuth(
   req,
-  res
+  res,
+  purposeOverride = null,
 ) {
   try {
     const userId = req.user.id;
-    const purpose = req.query.purpose === "database" ? "database" : "mail";
+    const purpose = purposeOverride || (req.query.purpose === "database" ? "database" : "mail");
     const projectId = req.query.project_id;
     if (typeof projectId !== "string") {
       return res.status(400).json({
         success: false,
-        message: "A valid project is required to connect mail.",
+        message: "A valid project is required to connect Google.",
       });
     }
-    await assertProjectCanConnect(userId, projectId, {
-      allowExistingGoogle: purpose === "database",
-    });
+    if (purpose === "database") {
+      await assertProjectAccess(userId, projectId, { allowedStatuses: ["active", "paused"] });
+    } else {
+      await assertProjectCanConnect(userId, projectId);
+    }
 
     const nonce = crypto.randomBytes(32).toString("hex");
     const state = `${nonce}.project.${projectId}${purpose === "database" ? ".database" : ""}`;
@@ -71,8 +78,7 @@ export async function startGoogleOAuth(
       throw error;
     }
 
-    const authorizationUrl =
-      createGoogleAuthorizationUrl(state, { includeSheets: purpose === "database" });
+    const authorizationUrl = createGoogleAuthorizationUrl(state, { purpose });
 
     return res.status(200).json({
       success: true,
@@ -98,6 +104,10 @@ export async function startGoogleOAuth(
         "Unable to start Google connection.",
     });
   }
+}
+
+export function startGoogleSheetsOAuth(req, res) {
+  return startGoogleOAuth(req, res, "database");
 }
 
 export async function googleOAuthCallback(req, res) {
@@ -137,7 +147,13 @@ export async function googleOAuthCallback(req, res) {
       return res.status(400).send("Invalid, used or expired OAuth request.");
     }
 
-    await assertOwnedProject(oauthState.user_id, projectIdFromState.value);
+    if (databaseProjectId) {
+      await assertProjectAccess(oauthState.user_id, projectIdFromState.value, {
+        allowedStatuses: ["active", "paused"],
+      });
+    } else {
+      await assertOwnedProject(oauthState.user_id, projectIdFromState.value);
+    }
 
     if (oauthError) {
       return res.redirect(resultUrl(databaseProjectId ? "database_cancelled" : "cancelled"));
@@ -149,10 +165,6 @@ export async function googleOAuthCallback(req, res) {
 
     const { client, tokens } = await exchangeGoogleCode(code);
 
-    // Google lets users untick permissions. Without this one, sending never works.
-    if (!String(tokens.scope || "").split(" ").includes(GMAIL_SEND_SCOPE)) {
-      return res.redirect(resultUrl(databaseProjectId ? "database_missing_scope" : "missing_scope"));
-    }
     if (
       databaseProjectId &&
       !String(tokens.scope || "").split(" ").includes(GOOGLE_SHEETS_SCOPE)
@@ -165,32 +177,38 @@ export async function googleOAuthCallback(req, res) {
     ) {
       return res.redirect(resultUrl("missing_drive_scope"));
     }
+    if (!databaseProjectId && !String(tokens.scope || "").split(" ").includes("https://www.googleapis.com/auth/gmail.send")) {
+      return res.redirect(resultUrl("missing_scope"));
+    }
 
     client.setCredentials(tokens);
     const account = await getGoogleAccount(client);
 
-    const existingConnection = await assertProjectCanConnect(oauthState.user_id, projectIdFromState.value, {
-      allowExistingGoogle: databaseProjectId !== null,
-    });
-    if (
-      databaseProjectId &&
-      existingConnection?.provider === "google" &&
-      existingConnection.email_address?.toLowerCase() !== account.email.toLowerCase()
-    ) {
-      return res.redirect(resultUrl("database_account_mismatch"));
+    let connection;
+    if (databaseProjectId) {
+      connection = await upsertGoogleSheetsDatabase({
+        userId: oauthState.user_id,
+        projectId: projectIdFromState.value,
+        account,
+        tokens,
+      });
+    } else {
+      await assertProjectCanConnect(oauthState.user_id, projectIdFromState.value);
+      connection = await createGoogleConnection({
+        projectId: projectIdFromState.value,
+        email: account.email,
+        tokens,
+      });
     }
-    const connection = await createGoogleConnection({
-      projectId: projectIdFromState.value,
-      email: account.email,
-      tokens,
-    });
 
     console.log("[GOOGLE OAUTH] Connected", {
       userId: oauthState.user_id,
       connectionId: connection.id,
     });
 
-    return res.redirect(resultUrl(databaseProjectId ? "database_connected" : "connected"));
+    return res.redirect(databaseProjectId
+      ? projectBack("database_connected", projectIdFromState.value, connection.id)
+      : resultUrl("connected"));
   } catch (error) {
     console.error("[GOOGLE OAUTH CALLBACK]", error);
     return res.redirect(resultUrl(databaseProjectId ? "database_failed" : "failed"));

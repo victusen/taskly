@@ -13,13 +13,12 @@ export async function addEmailConnection({ projectId, emailAddress, host, port, 
   });
 }
 
-export async function startGoogleConnection(projectId, purpose = "mail") {
+export async function startGoogleConnection(projectId) {
   if (!PROJECT_ID_PATTERN.test(String(projectId ?? ""))) {
     throw new Error("This mail account must be connected from a project.");
   }
 
   const query = new URLSearchParams({ project_id: projectId });
-  if (purpose === "database") query.set("purpose", purpose);
 
   const body = await authenticatedFetch(
     `/api/email-connections/google/start?${query}`,

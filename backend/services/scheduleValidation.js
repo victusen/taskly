@@ -75,11 +75,16 @@ function validateSpreadsheetPlan(value, subject, body, scheduleType, errors, all
     ? null
     : Number(value.endRow);
   const emailColumn = String(value.emailColumn || "");
+  const connectionId = String(value.connection_id || "");
   const variableColumns = value.variableColumns;
   let valid = true;
 
   if (!SPREADSHEET_ID.test(fileId)) {
     errors.spreadsheet = "Choose a valid spreadsheet.";
+    valid = false;
+  }
+  if (!UUID_PATTERN.test(connectionId)) {
+    errors.spreadsheet = "Reconnect Google Sheets and select its connection before using this spreadsheet.";
     valid = false;
   }
   if (!/^\d{1,10}$/.test(sheetId)) {
@@ -142,6 +147,7 @@ function validateSpreadsheetPlan(value, subject, body, scheduleType, errors, all
   return {
     version: 1,
     provider: "google_sheets",
+    connection_id: connectionId,
     file: {
       id: fileId,
       name: typeof value.file.name === "string" ? value.file.name.slice(0, 300) : "",
@@ -233,6 +239,22 @@ export function validateScheduleInput(input, now = new Date(), { allowImmediateS
     errors,
     allowImmediateSpreadsheet,
   );
+  const requestedSource = config.recipient_source;
+  if (requestedSource !== undefined) {
+    if (!requestedSource || typeof requestedSource !== "object" || Array.isArray(requestedSource)) {
+      errors.recipient_source = "Choose a valid recipient source.";
+    } else if (requestedSource.type === "database") {
+      if (
+        !spreadsheet ||
+        requestedSource.provider !== "google_sheets" ||
+        requestedSource.connection_id !== spreadsheet.connection_id
+      ) {
+        errors.recipient_source = "Reconnect Google Sheets and select a valid spreadsheet connection.";
+      }
+    } else if (requestedSource.type !== "manual" || config.spreadsheet) {
+      errors.recipient_source = "Choose manual recipients or a supported database connection.";
+    }
+  }
 
   let recipients = [];
 
@@ -365,6 +387,13 @@ export function validateScheduleInput(input, now = new Date(), { allowImmediateS
       subject,
       body,
       body_type: bodyType,
+      recipient_source: spreadsheet
+        ? {
+          type: "database",
+          provider: spreadsheet.provider,
+          connection_id: spreadsheet.connection_id,
+        }
+        : { type: "manual" },
       ...(spreadsheet ? { spreadsheet } : {}),
     },
   };

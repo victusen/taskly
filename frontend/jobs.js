@@ -3,9 +3,11 @@ import { signOut } from "./scripts/auth/auth.js";
 import { initShell, showGoogleResult } from "./scripts/ui/shell.js";
 import { initAccountMenu } from "./scripts/ui/accountMenu.js";
 import { initInviteModal } from "./scripts/ui/inviteModal.js";
-import { startGoogleConnection } from "./scripts/api/emailConnections.js";
 import {
-  listProjectSpreadsheets,
+  startGoogleSheetsConnection,
+  listProjectScheduleDatabaseConnections,
+  getGoogleSheetsPickerConfig,
+  disconnectGoogleSheetsConnection,
   listSpreadsheetSheets,
   listSpreadsheetColumns,
 } from "./scripts/api/googleSheets.js";
@@ -64,6 +66,7 @@ const connectGmailBtn = document.getElementById("connect-gmail-btn");
 const mailAccountBtn = document.getElementById("cmp-mail-account");
 const connectDatabaseBtns = document.querySelectorAll("#cmp-connect-database");
 const sheetPicker = document.getElementById("sheet-picker-overlay");
+const sheetPickerConnection = document.getElementById("sheet-picker-connection");
 const sheetPickerFile = document.getElementById("sheet-picker-file");
 const sheetPickerTab = document.getElementById("sheet-picker-tab");
 const sheetPickerHeaderRow = document.getElementById("sheet-picker-header-row");
@@ -96,6 +99,8 @@ let inviteModal = null;
 let currentProjectConnection = null;
 let projectConnectionKnown = false;
 let sheetPlan = null;
+let scheduleDatabaseConnections = [];
+let activeScheduleDatabaseId = null;
 let spreadsheetFiles = [];
 let spreadsheetSheets = [];
 let spreadsheetColumns = [];
@@ -175,8 +180,10 @@ function renderSheetSummary() {
   const range = sheetPlan.endRow
     ? `Rows ${sheetPlan.startRow}-${sheetPlan.endRow}`
     : `From row ${sheetPlan.startRow}; all populated recipients`;
+  const account = scheduleDatabaseConnections.find((item) => item.id === sheetPlan.connection_id);
   sheetPlanSummaryCopy.textContent = "Spreadsheet recipients selected";
   sheetPlanSummaryList.append(
+    el("li", "", `Google account: ${account?.account_email || "Reconnect this account"}`),
     el("li", "", `Spreadsheet: ${sheetPlan.file.name}`),
     el("li", "", `Sheet: ${sheetPlan.sheet.title}`),
     el("li", "", `Email column: ${sheetPlan.emailColumn || "Choose in spreadsheet setup"}`),
@@ -254,6 +261,10 @@ function setSheetPlan(plan) {
     const addVariableButton = document.getElementById("sheet-picker-add-variable");
     if (addVariableButton) addVariableButton.disabled = true;
   }
+  if (sheetPlan?.connection_id) activeScheduleDatabaseId = String(sheetPlan.connection_id);
+  if (sheetPickerConnection && activeScheduleDatabaseId) {
+    sheetPickerConnection.value = activeScheduleDatabaseId;
+  }
   spreadsheetFiles = sheetPlan?.file ? [sheetPlan.file] : [];
   spreadsheetSheets = sheetPlan?.sheet ? [sheetPlan.sheet] : [];
   spreadsheetColumns = sheetPlan?.columns || [];
@@ -261,6 +272,7 @@ function setSheetPlan(plan) {
     value: file.id,
     label: file.name || file.title || "Untitled spreadsheet",
   })), sheetPlan?.file?.id ?? "");
+  if (sheetPickerFile) sheetPickerFile.disabled = true;
   setSelectOptions(sheetPickerTab, "Select a sheet tab", spreadsheetSheets.map((sheet) => ({
     value: sheet.id,
     label: sheet.title || sheet.name || "Untitled sheet",
@@ -280,26 +292,53 @@ function setSheetPlan(plan) {
   renderPickerVariables();
 }
 
-async function loadSheetFiles() {
-  setSheetPickerMessage("Loading spreadsheets…");
+async function loadSheetConnections() {
+  setSheetPickerMessage("Loading Google Sheets accounts…");
   try {
-    spreadsheetFiles = await listProjectSpreadsheets(projectId);
-    setSelectOptions(sheetPickerFile, "Select a spreadsheet", spreadsheetFiles.map((file) => ({
-      value: file.id,
-      label: file.name || file.title || "Untitled spreadsheet",
-    })), sheetPlan?.file?.id || "");
-    setSheetPickerMessage(spreadsheetFiles.length
-      ? "Choose a spreadsheet and sheet tab, then select the recipient column."
-      : "No spreadsheets are available to this Google connection. Files must be shared with or opened by this app.");
-    if (sheetPlan?.file?.id) {
-      await loadSheetTabs(sheetPlan.file.id);
-      if (sheetPlan.sheet?.id !== undefined && sheetPickerTab) {
-        sheetPickerTab.value = String(sheetPlan.sheet.id);
-        await loadSheetColumns(sheetPlan.file.id, sheetPlan.sheet.id, sheetPlan.headerRow || 1);
+    scheduleDatabaseConnections = await listProjectScheduleDatabaseConnections(projectId);
+    const callbackConnectionId = urlParams.get("google_connection_id");
+    const requestedId = callbackConnectionId
+      || sheetPlan?.connection_id
+      || activeScheduleDatabaseId;
+    const selected = scheduleDatabaseConnections.find((connection) => connection.id === requestedId)
+      || scheduleDatabaseConnections.find((connection) => connection.status === "active")
+      || scheduleDatabaseConnections[0];
+    activeScheduleDatabaseId = selected?.id || null;
+    if (callbackConnectionId) {
+      urlParams.delete("google_connection_id");
+      window.history.replaceState({}, "", `${window.location.pathname}?${urlParams}${window.location.hash}`);
+      if (sheetPlan && sheetPlan.connection_id !== activeScheduleDatabaseId) {
+        sheetPlan = { ...sheetPlan, connection_id: activeScheduleDatabaseId, file: null, sheet: null, columns: [], emailColumn: "", variableColumns: {} };
+        setSheetPlan(sheetPlan);
       }
     }
+    setSelectOptions(sheetPickerConnection, "Select a Google account", scheduleDatabaseConnections.map((connection) => ({
+      value: connection.id,
+      label: `${connection.account_email}${connection.status === "active" ? "" : ` (${connection.status.replaceAll("_", " ")})`}`,
+    })), activeScheduleDatabaseId || "");
+    renderSheetSummary();
+    const active = selected?.status === "active";
+    const browseButton = document.getElementById("sheet-picker-browse");
+    const disconnectButton = document.getElementById("sheet-picker-disconnect");
+    if (browseButton) browseButton.disabled = !active;
+    if (disconnectButton) disconnectButton.disabled = !selected;
+
+    if (!selected) {
+      setSheetPickerMessage("Connect a Google account to select a spreadsheet.");
+      return;
+    }
+    if (!active) {
+      setSheetPickerMessage(`This account is ${selected.status.replaceAll("_", " ")}. Reconnect it to use its spreadsheets.`, true);
+      return;
+    }
+    if (sheetPlan?.file?.id && sheetPlan.connection_id === selected.id) {
+      await loadSheetTabs(sheetPlan.file.id);
+      setSheetPickerMessage("Choose the sheet tab, then map its recipient email column.");
+    } else {
+      setSheetPickerMessage("Choose a spreadsheet with Google Picker, then select its sheet tab and columns.");
+    }
   } catch (error) {
-    setSheetPickerMessage(`Could not load spreadsheets: ${error.message}`, true);
+    setSheetPickerMessage(`Could not load Google Sheets accounts: ${error.message}`, true);
   }
 }
 
@@ -312,12 +351,16 @@ async function loadSheetTabs(spreadsheetId) {
   if (!spreadsheetId) return;
 
   try {
-    spreadsheetSheets = await listSpreadsheetSheets(projectId, spreadsheetId);
+    spreadsheetSheets = await listSpreadsheetSheets(projectId, activeScheduleDatabaseId, spreadsheetId);
+    const selectedSheetId = sheetPlan?.sheet?.id;
     setSelectOptions(sheetPickerTab, "Select a sheet tab", spreadsheetSheets.map((sheet) => ({
       value: sheet.id,
       label: sheet.title || sheet.name || "Untitled sheet",
-    })), "");
+    })), selectedSheetId ?? "");
     if (sheetPickerTab) sheetPickerTab.disabled = false;
+    if (selectedSheetId !== undefined && spreadsheetSheets.some((sheet) => String(sheet.id) === String(selectedSheetId))) {
+      await loadSheetColumns(spreadsheetId, selectedSheetId, sheetPlan?.headerRow || 1);
+    }
     setSheetPickerMessage(spreadsheetSheets.length ? "Choose the sheet tab to use." : "This spreadsheet has no available tabs.", !spreadsheetSheets.length);
   } catch (error) {
     setSheetPickerMessage(`Could not load sheet tabs: ${error.message}`, true);
@@ -334,7 +377,7 @@ async function loadSheetColumns(spreadsheetId, sheetId, headerRow) {
   if (!spreadsheetId || sheetId === undefined || !Number.isSafeInteger(row) || row < 1) return;
 
   try {
-    const columns = await listSpreadsheetColumns(projectId, spreadsheetId, sheetId, row);
+    const columns = await listSpreadsheetColumns(projectId, activeScheduleDatabaseId, spreadsheetId, sheetId, row);
     if (
       sheetPickerFile?.value !== String(spreadsheetId) ||
       sheetPickerTab?.value !== String(sheetId) ||
@@ -363,7 +406,7 @@ function openSheetPicker() {
   sheetPicker.classList.add("open");
   sheetPicker.setAttribute("aria-hidden", "false");
   if (sheetPlan) setSheetPlan(sheetPlan);
-  void loadSheetFiles();
+  void loadSheetConnections();
 }
 
 function closeSheetPicker() {
@@ -371,9 +414,107 @@ function closeSheetPicker() {
   sheetPicker?.setAttribute("aria-hidden", "true");
 }
 
+let pickerApiPromise = null;
+function loadGooglePickerApi() {
+  if (window.google?.picker?.PickerBuilder) return Promise.resolve();
+  if (pickerApiPromise) return pickerApiPromise;
+
+  pickerApiPromise = new Promise((resolve, reject) => {
+    const loadPicker = () => {
+      if (!window.gapi?.load) {
+        reject(new Error("Google Picker could not be loaded."));
+        return;
+      }
+      window.gapi.load("picker", {
+        callback: resolve,
+        onerror: () => reject(new Error("Google Picker could not be loaded.")),
+        timeout: 10000,
+        ontimeout: () => reject(new Error("Google Picker took too long to load.")),
+      });
+    };
+
+    let script = document.querySelector('script[data-google-picker-api="true"]');
+    if (!script) {
+      script = document.createElement("script");
+      script.src = "https://apis.google.com/js/api.js";
+      script.async = true;
+      script.dataset.googlePickerApi = "true";
+      script.addEventListener("load", loadPicker, { once: true });
+      script.addEventListener("error", () => reject(new Error("Google Picker could not be loaded.")), { once: true });
+      document.head.append(script);
+    } else if (window.gapi?.load) {
+      loadPicker();
+    } else {
+      script.addEventListener("load", loadPicker, { once: true });
+    }
+  }).catch((error) => {
+    pickerApiPromise = null;
+    throw error;
+  });
+  return pickerApiPromise;
+}
+
+async function browseGoogleSheets() {
+  if (!activeScheduleDatabaseId) {
+    setSheetPickerMessage("Select a Google Sheets account first.", true);
+    return;
+  }
+  const browseButton = document.getElementById("sheet-picker-browse");
+  if (browseButton) browseButton.disabled = true;
+  setSheetPickerMessage("Opening Google Picker…");
+  try {
+    const [config] = await Promise.all([
+      getGoogleSheetsPickerConfig(projectId, activeScheduleDatabaseId),
+      loadGooglePickerApi(),
+    ]);
+    const picker = new window.google.picker.PickerBuilder()
+      .addView(window.google.picker.ViewId.SPREADSHEETS)
+      .setOAuthToken(config.accessToken)
+      .setDeveloperKey(config.apiKey)
+      .setAppId(config.appId)
+      .setOrigin(window.location.origin)
+      .setTitle("Choose a spreadsheet")
+      .setCallback((data) => {
+        if (data.action !== window.google.picker.Action.PICKED) return;
+        const document = data.docs?.[0];
+        if (!document?.id) {
+          setSheetPickerMessage("Google Picker did not return a spreadsheet.", true);
+          return;
+        }
+        const file = { id: String(document.id), name: String(document.name || "Untitled spreadsheet") };
+        sheetPlan = {
+          ...(sheetPlan || {}),
+          version: 1,
+          provider: "google_sheets",
+          connection_id: activeScheduleDatabaseId,
+          file,
+          sheet: null,
+          headerRow: 1,
+          startRow: 2,
+          endRow: null,
+          emailColumn: "",
+          variableColumns: {},
+        };
+        setSheetPlan(sheetPlan);
+        void loadSheetTabs(file.id);
+      })
+      .build();
+    picker.setVisible(true);
+    setSheetPickerMessage("Select a spreadsheet in Google Picker.");
+  } catch (error) {
+    setSheetPickerMessage(`Could not open Google Picker: ${error.message}`, true);
+  } finally {
+    if (browseButton) {
+      const selected = scheduleDatabaseConnections.find((connection) => connection.id === activeScheduleDatabaseId);
+      browseButton.disabled = selected?.status !== "active";
+    }
+  }
+}
+
 function validateCurrentSheetPlan(subject, body) {
   if (!sheetPlan) return [];
   const errors = [];
+  if (!sheetPlan.connection_id) errors.push("Choose the Google Sheets account that owns this connection.");
   if (!sheetPlan.file?.id || sheetPlan.sheet?.id === undefined) errors.push("Choose a spreadsheet and sheet tab.");
   if (!sheetPlan.emailColumn) errors.push("Choose the spreadsheet column containing recipient email addresses.");
   const headerRow = Number(sheetPlan.headerRow);
@@ -450,7 +591,7 @@ document.getElementById("sheet-picker-connect")?.addEventListener("click", async
       time: document.getElementById("cmp-time")?.value || "09:00",
       spreadsheet: window.bzComposer.getSheetPlan?.() || null,
     }));
-    await startGoogleConnection(projectId, "database");
+    await startGoogleSheetsConnection(projectId);
   } catch (error) {
     sessionStorage.removeItem("bzResumeSheetsPicker");
     sessionStorage.removeItem("bzResumeSheetsComposer");
@@ -458,22 +599,44 @@ document.getElementById("sheet-picker-connect")?.addEventListener("click", async
     button.disabled = false;
   }
 });
-sheetPickerFile?.addEventListener("change", async () => {
-  const selectedId = sheetPickerFile.value;
-  sheetPlan = null;
-  spreadsheetColumns = [];
-  setColumnOptions(sheetPickerEmailColumn, "Choose a column", []);
-  setColumnOptions(sheetPickerVariableColumn, "Choose a column", []);
-  if (sheetPickerEmailColumn) sheetPickerEmailColumn.disabled = true;
-  if (sheetPickerVariableColumn) sheetPickerVariableColumn.disabled = true;
-  const addVariableButton = document.getElementById("sheet-picker-add-variable");
-  if (addVariableButton) addVariableButton.disabled = true;
-  const applyButton = document.getElementById("sheet-picker-apply");
-  if (applyButton) applyButton.disabled = true;
-  renderSheetSummary();
-  renderVariableTags();
-  renderPickerVariables();
-  await loadSheetTabs(selectedId);
+document.getElementById("sheet-picker-browse")?.addEventListener("click", () => {
+  void browseGoogleSheets();
+});
+sheetPickerConnection?.addEventListener("change", async () => {
+  const previousConnectionId = activeScheduleDatabaseId;
+  activeScheduleDatabaseId = sheetPickerConnection.value || null;
+  const selected = scheduleDatabaseConnections.find((connection) => connection.id === activeScheduleDatabaseId);
+  const browseButton = document.getElementById("sheet-picker-browse");
+  const disconnectButton = document.getElementById("sheet-picker-disconnect");
+  if (browseButton) browseButton.disabled = selected?.status !== "active";
+  if (disconnectButton) disconnectButton.disabled = !selected;
+  if (sheetPlan && previousConnectionId !== activeScheduleDatabaseId) {
+    sheetPlan.connection_id = activeScheduleDatabaseId;
+    if (sheetPlan.file?.id && activeScheduleDatabaseId && selected?.status === "active") {
+      await loadSheetTabs(sheetPlan.file.id);
+    }
+  }
+});
+document.getElementById("sheet-picker-disconnect")?.addEventListener("click", async () => {
+  const connectionId = activeScheduleDatabaseId;
+  const connection = scheduleDatabaseConnections.find((item) => item.id === connectionId);
+  if (!connection) return;
+  if (!window.confirm(`Disconnect ${connection.account_email} from this project? Active schedules using this connection will be paused until you reconnect and resume them.`)) return;
+  const button = document.getElementById("sheet-picker-disconnect");
+  if (button) button.disabled = true;
+  try {
+    await disconnectGoogleSheetsConnection(projectId, connectionId);
+    if (sheetPlan?.connection_id === connectionId) setSheetPlan(null);
+    activeScheduleDatabaseId = null;
+    await loadSheetConnections();
+    invalidateScheduleCache();
+    await loadRows(currentFilter, { forceRefresh: true });
+    showToast("success", "Google Sheets account disconnected.");
+  } catch (error) {
+    setSheetPickerMessage(`Could not disconnect Google Sheets: ${error.message}`, true);
+  } finally {
+    if (button) button.disabled = false;
+  }
 });
 sheetPickerTab?.addEventListener("change", () => {
   const file = selectedSheetFile();
@@ -486,6 +649,7 @@ sheetPickerTab?.addEventListener("change", () => {
   sheetPlan = {
     version: 1,
     provider: "google_sheets",
+    connection_id: activeScheduleDatabaseId,
     file,
     sheet,
     headerRow,
@@ -542,6 +706,11 @@ document.getElementById("sheet-picker-add-variable")?.addEventListener("click", 
   setSheetPickerMessage(`Added {${name}} from column ${column}.`);
 });
 document.getElementById("sheet-picker-apply")?.addEventListener("click", () => {
+  const selectedConnection = scheduleDatabaseConnections.find((connection) => connection.id === sheetPlan?.connection_id);
+  if (!selectedConnection || selectedConnection.status !== "active") {
+    setSheetPickerMessage("Choose an active Google Sheets account first.", true);
+    return;
+  }
   if (!sheetPlan?.file?.id || sheetPlan.sheet?.id === undefined || !sheetPlan.emailColumn) {
     setSheetPickerMessage("Choose a spreadsheet, sheet tab, and recipient email column first.", true);
     return;

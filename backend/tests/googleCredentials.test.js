@@ -56,13 +56,22 @@ test("credential decryption rejects a modified authentication tag", () => {
   assert.throws(() => decryptJson(encrypted));
 });
 
-test("Sheets authorization requests offline access and all required scopes", () => {
-  const authorizationUrl = new URL(createGoogleAuthorizationUrl("test-state", { includeSheets: true }));
+test("Google Sheets OAuth is independent of Gmail and prompts for account selection", () => {
+  const authorizationUrl = new URL(createGoogleAuthorizationUrl("test-state", { purpose: "database" }));
   const scopes = new Set(authorizationUrl.searchParams.get("scope").split(" "));
 
   assert.equal(authorizationUrl.searchParams.get("access_type"), "offline");
-  assert.equal(authorizationUrl.searchParams.get("prompt"), "consent");
-  assert.ok(scopes.has("https://www.googleapis.com/auth/gmail.send"));
+  assert.equal(authorizationUrl.searchParams.get("prompt"), "select_account consent");
+  assert.ok(!scopes.has("https://www.googleapis.com/auth/gmail.send"));
   assert.ok(scopes.has("https://www.googleapis.com/auth/spreadsheets.readonly"));
   assert.ok(scopes.has("https://www.googleapis.com/auth/drive.file"));
+});
+
+test("Gmail OAuth does not request Sheets or Drive permissions", () => {
+  const authorizationUrl = new URL(createGoogleAuthorizationUrl("test-state", { purpose: "mail" }));
+  const scopes = new Set(authorizationUrl.searchParams.get("scope").split(" "));
+
+  assert.ok(scopes.has("https://www.googleapis.com/auth/gmail.send"));
+  assert.ok(!scopes.has("https://www.googleapis.com/auth/spreadsheets.readonly"));
+  assert.ok(!scopes.has("https://www.googleapis.com/auth/drive.file"));
 });
