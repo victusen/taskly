@@ -80,6 +80,7 @@ const sheetVariableTags = document.getElementById("sheet-variable-tags");
 const sheetPickerMessage = document.getElementById("sheet-picker-message");
 const sheetPlanSummaryCopy = document.getElementById("sheet-plan-summary-copy");
 const sheetPlanSummaryList = document.getElementById("sheet-plan-summary-list");
+const sheetPlanSummary = document.getElementById("sheet-plan-summary");
 const addScheduleBtn = document.getElementById("add-schedule");
 const emptyAddScheduleBtn = document.getElementById("empty-add-schedule");
 const closeScheduleBtn = document.getElementById("close-btn");
@@ -171,9 +172,13 @@ function renderSheetSummary() {
   if (!sheetPlanSummaryCopy || !sheetPlanSummaryList) return;
   sheetPlanSummaryList.replaceChildren();
   const clearButton = document.getElementById("sheet-plan-clear");
-  if (clearButton) clearButton.hidden = !sheetPlan;
-  if (!sheetPlan?.file || !sheetPlan?.sheet) {
-    sheetPlanSummaryCopy.textContent = "No spreadsheet selected.";
+  const hasSelectedFile = Boolean(sheetPlan?.file);
+  if (sheetPlanSummary) sheetPlanSummary.hidden = !hasSelectedFile;
+  if (clearButton) clearButton.hidden = !hasSelectedFile;
+  if (!hasSelectedFile) return;
+  if (!sheetPlan.sheet) {
+    sheetPlanSummaryCopy.textContent = "Select a sheet tab to finish setup.";
+    sheetPlanSummaryList.append(el("li", "", `Spreadsheet: ${sheetPlan.file.name}`));
     return;
   }
 
@@ -544,6 +549,7 @@ function validateCurrentSheetPlan(subject, body) {
 }
 
 window.bzComposer = window.bzComposer || {};
+window.bzComposer.getProjectName = () => currentProject?.project_name || currentProject?.business_name || "";
 window.bzComposer.openSheetPicker = openSheetPicker;
 window.bzComposer.getSheetPlan = () => sheetPlan ? JSON.parse(JSON.stringify(sheetPlan)) : null;
 window.bzComposer.setSheetPlan = setSheetPlan;
@@ -585,6 +591,7 @@ document.getElementById("sheet-picker-connect")?.addEventListener("click", async
       name: document.getElementById("cmp-name")?.value || "",
       recipients: document.getElementById("cmp-recipients")?.value || "",
       subject: document.querySelector('#cmp-form [name="subject"]')?.value || "",
+      sender_name: document.getElementById("cmp-sender-name")?.value || "",
       body: document.getElementById("cmp-body")?.value || "",
       how: document.getElementById("cmp-how")?.value || "once",
       date: document.getElementById("cmp-date")?.value || "",
@@ -836,8 +843,8 @@ function getScheduleFrequencyOption(schedule) {
 
 function getScheduleFrequency(schedule) {
   const labels = {
-    now: "Now",
-    once: "Once",
+    now: "Immediately",
+    once: "One time",
     daily: "Daily",
     weekday: "Every weekday (MonÃ¢â‚¬â€œFri)",
     weekends: "Every weekend",
@@ -887,6 +894,7 @@ function renderRows() {
       const createdAt = formatScheduleDateTime(row.created_at);
       const nextRun = formatScheduleDateTime(row.next_run_at);
       const lastRun = formatScheduleDateTime(row.last_run_at);
+      const runCount = Math.max(0, Number(row.run_count) || 0);
       const statusAction = row.status === "active" ? "Pause" : row.status === "paused" ? "Resume" : "";
       const statusActionIcon = statusAction === "Pause" ? scheduleMenuIcons.pause : scheduleMenuIcons.resume;
       const canEditSchedule = row.status === "active" || row.status === "paused";
@@ -897,11 +905,12 @@ function renderRows() {
           <td class="schedule-name-cell" title="${esc(name)}"><button type="button" class="schedule-name-button" data-view-schedule>${esc(name)}</button></td>
           <td class="schedule-type-cell">${esc(type)}</td>
           <td class="schedule-frequency-cell">${esc(frequency)}</td>
-          <td><div class="schedule-date-time"><strong>${esc(createdAt.split(" Ã‚Â· ")[0])}</strong><span>${esc(createdAt.split(" Ã‚Â· ")[1] || "")}</span></div></td>
-          <td><div class="schedule-date-time"><strong>${esc(nextRun.split(" Ã‚Â· ")[0])}</strong><span>${esc(nextRun.split(" Ã‚Â· ")[1] || "Ã¢â‚¬â€")}</span></div></td>
-          <td><div class="schedule-date-time"><strong>${esc(lastRun.split(" Ã‚Â· ")[0])}</strong><span>${esc(lastRun.split(" Ã‚Â· ")[1] || "Ã¢â‚¬â€")}</span></div></td>
-          <td>${recipients.length}</td>
           <td>${statusBadge(row.status)}</td>
+          <td>${recipients.length}</td>
+          <td><span class="badge badge-green">${runCount}</span></td>
+          <td><div class="schedule-date-time"><strong>${esc(createdAt.split(" Ã‚Â· ")[0])}</strong><span>${esc(createdAt.split(" Ã‚Â· ")[1] || "")}</span></div></td>
+          <td><div class="schedule-date-time"><strong>${esc(lastRun.split(" Ã‚Â· ")[0])}</strong><span>${esc(lastRun.split(" Ã‚Â· ")[1] || "Ã¢â‚¬â€")}</span></div></td>
+          <td><div class="schedule-date-time"><strong>${esc(nextRun.split(" Ã‚Â· ")[0])}</strong><span>${esc(nextRun.split(" Ã‚Â· ")[1] || "Ã¢â‚¬â€")}</span></div></td>
           <td class="schedule-actions-cell">
             <div class="schedule-row-actions">
               <button type="button" class="schedule-menu-trigger" aria-label="Schedule actions" aria-expanded="false">
@@ -925,6 +934,7 @@ function renderRows() {
       const createdAt = formatScheduleDateTime(row.created_at).split(" Ã‚Â· ");
       const nextRun = formatScheduleDateTime(row.next_run_at).split(" Ã‚Â· ");
       const lastRun = formatScheduleDateTime(row.last_run_at).split(" Ã‚Â· ");
+      const runCount = Math.max(0, Number(row.run_count) || 0);
       const statusAction = row.status === "active" ? "Pause" : row.status === "paused" ? "Resume" : "";
       const statusActionIcon = statusAction === "Pause" ? scheduleMenuIcons.pause : scheduleMenuIcons.resume;
       const canEditSchedule = row.status === "active" || row.status === "paused";
@@ -951,12 +961,13 @@ function renderRows() {
           </div>
           <div class="schedule-mobile-meta">
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Type</span><span class="schedule-mobile-value schedule-type-cell">${esc(type)}</span></div>
-            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Status</span><span class="schedule-mobile-value">${statusBadge(row.status)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Frequency</span><span class="schedule-mobile-value schedule-frequency-cell">${esc(frequency)}</span></div>
-            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Created at</span><span class="schedule-mobile-value">${dateValue(createdAt)}</span></div>
-            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Next run</span><span class="schedule-mobile-value">${dateValue(nextRun)}</span></div>
-            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Last run</span><span class="schedule-mobile-value">${dateValue(lastRun)}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Status</span><span class="schedule-mobile-value">${statusBadge(row.status)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Recipients</span><span class="schedule-mobile-value">${recipients.length}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Run count</span><span class="schedule-mobile-value"><span class="badge badge-green">${runCount}</span></span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Created at</span><span class="schedule-mobile-value">${dateValue(createdAt)}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Last run</span><span class="schedule-mobile-value">${dateValue(lastRun)}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Next run</span><span class="schedule-mobile-value">${dateValue(nextRun)}</span></div>
           </div>
         </article>`;
     }).join("");
@@ -965,8 +976,8 @@ function renderRows() {
         <table class="schedule-table">
           <thead><tr>
             <th class="schedule-select-cell">Select</th>
-            <th>Name</th><th>Type</th><th>Frequency</th><th>Created at</th><th>Next run</th><th>Last run</th>
-            <th>Recipients</th><th>Status</th><th aria-label="More actions"></th>
+            <th>Name</th><th>Type</th><th>Frequency</th><th>Status</th><th>Recipients</th><th>Run count</th><th>Created at</th><th>Last run</th><th>Next run</th>
+            <th aria-label="More actions"></th>
           </tr></thead>
           <tbody>${tableRows}</tbody>
         </table>
@@ -1883,6 +1894,7 @@ function payloadFor(draft, sender) {
     config: {
       recipients: draft.recipients,
       subject: draft.subject,
+      sender_name: draft.sender_name || "",
       body: draft.body,
       body_type: "html",
       spreadsheet: draft.spreadsheet || null,
@@ -2120,6 +2132,7 @@ if (
       document.getElementById("cmp-name").value = state.name || "";
       document.getElementById("cmp-recipients").value = state.recipients || "";
       document.querySelector('#cmp-form [name="subject"]').value = state.subject || "";
+      document.getElementById("cmp-sender-name").value = state.sender_name || "";
       document.getElementById("cmp-body").value = state.body || "";
       document.getElementById("cmp-date").value = state.date || "";
       document.getElementById("cmp-time").value = state.time || "09:00";

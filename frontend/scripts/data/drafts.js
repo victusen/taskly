@@ -10,11 +10,12 @@ export function readDrafts() {
   }
 }
 
-export function saveDraft({ name, subject, body, spreadsheet }) {
+export function saveDraft({ name, subject, sender_name, body, spreadsheet }) {
   const clean = {
     id: `d-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name: String(name || "Untitled draft").slice(0, 120),
     subject: String(subject || "").slice(0, 300),
+    sender_name: String(sender_name || "").slice(0, 100),
     body: String(body || "").slice(0, 200000),
     ...(spreadsheet ? { spreadsheet: JSON.parse(JSON.stringify(spreadsheet)) } : {}),
     savedAt: new Date().toISOString(),

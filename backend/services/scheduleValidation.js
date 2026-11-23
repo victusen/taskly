@@ -16,6 +16,7 @@ export const UUID_PATTERN =
 export const LIMITS = {
   MAX_SHEET_RECIPIENTS: 50_000,
   MAX_SUBJECT: 300,
+  MAX_SENDER_NAME: 100,
   /* Gmail clips messages above about 102 KB. Measured in bytes, not characters. */
   MAX_BODY_BYTES: 102_000,
   MAX_NAME: 120,
@@ -227,6 +228,15 @@ export function validateScheduleInput(input, now = new Date(), { allowImmediateS
 
   const rawSubject =
     typeof config.subject === "string" ? config.subject.trim() : "";
+  const rawSenderName =
+    typeof config.sender_name === "string" ? config.sender_name.trim() : "";
+  if (
+    (config.sender_name !== undefined && typeof config.sender_name !== "string") ||
+    rawSenderName.length > LIMITS.MAX_SENDER_NAME ||
+    CONTROL_CHARS.test(rawSenderName)
+  ) {
+    errors.sender_name = `Sender name must be ${LIMITS.MAX_SENDER_NAME} characters or fewer and cannot contain line breaks.`;
+  }
   const rawBody = typeof config.body === "string" ? config.body : "";
   const bodyType = String(config.body_type || "html");
   const body =
@@ -385,6 +395,7 @@ export function validateScheduleInput(input, now = new Date(), { allowImmediateS
     config: {
       recipients,
       subject,
+      sender_name: rawSenderName,
       body,
       body_type: bodyType,
       recipient_source: spreadsheet

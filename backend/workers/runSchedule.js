@@ -159,6 +159,7 @@ async function send({ current, ownerId, connection, runFor, key, runId, number, 
         connection,
         credentials,
         messages: recipientSource.messages,
+        senderName: current.config.sender_name,
       });
       result.failures.unshift(...recipientSource.failures);
     } else {

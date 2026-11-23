@@ -21,7 +21,7 @@ body {
   position: sticky;
   top: 0;
   width: 100%;
-  background-color: transparent;
+  background-color: #fff;
   padding: 14px 40px;
   display: flex;
   align-items: center;
@@ -54,24 +54,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-/* Back Link */
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #555555;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 500;
-  align-self: flex-start;
-  margin-bottom: 4px;
-  transition: color 0.15s ease;
-}
-
-.back-link:hover {
-  color: #111111;
 }
 
 /* ── Auth Card (Matches smtp-card) ── */
@@ -364,11 +346,8 @@ form {
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .back-link {
-    display: inline-flex;
-    margin-bottom: 12px;
-  }
   .auth-header {
+    background-color: #fff;
     padding: 16px 20px;
   }
   .smtp-footer {

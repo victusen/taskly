@@ -166,6 +166,8 @@ export async function upsertGoogleSheetsDatabase({
   }
 
   const scopes = String(credentials.scope || "").split(/\s+/).filter(Boolean);
+  const connectionConfig = { ...(existing?.connection_config || {}) };
+  delete connectionConfig.account_name;
   const row = {
     project_id: projectId,
     provider: GOOGLE_SHEETS_PROVIDER,
@@ -174,8 +176,7 @@ export async function upsertGoogleSheetsDatabase({
     provider_account_id: String(account.id),
     credentials: encryptJson(credentials),
     connection_config: {
-      ...(existing?.connection_config || {}),
-      account_name: account.name || null,
+      ...connectionConfig,
       scopes,
     },
     status: "active",

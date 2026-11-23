@@ -36,6 +36,29 @@ test("schedule creation converts timezone wall time to a UTC instant", () => {
   assert.equal(result.next_run_at, result.scheduled_for);
 });
 
+test("schedule creation preserves a custom sender display name", () => {
+  const result = validateScheduleInput(payload({
+    config: {
+      ...payload().config,
+      sender_name: "Sam from Bzade",
+    },
+  }), now);
+
+  assert.equal(result.config.sender_name, "Sam from Bzade");
+});
+
+test("schedule creation rejects sender names containing header line breaks", () => {
+  assert.throws(
+    () => validateScheduleInput(payload({
+      config: {
+        ...payload().config,
+        sender_name: "Bzade\r\nBcc: other@example.com",
+      },
+    }), now),
+    (error) => Boolean(error.fieldErrors.sender_name),
+  );
+});
+
 test("schedule creation rejects unknown timezones", () => {
   assert.throws(
     () => validateScheduleInput(payload({ timezone: "Not/A_Timezone" }), now),

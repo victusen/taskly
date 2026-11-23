@@ -30,7 +30,8 @@ export async function signInWithGoogle() {
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: getDashboardRedirectUrl()
+      redirectTo: getDashboardRedirectUrl(),
+      scopes: 'openid email'
     }
   })
 }

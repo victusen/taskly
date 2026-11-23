@@ -64,9 +64,9 @@ function injectStyles() {
     .cm-option-icon { width: 22px; height: 22px; object-fit: contain; margin-left: auto; flex-shrink: 0; }
     .cm-project { margin: 4px 0 0; padding-top: 14px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; }
     .cm-database-backdrop .cm-card { max-height: calc(100vh - 32px); overflow-y: auto; }
-    .cm-database-card { max-width: 360px; padding: 20px; gap: 10px; }
+    .cm-database-card { max-width: 540px; padding: 24px; gap: 14px; }
     .cm-db-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-    .cm-db-option { min-height: 68px; flex-direction: column; justify-content: center; gap: 5px; padding: 8px; border-radius: 7px; font-size: 12px; text-align: center; }
+    .cm-db-option { min-height: 58px; flex-direction: row; justify-content: flex-start; gap: 10px; padding: 10px 12px; border-radius: 7px; font-size: 12px; text-align: left; }
     .cm-db-icon { display: grid; place-items: center; flex: 0 0 24px; width: 24px; height: 24px; color: #16803c; }
     .cm-db-icon svg { width: 22px; height: 22px; }
     .cm-db-icon img { display: block; width: 24px; height: 24px; object-fit: contain; }
@@ -202,7 +202,7 @@ function ensureDatabaseMarkup() {
       <div class="cm-db-grid">
         ${DATABASE_OPTIONS.map((option) => `
           <button type="button" class="cm-option cm-db-option" data-db-choice="${option.id}">
-            <span class="cm-db-icon" aria-hidden="true"><img src="${option.icon}" alt=""></span>
+            <span class="cm-db-icon" aria-hidden="true"><img src="${option.icon}" alt="" loading="eager" decoding="async" fetchpriority="high"></span>
             <span>${option.name}</span>
           </button>
         `).join("")}

@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email design - Bzade</title>
+  <link rel="icon" type="image/png" href="../logo-2.png">
+  <style>
+    * { box-sizing: border-box; }
+    html { background: #fff; }
+    body {
+      min-width: 320px;
+      margin: 0;
+      background: #fff;
+      color: #111827;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.5;
+    }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      width: min(1120px, calc(100% - 40px));
+      min-height: 58px;
+      margin: 0 auto;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .brand { display: inline-flex; align-items: center; gap: 8px; color: #111827; text-decoration: none; font-size: 16px; font-weight: 600; }
+    .brand img { width: auto; height: 26px; }
+    .back-link { color: #4b5563; font-size: 13px; font-weight: 500; text-decoration: none; }
+    .back-link:hover { color: #111827; }
+
+    main { width: min(960px, calc(100% - 40px)); margin: 0 auto; padding: 34px 0 64px; }
+    .page-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+    .page-heading h1 { margin: 0; color: #111827; font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+    .page-heading p { max-width: 680px; margin: 5px 0 0; color: #6b7280; font-size: 13px; line-height: 1.5; }
+
+    .designer-form { display: flex; flex-direction: column; gap: 16px; }
+    .design-card { min-width: 0; padding: 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; }
+    .card-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .card-heading h2 { margin: 0; color: #6b7280; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .card-heading p { margin: 4px 0 0; color: #6b7280; font-size: 13px; }
+    .status { flex: 0 0 auto; color: #6b7280; font-size: 12px; }
+
+    .meta-fields { display: grid; gap: 14px; }
+    .meta-field { display: grid; grid-template-columns: 108px minmax(0, 1fr); align-items: center; gap: 16px; min-width: 0; }
+    .field-label { color: #4b5563; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+    .input { width: 100%; min-width: 0; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; outline: 0; color: #111827; background: #fff; font-size: 14px; font-weight: 400; transition: border-color .15s ease, box-shadow .15s ease; }
+    .input::placeholder, .code-editor::placeholder { color: #c4c8d0; opacity: 1; }
+    .input:focus { border-color: #111827; box-shadow: 0 0 0 3px rgba(17, 24, 39, .08); }
+    .sender-control { display: flex; min-width: 0; gap: 8px; }
+    .sender-control .input { flex: 1; }
+    .use-project-name { flex: 0 0 auto; padding: 0 11px; border: 1px solid #d1d5db; border-radius: 7px; color: #374151; background: #fff; font-size: 12px; font-weight: 600; }
+    .use-project-name:hover { border-color: #9ca3af; background: #f9fafb; }
+
+    .editor { display: flex; flex-direction: column; overflow: hidden; border: 1px solid #d1d5db; border-radius: 10px; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px 12px; border-bottom: 1px solid #1f2937; background: #000; }
+    .tool { padding: 6px 12px; border: 1px solid #1f2937; border-radius: 6px; color: #e5e7eb; background: #1f2937; font-size: 13px; font-weight: 400; transition: background .15s ease, color .15s ease, border-color .15s ease; }
+    .tool:hover, .tool:focus-visible { border-color: #374151; background: #374151; color: #fff; }
+    .tool:focus-visible { outline: 2px solid #e5e7eb; outline-offset: 2px; }
+    .code-editor { display: block; width: 100%; min-height: 350px; height: 350px; padding: 16px; border: 0; outline: 0; resize: vertical; color: #111; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 2; }
+    .cmp-assets { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; padding: 12px; border-top: 1px solid #d9d9d9; }
+    .cmp-assets[hidden] { display: none; }
+    .cmp-asset { display: flex; flex-direction: column; gap: 6px; padding: 6px; border: 1px solid #d9d9d9; border-radius: 6px; color: #111; background: #fff; font-size: 12px; text-align: left; }
+    .cmp-asset:hover { border-color: #111; }
+    .cmp-asset img { width: 100%; height: 90px; border-radius: 4px; background: #f5f5f5; object-fit: contain; }
+    .cmp-asset span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cmp-muted { margin: 0; color: #6b7280; font-size: 13px; }
+    .preview-panel { margin-top: 14px; padding: 16px; border: 1px solid #d9d9d9; border-radius: 10px; background: #fafafa; }
+    .preview-panel[hidden] { display: none; }
+    .preview-title { margin: 0 0 10px; color: #888; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+    .preview-frame { width: 100%; min-height: 300px; border: 0; background: #fff; }
+
+    .form-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .message { min-height: 18px; color: #15803d; font-size: 12px; }
+    .actions { display: flex; align-items: center; gap: 10px; }
+    .button { padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 8px; color: #4b5563; background: #fff; font-size: 12px; font-weight: 400; }
+    .button:hover { border-color: #9ca3af; background: #f3f4f6; color: #111827; }
+    .button.primary { padding: 5px 12px; border-color: #111; color: #fff; background: #111; font-size: 14px; }
+    .button.primary:hover { background: #374151; }
+
+    @media (max-width: 640px) {
+      .page-header { width: calc(100% - 32px); }
+      main { width: calc(100% - 32px); padding-top: 26px; }
+      .page-heading h1 { font-size: 24px; }
+      .design-card { padding: 14px; }
+      .meta-field { grid-template-columns: 1fr; gap: 6px; }
+      .sender-control { flex-wrap: wrap; }
+      .sender-control .input { flex-basis: 100%; }
+      .use-project-name { min-height: 36px; }
+      .code-editor { min-height: 260px; height: 260px; }
+      .form-footer { align-items: stretch; flex-direction: column; }
+      .actions { flex-wrap: wrap; }
+      .actions .button { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <a class="brand" href="/">
+      <img src="../logo-bz.png" alt="Bzade logo">
+      <span>Bzade</span>
+    </a>
+    <a class="back-link" href="/dashboard">Back to dashboard</a>
+  </header>
+
+  <main>
+    <div class="page-heading">
+      <div>
+        <h1>Email design</h1>
+        <p>Design the message content and sender details for a reusable email template.</p>
+      </div>
+    </div>
+
+    <form class="designer-form" id="template-form">
+      <section class="design-card" aria-label="Template details">
+        <div class="card-heading">
+          <div>
+            <h2>Template details</h2>
+            <p>Name your template and set the subject and sender display name.</p>
+          </div>
+          <span class="status" id="save-status" role="status">Not saved</span>
+        </div>
+        <div class="meta-fields">
+          <label class="meta-field">
+            <span class="field-label">Template name</span>
+            <input class="input" name="name" maxlength="120" placeholder="Welcome Series" required>
+          </label>
+          <label class="meta-field">
+            <span class="field-label">Email subject</span>
+            <input class="input" name="subject" maxlength="300" placeholder="Your July update" required>
+          </label>
+          <div class="meta-field">
+            <label class="field-label" for="sender-name">Send as</label>
+            <span class="sender-control">
+              <input class="input" id="sender-name" name="sender_name" maxlength="100" placeholder="Sam from Bzade">
+              <button type="button" class="use-project-name" id="use-project-name">Use project name</button>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="design-card" aria-labelledby="email-design-title">
+        <div class="card-heading">
+          <h2 id="email-design-title">Email design</h2>
+        </div>
+        <div class="editor">
+          <div class="toolbar" role="toolbar" aria-label="Insert email content">
+            <button type="button" class="tool" data-insert="h1">H1</button>
+            <button type="button" class="tool" data-insert="p">P</button>
+            <button type="button" class="tool" data-insert="variable">Variable</button>
+            <button type="button" class="tool" data-insert="operation">Operation</button>
+            <button type="button" class="tool" data-insert="a">Link</button>
+            <button type="button" class="tool" data-insert="button">Button</button>
+            <button type="button" class="tool" data-insert="img">Image</button>
+            <button type="button" class="tool" data-insert="column">Column</button>
+            <button type="button" class="tool" data-insert="row">Row</button>
+            <button type="button" class="tool" id="cmp-upload-btn">Upload asset</button>
+            <button type="button" class="tool" id="cmp-assets-toggle" aria-expanded="false">Assets (<span id="cmp-asset-count">0</span>)</button>
+            <input id="cmp-file" type="file" accept="image/*" hidden>
+          </div>
+          <textarea class="code-editor" id="template-body" name="body" spellcheck="false" placeholder="<p>Write your message here.</p>" required></textarea>
+          <div class="cmp-assets" id="cmp-assets" hidden></div>
+        </div>
+        <div class="preview-panel" id="preview-panel" hidden>
+          <p class="preview-title">Preview</p>
+          <iframe class="preview-frame" id="preview-frame" sandbox="allow-same-origin" title="Email preview"></iframe>
+        </div>
+      </section>
+
+      <div class="form-footer">
+        <span class="message" id="form-message" role="status"></span>
+        <div class="actions">
+          <button type="button" class="button" id="preview-button" aria-expanded="false">Preview</button>
+          <button type="button" class="button" id="save-button">Save draft</button>
+          <button type="submit" class="button primary">Save template</button>
+        </div>
+      </div>
+    </form>
+  </main>
+  <script type="module" src="email-design.js"></script>
+</body>
+</html>

@@ -22,12 +22,21 @@ import { waitForSpreadsheetSendSlot } from "./sendRateLimiter.js";
 // the Gmail API requires.
 // "base64url" uses - and _ instead of + and / and has no padding — Gmail rejects
 // standard base64 here.
-function buildRawMessage({ from, recipients, subject, body, bodyType }) {
+function formatFromHeader(emailAddress, senderName) {
+  const name = String(senderName || "").replace(/[\u0000-\u001f\u007f]/g, "").trim();
+  if (!name) return emailAddress;
+  const phrase = /^[\x20-\x7e]*$/.test(name)
+    ? `"${name.replace(/(["\\])/g, "\\$1")}"`
+    : `=?UTF-8?B?${Buffer.from(name, "utf8").toString("base64")}?=`;
+  return `${phrase} <${emailAddress}>`;
+}
+
+function buildRawMessage({ from, fromName, recipients, subject, body, bodyType }) {
   const to = recipients.join(", ");
   const contentType = bodyType === "html" ? "text/html" : "text/plain";
   // RFC 2822: headers and body are separated by a blank line (\r\n\r\n).
   const message = [
-    `From: ${from}`,
+    `From: ${formatFromHeader(from, fromName)}`,
     `To: ${to}`,
     `Subject: ${subject}`,
     `MIME-Version: 1.0`,
@@ -64,6 +73,7 @@ async function sendViaGmail({ connection, credentials, config }) {
 
   const raw = buildRawMessage({
     from:       connection.email_address,
+    fromName:   config.sender_name,
     recipients: config.recipients,
     subject:    config.subject,
     body:       config.body,
@@ -122,7 +132,9 @@ async function sendViaSmtp({ connection, credentials, config }) {
   // before sending, when you add a tracking service.
 
   const mailOptions = {
-    from:    connection.email_address,
+    from:    config.sender_name
+      ? { name: config.sender_name, address: connection.email_address }
+      : connection.email_address,
     to:      config.recipients,        // nodemailer accepts an array
     subject: config.subject,
     [config.body_type === "html" ? "html" : "text"]: config.body,
@@ -204,7 +216,7 @@ function revokedGoogleError() {
   return error;
 }
 
-async function sendPersonalizedViaGmail({ connection, credentials, messages }) {
+async function sendPersonalizedViaGmail({ connection, credentials, messages, senderName }) {
   if (!credentials.refresh_token) throw revokedGoogleError();
 
   const oauth2Client = new google.auth.OAuth2(
@@ -228,6 +240,7 @@ async function sendPersonalizedViaGmail({ connection, credentials, messages }) {
     await waitForSpreadsheetSendSlot(connection.id || `${connection.connection_type}:${connection.email_address}`);
     const raw = buildRawMessage({
       from: connection.email_address,
+      fromName: senderName,
       recipients: message.recipients,
       subject: message.subject,
       body: message.body,
@@ -250,7 +263,7 @@ async function sendPersonalizedViaGmail({ connection, credentials, messages }) {
   return { failures, sentCount, sentRecipients };
 }
 
-async function sendPersonalizedViaSmtp({ connection, credentials, messages }) {
+async function sendPersonalizedViaSmtp({ connection, credentials, messages, senderName }) {
   const transporter = nodemailer.createTransport({
     host: credentials.host,
     port: credentials.port,
@@ -270,7 +283,9 @@ async function sendPersonalizedViaSmtp({ connection, credentials, messages }) {
       await waitForSpreadsheetSendSlot(connection.id || `${connection.connection_type}:${connection.email_address}`);
       try {
         const info = await transporter.sendMail({
-          from: connection.email_address,
+          from: senderName
+            ? { name: senderName, address: connection.email_address }
+            : connection.email_address,
           to: message.recipients,
           subject: message.subject,
           [message.body_type === "html" ? "html" : "text"]: message.body,
@@ -302,12 +317,12 @@ async function sendPersonalizedViaSmtp({ connection, credentials, messages }) {
   return { failures, sentCount, sentRecipients };
 }
 
-export async function sendPersonalizedEmails({ connection, credentials, messages }) {
+export async function sendPersonalizedEmails({ connection, credentials, messages, senderName }) {
   if (connection.connection_type === "oauth2") {
-    return sendPersonalizedViaGmail({ connection, credentials, messages });
+    return sendPersonalizedViaGmail({ connection, credentials, messages, senderName });
   }
   if (connection.connection_type === "smtp") {
-    return sendPersonalizedViaSmtp({ connection, credentials, messages });
+    return sendPersonalizedViaSmtp({ connection, credentials, messages, senderName });
   }
   const error = new Error(`Unsupported connection type: ${connection.connection_type}`);
   error.permanent = true;

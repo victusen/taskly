@@ -418,7 +418,6 @@
       display: inline-grid; place-items: center; width: 22px; height: 22px; flex: 0 0 22px;
       padding: 0; border: 0; border-radius: 50%; background: transparent; color: #6b7280; cursor: pointer;
     }
-    .free-plan-banner-dismiss:hover { background: #e5e7eb; color: #111827; }
     .free-plan-banner-dismiss svg { width: 14px; height: 14px; }
     .project-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
     .project-list > a { display: block; width: 100%; min-width: 0; }
@@ -565,7 +564,7 @@
       justify-content: center;
       cursor: pointer;
       transition: background-color 0.15s ease, color 0.15s ease;
-      z-index: 5;
+      z-index: 4;
     }
     .proj-dots-btn:hover,
     .proj-dots-btn.active {
@@ -582,7 +581,7 @@
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
       min-width: 170px;
       padding: 6px;
-      z-index: 50;
+      z-index: 4;
       display: flex;
       flex-direction: column;
       gap: 2px;
@@ -758,7 +757,7 @@
 <body>
 
   <div class="free-plan-banner" id="free-plan-banner" hidden>
-    <span>You're on a Free plan. For more projects or schedules, <a href="/account/billing" data-upgrade>upgrade</a> to Paid.</span>
+    <span>You're on Free plan. For more projects or schedules, <a href="/account/billing" data-upgrade>upgrade</a> to Paid.</span>
     <button type="button" class="free-plan-banner-dismiss" id="free-plan-banner-dismiss" aria-label="Dismiss upgrade banner" title="Dismiss">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg>
     </button>

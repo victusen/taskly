@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>bzade - Schedules</title>
   <link rel="icon" type="image/png" href="../logo-2.png" />
+  <link rel="preload" as="image" href="../icon-gsheet.png" fetchpriority="high">
+  <link rel="preload" as="image" href="../icon-supabase.png" fetchpriority="high">
+  <link rel="preload" as="image" href="../icon-excel.png" fetchpriority="high">
+  <link rel="preload" as="image" href="../icon-firebase.png" fetchpriority="high">
+  <link rel="preload" as="image" href="../icon-mongodb.png" fetchpriority="high">
+  <link rel="preload" as="image" href="../icon-postgresql.png" fetchpriority="high">
   <link rel="stylesheet" href="../scripts/ui/toast.css">
   <link rel="stylesheet" href="../scripts/ui/states.css">
   <link rel="stylesheet" href="../scripts/ui/closeButtons.css">
@@ -704,10 +710,10 @@
     .sched-editor-overlay.open { display: flex; }
     .sched-editor-card {
       width: min(1180px, calc(100vw - 48px));
-      height: min(860px, calc(100vh - 48px));
+      height: auto; max-height: min(860px, calc(100vh - 48px));
       background: #ffffff; border-radius: 16px;
       box-shadow: 0 24px 70px rgba(0,0,0,0.28);
-      display: flex; flex-direction: column; overflow: hidden;
+      display: flex; flex-direction: column; overflow: auto;
     }
     .sched-editor-head {
       display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -723,7 +729,7 @@
     .sched-editor-title { font-size: 22px; font-weight: 700; color: #111827; letter-spacing: -0.01em; margin: 0; line-height: 1.25; }
     .sched-editor-sub { margin-top: 4px; font-size: 13px; color: #6b7280; line-height: 1.45; }
     .sched-editor-card .cmp-form { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 0; }
-    .sched-editor-body { flex: 1; min-height: 0; overflow-y: auto; padding: 22px 26px; }
+    .sched-editor-body { flex: 0 0 auto; min-height: 0; overflow: visible; padding: 22px 26px; }
     .sched-editor-grid {
       display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.28fr);
       gap: 22px; align-items: start;
@@ -732,6 +738,13 @@
     .sched-panel-settings { border: 0; padding: 0; background: transparent; }
     .sched-panel-composition { display: flex; flex-direction: column; gap: 20px; }
     .sched-bordered-card { padding: 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: #ffffff; min-width: 0; }
+    .sched-email-meta { display: grid; gap: 14px; }
+    .sched-email-field { display: grid; grid-template-columns: 108px minmax(0, 1fr); align-items: center; gap: 16px; min-width: 0; }
+    .sched-email-field .cmp-label { margin: 0; }
+    .sched-sender-control { display: flex; min-width: 0; gap: 8px; }
+    .sched-sender-control .cmp-input { flex: 1; min-width: 0; }
+    .sched-use-project-name { flex: 0 0 auto; padding: 0 11px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #374151; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .sched-use-project-name:hover { border-color: #9ca3af; background: #f9fafb; }
     .sched-panel-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; font-weight: 700; margin: 0 0 14px; }
     .sched-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
     .sched-fields .cmp-input { height: 44px; }
@@ -790,21 +803,27 @@
       .sheet-picker-connect-row { grid-template-columns: 1fr; }
       .sheet-picker-connect-actions > button { flex: 1; }
     }
-    .sched-editor-body .cmp-code { min-height: 350px; }
+    .sched-editor-body .cmp-code { min-height: 350px; height: 350px; overflow-y: auto; resize: vertical; white-space: pre-wrap; overflow-wrap: anywhere; }
     .sched-editor-body .cmp-editor { border-radius: 10px; }
     .sched-editor-foot {
       display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
       padding: 14px 26px; border-top: 1px solid #e5e7eb; background: #ffffff; flex-shrink: 0;
     }
     .sched-editor-foot .cmp-error { margin-right: auto; align-self: center; }
+    .sched-editor-cancel-outside { position: absolute; top: 50%; left: calc(50% + min(590px, calc(50vw - 24px)) + 12px); transform: translateY(-50%); padding: 8px 12px; border: 1px solid rgba(255,255,255,.55); border-radius: 8px; background: rgba(255,255,255,.96); color: #374151; font: inherit; font-size: 12px; cursor: pointer; }
+    .sched-editor-cancel-outside:hover { background: #fff; color: #111827; }
 
+    @media (max-width: 1340px) {
+      .sched-editor-card { max-height: calc(100vh - 100px); }
+      .sched-editor-cancel-outside { top: auto; bottom: 14px; left: auto; right: 16px; transform: none; }
+    }
     @media (max-width: 980px) {
       .sched-editor-grid { grid-template-columns: 1fr; }
-      .sched-editor-card { width: calc(100vw - 28px); height: min(900px, calc(100vh - 28px)); }
+      .sched-editor-card { width: calc(100vw - 28px); }
     }
     @media (max-width: 600px) {
       .sched-editor-overlay { padding: 0; }
-      .sched-editor-card { width: 100%; height: 100%; border-radius: 0; }
+      .sched-editor-card { width: 100%; max-height: calc(100vh - 82px); border-radius: 0; }
       .sched-editor-head, .sched-editor-body, .sched-editor-foot { padding-left: 16px; padding-right: 16px; }
       .sched-fields { grid-template-columns: 1fr; }
       .sched-time-fields { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 76px; gap: 10px; }
@@ -814,7 +833,10 @@
       .sched-editor-head-actions { gap: 8px; }
       .sched-mail-account { max-width: 44vw; font-size: 12px; }
       .sched-editor-title { font-size: 19px; }
-      .sched-editor-body .cmp-code { min-height: 260px; }
+      .sched-editor-body .cmp-code { min-height: 260px; height: 260px; }
+      .sched-email-field { grid-template-columns: 1fr; gap: 6px; }
+      .sched-sender-control { flex-direction: column; }
+      .sched-use-project-name { min-height: 38px; }
     }
 
     .tpl-backdrop { position: fixed; inset: 0; background: rgba(17,24,39,0.7); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 3500; }
@@ -839,15 +861,16 @@
     .schedule-table th { background: #f8fafc; color: #111827; font-size: 12px; font-weight: 750; letter-spacing: .035em; text-transform: uppercase; }
     .schedule-table tbody tr:last-child td { border-bottom: 0; }
     .schedule-table th:first-child, .schedule-table td:first-child { display: none; }
-    .schedule-table th:nth-child(2) { width: 17%; }
+    .schedule-table th:nth-child(2) { width: 18%; }
     .schedule-table th:nth-child(3) { width: 8%; }
-    .schedule-table th:nth-child(4) { width: 12%; }
-    .schedule-table th:nth-child(5) { width: 15%; }
-    .schedule-table th:nth-child(6) { width: 15%; }
-    .schedule-table th:nth-child(7) { width: 15%; }
-    .schedule-table th:nth-child(8) { width: 7%; }
-    .schedule-table th:nth-child(9) { width: 8%; }
-    .schedule-table th:nth-child(10) { width: 44px; }
+    .schedule-table th:nth-child(4) { width: 13%; }
+    .schedule-table th:nth-child(5) { width: 9%; }
+    .schedule-table th:nth-child(6) { width: 8%; }
+    .schedule-table th:nth-child(7) { width: 76px; }
+    .schedule-table th:nth-child(8) { width: 112px; }
+    .schedule-table th:nth-child(9) { width: 112px; }
+    .schedule-table th:nth-child(10) { width: 112px; }
+    .schedule-table th:nth-child(11) { width: 44px; }
     .schedule-table tbody tr { cursor: default; }
     .schedule-name-cell { color: #111827; font-size: 14px; font-weight: 700; }
     .schedule-name-button { display: inline; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
@@ -1494,7 +1517,7 @@
                           </label>
                         </div>
                         <div id="sheet-variable-tags" class="sheet-variable-tags cmp-field full" aria-label="Spreadsheet template variables"></div>
-                        <section class="sheet-plan-summary cmp-field full" aria-labelledby="sheet-plan-summary-title">
+                        <section class="sheet-plan-summary cmp-field full" aria-labelledby="sheet-plan-summary-title" hidden>
                           <div class="sheet-plan-summary-head">
                             <div>
                               <h3 id="sheet-plan-summary-title" class="sheet-plan-summary-title">Spreadsheet recipients</h3>
@@ -1510,10 +1533,19 @@
                     <!-- Right: email design -->
                     <section class="sched-panel sched-panel-composition" aria-label="Email content">
                       <div class="sched-bordered-card">
-                        <label class="cmp-field full">
-                          <span class="cmp-label">Email Subject</span>
-                          <input class="cmp-input" name="subject" maxlength="300" autocomplete="off" placeholder="Your July update">
-                        </label>
+                        <div class="sched-email-meta">
+                          <label class="sched-email-field">
+                            <span class="cmp-label">Email subject</span>
+                            <input class="cmp-input" name="subject" maxlength="300" autocomplete="off" placeholder="Your July update">
+                          </label>
+                          <div class="sched-email-field">
+                            <label class="cmp-label" for="cmp-sender-name">Send as</label>
+                            <span class="sched-sender-control">
+                              <input id="cmp-sender-name" class="cmp-input" name="sender_name" maxlength="100" autocomplete="off" placeholder="Sam from Bzade">
+                              <button type="button" class="sched-use-project-name" id="cmp-use-project-name">Use project name</button>
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
                       <section class="sched-bordered-card" aria-labelledby="cmp-design-title">
@@ -1534,17 +1566,17 @@
                               <button type="button" class="cmp-tool" data-insert="column">Column</button>
                               <button type="button" class="cmp-tool" data-insert="row">Row</button>
                               <button type="button" class="cmp-tool" id="cmp-upload-btn">Upload asset</button>
-                              <button type="button" class="cmp-tool" id="cmp-assets-toggle">Assets (<span id="cmp-asset-count">0</span>)</button>
+                              <button type="button" class="cmp-tool" id="cmp-assets-toggle" aria-expanded="false">Assets (<span id="cmp-asset-count">0</span>)</button>
                               <input id="cmp-file" type="file" accept="image/*" hidden>
                             </div>
                           </div>
-                          <textarea id="cmp-body" class="cmp-code" spellcheck="false" placeholder="<p>Write your message here.</p>"></textarea>
+                          <textarea id="cmp-body" class="cmp-code" wrap="soft" spellcheck="false" placeholder="<p>Write your message here.</p>"></textarea>
                           <div id="cmp-assets" class="cmp-assets" hidden></div>
                         </div>
 
-                        <div id="cmp-preview-panel" style="display:none; border:1px solid #d9d9d9; border-radius:10px; padding:16px; background:#fafafa; min-height:120px; margin-top:14px;">
+                        <div id="cmp-preview-panel" hidden style="border:1px solid #d9d9d9; border-radius:10px; padding:16px; background:#fafafa; min-height:120px; margin-top:14px;">
                           <p style="font-size:11px; font-weight:600; text-transform:uppercase; color:#888; letter-spacing:0.06em; margin-bottom:10px;">Preview</p>
-                          <iframe id="cmp-preview-frame" style="width:100%; min-height:300px; border:none; background:white;"></iframe>
+                          <iframe id="cmp-preview-frame" sandbox="allow-same-origin" title="Email preview" style="width:100%; min-height:300px; border:none; background:white;"></iframe>
                         </div>
                       </section>
                     </section>
@@ -1553,18 +1585,18 @@
 
                 <div class="sched-editor-foot">
                   <div style="display: flex; align-items: center; gap: 12px;">
-                    <button type="button" id="cmp-cancel" class="cmp-cancel">Cancel</button>
                     <button type="button" id="cmp-save-draft" class="cmp-cancel">Save draft</button>
                     <p id="cmp-error" class="cmp-error" role="alert" hidden></p>
                   </div>
                   <div style="display: flex; align-items: center; gap: 12px;">
-                    <button type="button" id="cmp-preview" class="cmp-cancel">Preview</button>
+                    <button type="button" id="cmp-preview" class="cmp-cancel" aria-expanded="false">Preview</button>
 
                     <button type="submit" id="cmp-create" class="cmp-create">Create task</button>
                   </div>
                 </div>
               </form>
             </section>
+            <button type="button" id="cmp-cancel" class="sched-editor-cancel-outside">Cancel</button>
           </div>
 
           <!-- Tasks appear here -->
@@ -1789,7 +1821,8 @@
     }
   </script>
   <script type="module" src="../scripts/ui/toast.js"></script>
-  <script>
+  <script type="module">
+import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/emailComposerEditor.js";
 /* Job composer. Create mode sits where the empty state is. Edit mode moves the same composer under the job being edited. */
 (() => {
   const composer = document.getElementById("job-composer");
@@ -1800,6 +1833,8 @@
   const cancelButton = document.getElementById("cmp-cancel");
   const saveDraftButton = document.getElementById("cmp-save-draft");
   const nameInput = document.getElementById("cmp-name");
+  const senderNameInput = document.getElementById("cmp-sender-name");
+  const useProjectNameButton = document.getElementById("cmp-use-project-name");
   const senderEmail = document.getElementById("cmp-mail-account-email");
   const recipientsInput = form.elements.namedItem("recipients");
   const subjectInput = form.elements.namedItem("subject");
@@ -1809,11 +1844,6 @@
   const bodyInput = document.getElementById("cmp-body");
   const errorBox = document.getElementById("cmp-error");
   const createButton = document.getElementById("cmp-create");
-  const uploadButton = document.getElementById("cmp-upload-btn");
-  const fileInput = document.getElementById("cmp-file");
-  const assetsToggle = document.getElementById("cmp-assets-toggle");
-  const assetsBox = document.getElementById("cmp-assets");
-  const assetCount = document.getElementById("cmp-asset-count");
   const jobRows = document.getElementById("job-rows");
 
   let mode = "create";
@@ -1838,19 +1868,7 @@
   window.bzComposer.onUpdate = window.bzComposer.onUpdate || (async () => {
     throw new Error("Updating is not connected yet.");
   });
-  window.bzComposer.uploadAsset = window.bzComposer.uploadAsset || readAsDataUrl;
-
-  const SNIPPETS = {
-    h1: "<h1>|</h1>",
-    p: "<p>|</p>",
-    variable: "{name1}|",
-    operation: "{num1/num2}|",
-    a: '<a href="https://|" target="_blank" rel="noopener noreferrer">Link text</a>',
-    button: '<a href="https://|" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:12px 22px;background-color:#111111;color:#ffffff;text-decoration:none;">Button text</a>',
-    img: '<img src="|" alt="" width="240" style="display:block;max-width:100%;height:auto;">',
-    column: '<div style="display:flex;flex-direction:column;gap:12px;">\n  |\n</div>',
-    row: '<div style="display:flex;flex-direction:row;align-items:center;gap:12px;">\n  |\n</div>',
-  };
+  window.bzComposer.uploadAsset = window.bzComposer.uploadAsset || readImageAsDataUrl;
 
   const ymd = (d) => d.toISOString().slice(0, 10);
 
@@ -1876,102 +1894,21 @@
     createButton.textContent = label;
   }
 
-  function insertAtCursor(text, caretOffset) {
-    const start = bodyInput.selectionStart;
-    const end = bodyInput.selectionEnd;
-    bodyInput.value = bodyInput.value.slice(0, start) + text + bodyInput.value.slice(end);
-    const caret = start + caretOffset;
-    bodyInput.focus();
-    bodyInput.setSelectionRange(caret, caret);
-  }
-
-  function insertTemplate(template) {
-    if (!template) return;
-    const marker = template.indexOf("|");
-    const insertion = template.replace("|", "");
-    insertAtCursor(insertion, marker < 0 ? insertion.length : marker);
-    document.dispatchEvent(new CustomEvent("schedule-template-change"));
-  }
-
-  document.querySelectorAll("[data-insert]").forEach((button) => {
-    button.addEventListener("click", () => insertTemplate(SNIPPETS[button.dataset.insert]));
-  });
-
-  subjectInput.addEventListener("input", () => document.dispatchEvent(new CustomEvent("schedule-template-change")));
-  bodyInput.addEventListener("input", () => document.dispatchEvent(new CustomEvent("schedule-template-change")));
-
-  bodyInput.addEventListener("keydown", (event) => {
-    if (event.key !== "Tab") return;
-    event.preventDefault();
-    insertAtCursor("  ", 2);
-  });
-
-  const assets = [];
-
-  function readAsDataUrl(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error("Could not read that file."));
-      reader.readAsDataURL(file);
-    });
-  }
-
-  function renderAssets() {
-    assetCount.textContent = String(assets.length);
-    assetsBox.innerHTML = "";
-
-    if (assets.length === 0) {
-      const empty = document.createElement("p");
-      empty.className = "cmp-muted";
-      empty.textContent = "No assets yet. Upload an image to see it here.";
-      assetsBox.append(empty);
-      return;
-    }
-
-    for (const asset of assets) {
-      const item = document.createElement("button");
-      item.type = "button";
-      item.className = "cmp-asset";
-      item.title = asset.name;
-
-      const img = document.createElement("img");
-      img.src = asset.url;
-      img.alt = "";
-
-      const label = document.createElement("span");
-      label.textContent = asset.name;
-
-      item.append(img, label);
-      item.addEventListener("click", () => insertTemplate(
-        `<img src="${asset.url}" alt="" width="240" style="display:block;max-width:100%;height:auto;">`
-      ));
-      assetsBox.append(item);
-    }
-  }
-
-  uploadButton.addEventListener("click", () => fileInput.click());
-
-  fileInput.addEventListener("change", async () => {
-    const file = fileInput.files?.[0];
-    fileInput.value = "";
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) return showError("Choose an image file.");
-    if (file.size > 2 * 1024 * 1024) return showError("Images must be 2 MB or smaller.");
-
-    try {
-      const url = await window.bzComposer.uploadAsset(file);
-      assets.push({ name: file.name, url });
-      renderAssets();
-      assetsBox.hidden = false;
-    } catch (err) {
-      showError(err.message || "Upload failed.");
-    }
-  });
-
-  assetsToggle.addEventListener("click", () => {
-    assetsBox.hidden = !assetsBox.hidden;
+  initEmailComposerEditor({
+    root: form,
+    bodyInput,
+    subjectInput,
+    uploadButton: document.getElementById("cmp-upload-btn"),
+    fileInput: document.getElementById("cmp-file"),
+    assetsToggle: document.getElementById("cmp-assets-toggle"),
+    assetsBox: document.getElementById("cmp-assets"),
+    assetCount: document.getElementById("cmp-asset-count"),
+    previewButton: document.getElementById("cmp-preview"),
+    previewPanel: document.getElementById("cmp-preview-panel"),
+    previewFrame: document.getElementById("cmp-preview-frame"),
+    uploadAsset: (file) => window.bzComposer.uploadAsset(file),
+    onChange: () => document.dispatchEvent(new CustomEvent("schedule-template-change")),
+    onError: showError,
   });
 
   function syncHow() {
@@ -2015,6 +1952,7 @@
     nameInput.value = capitalizeScheduleName(schedule.name || "");
     recipientsInput.value = (config.recipients || []).join(", ");
     subjectInput.value = config.subject || "";
+    senderNameInput.value = config.sender_name || "";
     bodyInput.value = config.body || "";
     window.bzComposer.setSheetPlan?.(config.spreadsheet || null);
     dateInput.value = datePart || "";
@@ -2080,6 +2018,7 @@
     resetForm();
     nameInput.value = capitalizeScheduleName(draft.name || "");
     subjectInput.value = draft.subject || "";
+    senderNameInput.value = draft.sender_name || "";
     bodyInput.value = draft.body || "";
     window.bzComposer.setSheetPlan?.(draft.spreadsheet || null);
     setHeading("Edit saved draft", "Create task", "Complete the schedule details to create this task.");
@@ -2109,6 +2048,7 @@
         window.bzComposer.saveDraft({
           name,
           subject,
+          sender_name: senderNameInput.value.trim(),
           body: bodyInput.value,
           spreadsheet: window.bzComposer.getSheetPlan?.() || null,
         });
@@ -2148,6 +2088,7 @@
       .map((item) => item.trim())
       .filter(Boolean);
     const subject = String(data.get("subject") || "").trim();
+    const senderName = String(data.get("sender_name") || "").trim();
     const html = bodyInput.value.trim();
     const how = howSelect.value;
     const spreadsheet = window.bzComposer.getSheetPlan?.() || null;
@@ -2165,6 +2106,7 @@
       name,
       recipients,
       subject,
+      sender_name: senderName,
       body: html,
       spreadsheet,
       sender: senderEmail?.dataset.email || "",
@@ -2205,6 +2147,12 @@
   });
 
   resetForm();
+  useProjectNameButton?.addEventListener("click", () => {
+    const projectName = window.bzComposer.getProjectName?.() || "";
+    if (!projectName) return showError("Project details are still loading. Try again shortly.");
+    senderNameInput.value = projectName;
+    clearError();
+  });
 })();
 </script>
 

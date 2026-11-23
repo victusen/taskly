@@ -3,7 +3,6 @@ import { google } from "googleapis";
 const GOOGLE_IDENTITY_SCOPES = [
   "openid",
   "email",
-  "profile",
 ];
 const GMAIL_SEND_SCOPE = "https://www.googleapis.com/auth/gmail.send";
 const GOOGLE_DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
@@ -78,7 +77,5 @@ export async function getGoogleAccount(client) {
   return {
     id: data.id || null,
     email: data.email,
-    name: data.name || null,
-    picture: data.picture || null,
   };
 }
