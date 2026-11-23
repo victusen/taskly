@@ -866,21 +866,25 @@
     .schedule-table tbody tr:last-child td { border-bottom: 0; }
     .schedule-table th:first-child, .schedule-table td:first-child { display: none; }
     .schedule-table td.schedule-next-run-column, .schedule-table td.schedule-last-run-column { overflow: visible; text-overflow: clip; }
-    .schedule-table th:nth-child(2) { width: 15%; }
-    .schedule-table th:nth-child(3) { width: 7%; }
-    .schedule-table th:nth-child(4) { width: 11%; }
+    .schedule-table th:nth-child(2) { width: 14%; }
+    .schedule-table th:nth-child(3) { width: 8%; padding-left: 8px; padding-right: 8px; }
+    .schedule-table th:nth-child(4) { width: 9%; }
     .schedule-table th:nth-child(5) { width: 16%; }
     .schedule-table th:nth-child(6) { width: 16%; }
     .schedule-table th:nth-child(7) { width: 16%; }
     .schedule-table th:nth-child(8) { width: 6%; }
     .schedule-table th:nth-child(9) { width: 5%; }
-    .schedule-table th:nth-child(10) { width: 7%; }
+    .schedule-table th:nth-child(10) { width: 9%; }
     .schedule-table th:nth-child(11) { width: 44px; }
     .schedule-table tbody tr { cursor: default; }
-    .schedule-name-cell { color: #111827; font-size: 14px; font-weight: 700; }
+    .schedule-name-cell { color: #111827; font-size: 14px; font-weight: 700; text-overflow: clip; }
     .schedule-name-button { display: inline; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+    .schedule-table .schedule-name-button { display: block; max-width: 100%; overflow: hidden; text-overflow: clip; white-space: nowrap; }
     .schedule-name-button:hover, .schedule-name-button:focus-visible { text-decoration: underline; text-decoration-color: #000; text-underline-offset: 3px; }
     .schedule-type-cell, .schedule-frequency-cell { color: #111827; font-weight: 700; }
+    .schedule-table td.schedule-type-cell { overflow: hidden; padding-left: 8px; padding-right: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    .schedule-table td.schedule-status-cell { padding-left: 6px; padding-right: 6px; text-overflow: clip; }
+    .schedule-table td.schedule-status-cell .badge { padding-left: 5px; padding-right: 5px; white-space: nowrap; }
     .schedule-date-time { display: flex; flex-direction: column; line-height: 1.35; }
     .schedule-date-time strong { color: #1f2937; font-size: 13px; font-weight: 650; }
     .schedule-date-time span { color: #4b5563; font-size: 12px; }
@@ -2325,7 +2329,7 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
   </div>
   </div>
 
-  <script type="module" src="schedules.js?v=20261118-2"></script>
+  <script type="module" src="schedules.js?v=20261123-1"></script>
 
   <!-- Payment Selection Modal -->
   <div class="payment-modal-backdrop" id="payment-modal">

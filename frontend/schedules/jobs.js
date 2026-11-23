@@ -1038,7 +1038,7 @@ function renderRows() {
           <td class="schedule-last-run-column"><div class="schedule-date-time"><strong>${esc(lastRun.split(" Ã‚Â· ")[0])}</strong><span>${esc(lastRun.split(" Ã‚Â· ")[1] || "Ã¢â‚¬â€")}</span></div></td>
           <td>${recipients.length}</td>
           <td><span class="badge badge-green schedule-run-count">${runCount}</span></td>
-          <td>${statusBadge(row.status)}</td>
+          <td class="schedule-status-cell">${statusBadge(row.status)}</td>
           <td class="schedule-actions-cell">
             <div class="schedule-row-actions">
               <button type="button" class="schedule-menu-trigger" aria-label="Schedule actions" aria-expanded="false">
