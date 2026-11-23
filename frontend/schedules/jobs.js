@@ -7,6 +7,7 @@ import {
   startGoogleSheetsConnection,
   listProjectScheduleDatabaseConnections,
   getGoogleSheetsPickerConfig,
+  createGoogleSheetsSpreadsheet,
   disconnectGoogleSheetsConnection,
   listSpreadsheetSheets,
   listSpreadsheetColumns,
@@ -68,6 +69,7 @@ const connectDatabaseBtns = document.querySelectorAll("#cmp-connect-database");
 const sheetPicker = document.getElementById("sheet-picker-overlay");
 const sheetPickerConnection = document.getElementById("sheet-picker-connection");
 const sheetPickerFile = document.getElementById("sheet-picker-file");
+const sheetPickerOpenFile = document.getElementById("sheet-picker-open-file");
 const sheetPickerTab = document.getElementById("sheet-picker-tab");
 const sheetPickerHeaderRow = document.getElementById("sheet-picker-header-row");
 const sheetPickerStartRow = document.getElementById("sheet-picker-start-row");
@@ -255,6 +257,17 @@ function updateSheetPlanFromInputs() {
   renderSheetSummary();
 }
 
+function spreadsheetColumnLetter(index) {
+  let value = index + 1;
+  let result = "";
+  while (value > 0) {
+    value -= 1;
+    result = String.fromCharCode(65 + (value % 26)) + result;
+    value = Math.floor(value / 26);
+  }
+  return result;
+}
+
 function setSheetPlan(plan) {
   sheetPlan = plan ? JSON.parse(JSON.stringify(plan)) : null;
   if (!sheetPlan) {
@@ -277,6 +290,13 @@ function setSheetPlan(plan) {
     value: file.id,
     label: file.name || file.title || "Untitled spreadsheet",
   })), sheetPlan?.file?.id ?? "");
+  if (sheetPickerOpenFile) {
+    const fileId = sheetPlan?.file?.id;
+    sheetPickerOpenFile.href = fileId
+      ? sheetPlan.file.url || `https://docs.google.com/spreadsheets/d/${encodeURIComponent(fileId)}/edit`
+      : "#";
+    sheetPickerOpenFile.hidden = !fileId;
+  }
   if (sheetPickerFile) sheetPickerFile.disabled = true;
   setSelectOptions(sheetPickerTab, "Select a sheet tab", spreadsheetSheets.map((sheet) => ({
     value: sheet.id,
@@ -311,11 +331,27 @@ async function loadSheetConnections() {
     activeScheduleDatabaseId = selected?.id || null;
     if (callbackConnectionId) {
       urlParams.delete("google_connection_id");
-      window.history.replaceState({}, "", `${window.location.pathname}?${urlParams}${window.location.hash}`);
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.delete("google_connection_id");
+      window.history.replaceState({}, "", currentUrl);
       if (sheetPlan && sheetPlan.connection_id !== activeScheduleDatabaseId) {
         sheetPlan = { ...sheetPlan, connection_id: activeScheduleDatabaseId, file: null, sheet: null, columns: [], emailColumn: "", variableColumns: {} };
         setSheetPlan(sheetPlan);
       }
+    }
+    if (!sheetPlan && selected?.status === "active") {
+      setSheetPlan({
+        version: 1,
+        provider: "google_sheets",
+        connection_id: selected.id,
+        file: null,
+        sheet: null,
+        headerRow: 1,
+        startRow: 2,
+        endRow: null,
+        emailColumn: "",
+        variableColumns: {},
+      });
     }
     setSelectOptions(sheetPickerConnection, "Select a Google account", scheduleDatabaseConnections.map((connection) => ({
       value: connection.id,
@@ -324,17 +360,19 @@ async function loadSheetConnections() {
     renderSheetSummary();
     const active = selected?.status === "active";
     const browseButton = document.getElementById("sheet-picker-browse");
+    const createButton = document.getElementById("sheet-picker-create");
     const disconnectButton = document.getElementById("sheet-picker-disconnect");
     if (browseButton) browseButton.disabled = !active;
+    if (createButton) createButton.disabled = !active;
     if (disconnectButton) disconnectButton.disabled = !selected;
 
     if (!selected) {
       setSheetPickerMessage("Connect a Google account to select a spreadsheet.");
-      return;
+      return null;
     }
     if (!active) {
       setSheetPickerMessage(`This account is ${selected.status.replaceAll("_", " ")}. Reconnect it to use its spreadsheets.`, true);
-      return;
+      return selected;
     }
     if (sheetPlan?.file?.id && sheetPlan.connection_id === selected.id) {
       await loadSheetTabs(sheetPlan.file.id);
@@ -342,8 +380,10 @@ async function loadSheetConnections() {
     } else {
       setSheetPickerMessage("Choose a spreadsheet with Google Picker, then select its sheet tab and columns.");
     }
+    return selected;
   } catch (error) {
     setSheetPickerMessage(`Could not load Google Sheets accounts: ${error.message}`, true);
+    return null;
   }
 }
 
@@ -365,8 +405,9 @@ async function loadSheetTabs(spreadsheetId) {
     if (sheetPickerTab) sheetPickerTab.disabled = false;
     if (selectedSheetId !== undefined && spreadsheetSheets.some((sheet) => String(sheet.id) === String(selectedSheetId))) {
       await loadSheetColumns(spreadsheetId, selectedSheetId, sheetPlan?.headerRow || 1);
+      return;
     }
-    setSheetPickerMessage(spreadsheetSheets.length ? "Choose the sheet tab to use." : "This spreadsheet has no available tabs.", !spreadsheetSheets.length);
+    setSheetPickerMessage(spreadsheetSheets.length ? "Choose a sheet tab to use." : "This spreadsheet has no available tabs.", !spreadsheetSheets.length);
   } catch (error) {
     setSheetPickerMessage(`Could not load sheet tabs: ${error.message}`, true);
   }
@@ -407,11 +448,11 @@ async function loadSheetColumns(spreadsheetId, sheetId, headerRow) {
 }
 
 function openSheetPicker() {
-  if (!sheetPicker) return;
+  if (!sheetPicker) return Promise.resolve(null);
   sheetPicker.classList.add("open");
   sheetPicker.setAttribute("aria-hidden", "false");
   if (sheetPlan) setSheetPlan(sheetPlan);
-  void loadSheetConnections();
+  return loadSheetConnections();
 }
 
 function closeSheetPicker() {
@@ -467,12 +508,24 @@ async function browseGoogleSheets() {
   const browseButton = document.getElementById("sheet-picker-browse");
   if (browseButton) browseButton.disabled = true;
   setSheetPickerMessage("Opening Google PickerÃ¢â‚¬Â¦");
+  showToast("info", "Opening Google Picker...");
+  closeSheetPicker();
+  const composer = document.getElementById("job-composer");
+  composer?.classList.add("google-picker-underlay");
+  let picker;
+  let pickerHandled = false;
+  const closeGooglePicker = () => {
+    if (pickerHandled) return;
+    pickerHandled = true;
+    picker?.setVisible(false);
+    composer?.classList.remove("google-picker-underlay");
+  };
   try {
     const [config] = await Promise.all([
       getGoogleSheetsPickerConfig(projectId, activeScheduleDatabaseId),
       loadGooglePickerApi(),
     ]);
-    const picker = new window.google.picker.PickerBuilder()
+    picker = new window.google.picker.PickerBuilder()
       .addView(window.google.picker.ViewId.SPREADSHEETS)
       .setOAuthToken(config.accessToken)
       .setDeveloperKey(config.apiKey)
@@ -480,10 +533,19 @@ async function browseGoogleSheets() {
       .setOrigin(window.location.origin)
       .setTitle("Choose a spreadsheet")
       .setCallback((data) => {
+        if (pickerHandled) return;
+        if (data.action === window.google.picker.Action.CANCEL) {
+          closeGooglePicker();
+          showToast("info", "You can create a new spreadsheet from the setup panel.");
+          void openSheetPicker();
+          return;
+        }
         if (data.action !== window.google.picker.Action.PICKED) return;
         const document = data.docs?.[0];
         if (!document?.id) {
+          closeGooglePicker();
           setSheetPickerMessage("Google Picker did not return a spreadsheet.", true);
+          void openSheetPicker();
           return;
         }
         const file = { id: String(document.id), name: String(document.name || "Untitled spreadsheet") };
@@ -501,13 +563,18 @@ async function browseGoogleSheets() {
           variableColumns: {},
         };
         setSheetPlan(sheetPlan);
-        void loadSheetTabs(file.id);
+        closeGooglePicker();
+        showToast("success", "Spreadsheet selected. Finish setting up its recipient columns.");
+        void openSheetPicker();
       })
       .build();
     picker.setVisible(true);
     setSheetPickerMessage("Select a spreadsheet in Google Picker.");
   } catch (error) {
+    closeGooglePicker();
     setSheetPickerMessage(`Could not open Google Picker: ${error.message}`, true);
+    showToast("error", `Could not open Google Picker: ${error.message}`);
+    void openSheetPicker();
   } finally {
     if (browseButton) {
       const selected = scheduleDatabaseConnections.find((connection) => connection.id === activeScheduleDatabaseId);
@@ -555,11 +622,41 @@ window.bzComposer.getSheetPlan = () => sheetPlan ? JSON.parse(JSON.stringify(she
 window.bzComposer.setSheetPlan = setSheetPlan;
 window.bzComposer.validateSheetPlan = validateCurrentSheetPlan;
 
+function saveSheetsResumeState() {
+  sessionStorage.setItem("bzResumeSheetsPicker", projectId);
+  sessionStorage.setItem("bzResumeSheetsComposer", JSON.stringify({
+    name: document.getElementById("cmp-name")?.value || "",
+    recipients: document.getElementById("cmp-recipients")?.value || "",
+    subject: document.querySelector('#cmp-form [name="subject"]')?.value || "",
+    sender_name: document.getElementById("cmp-sender-name")?.value || "",
+    body: document.getElementById("cmp-body")?.value || "",
+    how: document.getElementById("cmp-how")?.value || "once",
+    date: document.getElementById("cmp-date")?.value || "",
+    time: document.getElementById("cmp-time")?.value || "09:00",
+    spreadsheet: window.bzComposer.getSheetPlan?.() || null,
+  }));
+}
+
+async function beginSheetsConnection() {
+  try {
+    saveSheetsResumeState();
+    closeSheetPicker();
+    showToast("info", "Opening Google to connect Sheets.");
+    await startGoogleSheetsConnection(projectId);
+    return true;
+  } catch (error) {
+    sessionStorage.removeItem("bzResumeSheetsPicker");
+    sessionStorage.removeItem("bzResumeSheetsComposer");
+    showToast("error", error.message || "Could not start the Google Sheets connection.");
+    return false;
+  }
+}
+
 connectDatabaseBtns.forEach((button) => button.addEventListener("click", () => {
   openDatabaseConnectModal({
     onSelect(provider) {
       if (provider === "google-sheets") {
-        openSheetPicker();
+        void beginSheetsConnection();
         return;
       }
       const providerName = {
@@ -585,37 +682,68 @@ sheetPicker?.addEventListener("click", (event) => {
 document.getElementById("sheet-picker-connect")?.addEventListener("click", async (event) => {
   const button = event.currentTarget;
   button.disabled = true;
-  try {
-    sessionStorage.setItem("bzResumeSheetsPicker", projectId);
-    sessionStorage.setItem("bzResumeSheetsComposer", JSON.stringify({
-      name: document.getElementById("cmp-name")?.value || "",
-      recipients: document.getElementById("cmp-recipients")?.value || "",
-      subject: document.querySelector('#cmp-form [name="subject"]')?.value || "",
-      sender_name: document.getElementById("cmp-sender-name")?.value || "",
-      body: document.getElementById("cmp-body")?.value || "",
-      how: document.getElementById("cmp-how")?.value || "once",
-      date: document.getElementById("cmp-date")?.value || "",
-      time: document.getElementById("cmp-time")?.value || "09:00",
-      spreadsheet: window.bzComposer.getSheetPlan?.() || null,
-    }));
-    await startGoogleSheetsConnection(projectId);
-  } catch (error) {
-    sessionStorage.removeItem("bzResumeSheetsPicker");
-    sessionStorage.removeItem("bzResumeSheetsComposer");
-    setSheetPickerMessage(error.message || "Could not start the Google Sheets connection.", true);
-    button.disabled = false;
-  }
+  const started = await beginSheetsConnection();
+  if (!started) button.disabled = false;
 });
 document.getElementById("sheet-picker-browse")?.addEventListener("click", () => {
   void browseGoogleSheets();
+});
+document.getElementById("sheet-picker-create")?.addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  const connectionId = activeScheduleDatabaseId;
+  const connection = scheduleDatabaseConnections.find((item) => item.id === connectionId);
+  if (!connectionId || connection?.status !== "active") {
+    setSheetPickerMessage("Choose an active Google Sheets account before creating a spreadsheet.", true);
+    return;
+  }
+
+  const subject = document.querySelector('#schedule-form [name="subject"]')?.value || "";
+  const body = document.getElementById("cmp-body")?.value || "";
+  const variables = inspectTemplateVariables(subject, body).variables;
+  if (variables.length > 100) {
+    setSheetPickerMessage("This email has more than 100 variables. Remove some variables before creating a spreadsheet.", true);
+    return;
+  }
+  const scheduleName = document.getElementById("cmp-name")?.value?.trim() || "Taskly schedule";
+  const headers = ["Email", ...variables];
+  const title = `${scheduleName.slice(0, 88)} recipients`;
+  button.disabled = true;
+  setSheetPickerMessage("Creating a spreadsheet with an Email column and your email variables…");
+  try {
+    const created = await createGoogleSheetsSpreadsheet(projectId, connectionId, title, headers);
+    sheetPlan = {
+      version: 1,
+      provider: "google_sheets",
+      connection_id: connectionId,
+      file: { id: created.id, name: created.name, url: created.url },
+      sheet: created.sheet,
+      headerRow: 1,
+      startRow: 2,
+      endRow: null,
+      emailColumn: "A",
+      variableColumns: Object.fromEntries(variables.map((name, index) => [
+        name,
+        spreadsheetColumnLetter(index + 1),
+      ])),
+    };
+    setSheetPlan(sheetPlan);
+    await loadSheetTabs(created.id);
+    showToast("success", "Spreadsheet created. Add recipients, then confirm the sheet setup.");
+  } catch (error) {
+    setSheetPickerMessage(`Could not create spreadsheet: ${error.message}`, true);
+  } finally {
+    button.disabled = false;
+  }
 });
 sheetPickerConnection?.addEventListener("change", async () => {
   const previousConnectionId = activeScheduleDatabaseId;
   activeScheduleDatabaseId = sheetPickerConnection.value || null;
   const selected = scheduleDatabaseConnections.find((connection) => connection.id === activeScheduleDatabaseId);
   const browseButton = document.getElementById("sheet-picker-browse");
+  const createButton = document.getElementById("sheet-picker-create");
   const disconnectButton = document.getElementById("sheet-picker-disconnect");
   if (browseButton) browseButton.disabled = selected?.status !== "active";
+  if (createButton) createButton.disabled = selected?.status !== "active";
   if (disconnectButton) disconnectButton.disabled = !selected;
   if (sheetPlan && previousConnectionId !== activeScheduleDatabaseId) {
     sheetPlan.connection_id = activeScheduleDatabaseId;
@@ -905,12 +1033,12 @@ function renderRows() {
           <td class="schedule-name-cell" title="${esc(name)}"><button type="button" class="schedule-name-button" data-view-schedule>${esc(name)}</button></td>
           <td class="schedule-type-cell">${esc(type)}</td>
           <td class="schedule-frequency-cell">${esc(frequency)}</td>
-          <td>${statusBadge(row.status)}</td>
+          <td class="schedule-created-column"><div class="schedule-date-time"><strong>${esc(createdAt.split(" Ã‚Â· ")[0])}</strong><span>${esc(createdAt.split(" Ã‚Â· ")[1] || "")}</span></div></td>
+          <td class="schedule-next-run-column"><div class="schedule-date-time"><strong>${esc(nextRun.split(" Ã‚Â· ")[0])}</strong><span>${esc(nextRun.split(" Ã‚Â· ")[1] || "Ã¢â‚¬â€")}</span></div></td>
+          <td class="schedule-last-run-column"><div class="schedule-date-time"><strong>${esc(lastRun.split(" Ã‚Â· ")[0])}</strong><span>${esc(lastRun.split(" Ã‚Â· ")[1] || "Ã¢â‚¬â€")}</span></div></td>
           <td>${recipients.length}</td>
-          <td><span class="badge badge-green">${runCount}</span></td>
-          <td><div class="schedule-date-time"><strong>${esc(createdAt.split(" Ã‚Â· ")[0])}</strong><span>${esc(createdAt.split(" Ã‚Â· ")[1] || "")}</span></div></td>
-          <td><div class="schedule-date-time"><strong>${esc(lastRun.split(" Ã‚Â· ")[0])}</strong><span>${esc(lastRun.split(" Ã‚Â· ")[1] || "Ã¢â‚¬â€")}</span></div></td>
-          <td><div class="schedule-date-time"><strong>${esc(nextRun.split(" Ã‚Â· ")[0])}</strong><span>${esc(nextRun.split(" Ã‚Â· ")[1] || "Ã¢â‚¬â€")}</span></div></td>
+          <td><span class="badge badge-green schedule-run-count">${runCount}</span></td>
+          <td>${statusBadge(row.status)}</td>
           <td class="schedule-actions-cell">
             <div class="schedule-row-actions">
               <button type="button" class="schedule-menu-trigger" aria-label="Schedule actions" aria-expanded="false">
@@ -961,13 +1089,13 @@ function renderRows() {
           </div>
           <div class="schedule-mobile-meta">
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Type</span><span class="schedule-mobile-value schedule-type-cell">${esc(type)}</span></div>
-            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Frequency</span><span class="schedule-mobile-value schedule-frequency-cell">${esc(frequency)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Status</span><span class="schedule-mobile-value">${statusBadge(row.status)}</span></div>
-            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Recipients</span><span class="schedule-mobile-value">${recipients.length}</span></div>
-            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Run count</span><span class="schedule-mobile-value"><span class="badge badge-green">${runCount}</span></span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Repeat</span><span class="schedule-mobile-value schedule-frequency-cell">${esc(frequency)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Created at</span><span class="schedule-mobile-value">${dateValue(createdAt)}</span></div>
-            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Last run</span><span class="schedule-mobile-value">${dateValue(lastRun)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Next run</span><span class="schedule-mobile-value">${dateValue(nextRun)}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Last run</span><span class="schedule-mobile-value">${dateValue(lastRun)}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Recipients</span><span class="schedule-mobile-value">${recipients.length}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Run count</span><span class="schedule-mobile-value"><span class="badge badge-green schedule-run-count">${runCount}</span></span></div>
           </div>
         </article>`;
     }).join("");
@@ -976,7 +1104,7 @@ function renderRows() {
         <table class="schedule-table">
           <thead><tr>
             <th class="schedule-select-cell">Select</th>
-            <th>Name</th><th>Type</th><th>Frequency</th><th>Status</th><th>Recipients</th><th>Run count</th><th>Created at</th><th>Last run</th><th>Next run</th>
+            <th>Name</th><th>Type</th><th>Repeat</th><th class="schedule-created-column">Created at</th><th class="schedule-next-run-column">Next run</th><th class="schedule-last-run-column">Last run</th><th>Recipients</th><th>Run count</th><th>Status</th>
             <th aria-label="More actions"></th>
           </tr></thead>
           <tbody>${tableRows}</tbody>
@@ -2118,9 +2246,10 @@ async function init() {
 
 await init();
 const sheetPickerResumeProject = sessionStorage.getItem("bzResumeSheetsPicker");
+const googleConnectionResult = urlParams.get("google");
 if (
   sheetPickerResumeProject === projectId &&
-  Boolean(urlParams.get("google"))
+  Boolean(googleConnectionResult)
 ) {
   sessionStorage.removeItem("bzResumeSheetsPicker");
   const savedComposer = sessionStorage.getItem("bzResumeSheetsComposer");
@@ -2146,7 +2275,15 @@ if (
   } else {
     window.bzComposer.openCreate?.();
   }
-  openSheetPicker();
+  if (googleConnectionResult === "database_connected") {
+    const connection = await loadSheetConnections();
+    if (connection?.status === "active") {
+      void browseGoogleSheets();
+    } else {
+      showToast("error", "Google Sheets connected, but no active account was available. Choose an account and try again.");
+      void openSheetPicker();
+    }
+  }
 }
 
 /* The sidebar drawer, project sub-list and help dropdown are wired by the

@@ -2,6 +2,7 @@ import { google } from "googleapis";
 
 import {
   getGoogleSheetsClient,
+  createSpreadsheetWithHeaders,
   getSpreadsheetColumns,
   isSheetRow,
   isSpreadsheetId,
@@ -88,6 +89,55 @@ export async function getGoogleSheetsPickerConfig(req, res) {
     return res.status(200).json({
       success: true,
       data: { apiKey, appId: String(appId), accessToken },
+    });
+  } catch (error) {
+    return sendError(res, error);
+  }
+}
+
+export async function createGoogleSheetsSpreadsheet(req, res) {
+  try {
+    const projectId = req.body?.project_id;
+    const connectionId = req.body?.connection_id;
+    const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
+    const headers = req.body?.headers;
+    if (
+      typeof projectId !== "string" ||
+      typeof connectionId !== "string" ||
+      !connectionId ||
+      !title ||
+      title.length > 100 ||
+      /[\u0000-\u001f\u007f]/.test(title)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Choose a project and connection, and provide a valid spreadsheet title.",
+      });
+    }
+    if (
+      !Array.isArray(headers) ||
+      headers.length < 1 ||
+      headers.length > 101 ||
+      headers.some((header) =>
+        typeof header !== "string" ||
+        !header.trim() ||
+        header.trim().length > 100 ||
+        /[\u0000-\u001f\u007f]/.test(header)
+      )
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "A new spreadsheet needs between 1 and 101 valid column headers.",
+      });
+    }
+
+    const connection = await getProjectScheduleDatabase(req.user.id, projectId, connectionId);
+    const auth = await getGoogleSheetsClient(connection);
+    const sheetsApi = google.sheets({ version: "v4", auth });
+    const spreadsheet = await createSpreadsheetWithHeaders(sheetsApi, title, headers);
+    return res.status(201).json({
+      success: true,
+      data: spreadsheet,
     });
   } catch (error) {
     return sendError(res, error);

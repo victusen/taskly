@@ -5,7 +5,7 @@ import { applyUserAvatar } from "../auth/session.js";
 
 const GOOGLE_RESULTS = {
   connected: ["success", "Gmail connected."],
-  database_connected: ["success", "Google Sheets database connected."],
+  database_connected: ["info", "Google Sheets connected. Choose a spreadsheet to continue."],
   database_cancelled: ["warning", "Google Sheets connection cancelled."],
   database_failed: ["error", "Could not connect Google Sheets. Try again."],
   cancelled: ["warning", "Gmail connection cancelled."],

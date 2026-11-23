@@ -708,6 +708,7 @@
       backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
     }
     .sched-editor-overlay.open { display: flex; }
+    .sched-editor-overlay.google-picker-underlay { z-index: 1; }
     .sched-editor-card {
       width: min(1180px, calc(100vw - 48px));
       height: auto; max-height: min(860px, calc(100vh - 48px));
@@ -794,7 +795,9 @@
     .sheet-picker-primary:disabled, .sheet-picker-secondary:disabled { opacity: .55; cursor: wait; }
     .sheet-picker-section-title { margin: 0; color: #111827; font-size: 13px; font-weight: 650; }
     .sheet-picker-connect-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 9px; background: #f9fafb; }
-    .sheet-picker-connect-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .sheet-picker-connect-actions, .sheet-picker-browse-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .sheet-picker-browse-actions > button { flex: 1 1 160px; }
+    .sheet-picker-open-file { color: #166534; font-size: 12px; font-weight: 600; text-decoration: underline; }
     .sheet-picker-confirm:disabled { opacity: .5; cursor: not-allowed; }
     @media (max-width: 600px) {
       .sheet-picker-overlay { padding: 0; }
@@ -802,6 +805,7 @@
       .sheet-picker-header, .sheet-picker-body, .sheet-picker-footer { padding-left: 16px; padding-right: 16px; }
       .sheet-picker-connect-row { grid-template-columns: 1fr; }
       .sheet-picker-connect-actions > button { flex: 1; }
+      .sheet-picker-browse-actions > button { flex: 1 1 140px; }
     }
     .sched-editor-body .cmp-code { min-height: 350px; height: 350px; overflow-y: auto; resize: vertical; white-space: pre-wrap; overflow-wrap: anywhere; }
     .sched-editor-body .cmp-editor { border-radius: 10px; }
@@ -861,15 +865,16 @@
     .schedule-table th { background: #f8fafc; color: #111827; font-size: 12px; font-weight: 750; letter-spacing: .035em; text-transform: uppercase; }
     .schedule-table tbody tr:last-child td { border-bottom: 0; }
     .schedule-table th:first-child, .schedule-table td:first-child { display: none; }
-    .schedule-table th:nth-child(2) { width: 18%; }
-    .schedule-table th:nth-child(3) { width: 8%; }
-    .schedule-table th:nth-child(4) { width: 13%; }
-    .schedule-table th:nth-child(5) { width: 9%; }
-    .schedule-table th:nth-child(6) { width: 8%; }
-    .schedule-table th:nth-child(7) { width: 76px; }
-    .schedule-table th:nth-child(8) { width: 112px; }
-    .schedule-table th:nth-child(9) { width: 112px; }
-    .schedule-table th:nth-child(10) { width: 112px; }
+    .schedule-table td.schedule-next-run-column, .schedule-table td.schedule-last-run-column { overflow: visible; text-overflow: clip; }
+    .schedule-table th:nth-child(2) { width: 15%; }
+    .schedule-table th:nth-child(3) { width: 7%; }
+    .schedule-table th:nth-child(4) { width: 11%; }
+    .schedule-table th:nth-child(5) { width: 16%; }
+    .schedule-table th:nth-child(6) { width: 16%; }
+    .schedule-table th:nth-child(7) { width: 16%; }
+    .schedule-table th:nth-child(8) { width: 6%; }
+    .schedule-table th:nth-child(9) { width: 5%; }
+    .schedule-table th:nth-child(10) { width: 7%; }
     .schedule-table th:nth-child(11) { width: 44px; }
     .schedule-table tbody tr { cursor: default; }
     .schedule-name-cell { color: #111827; font-size: 14px; font-weight: 700; }
@@ -881,6 +886,7 @@
     .schedule-date-time span { color: #4b5563; font-size: 12px; }
     .schedule-table .badge, .schedule-mobile-list .badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 999px; color: #fff; font-size: 11px; font-weight: 650; line-height: 1.3; }
     .schedule-table .badge-green, .schedule-mobile-list .badge-green { background: #15803d; }
+    .schedule-table .schedule-run-count, .schedule-mobile-list .schedule-run-count { border-radius: 5px; }
     .schedule-table .badge-warn, .schedule-mobile-list .badge-warn { background: #b45309; }
     .schedule-table .badge-red, .schedule-mobile-list .badge-red { background: #b91c1c; }
     .schedule-table .badge-blue, .schedule-mobile-list .badge-blue { background: #2563eb; }
@@ -1683,8 +1689,8 @@
     <section class="sheet-picker-card" role="dialog" aria-modal="true" aria-labelledby="sheet-picker-title">
       <div class="sheet-picker-header">
         <div>
-          <h2 id="sheet-picker-title">Connect a spreadsheet</h2>
-          <p>Choose the spreadsheet and sheet tab for this schedule.</p>
+          <h2 id="sheet-picker-title">Set up spreadsheet recipients</h2>
+          <p>Choose a spreadsheet, then select its sheet tab and recipient columns.</p>
         </div>
         <button type="button" class="schedule-detail-close" id="sheet-picker-close" aria-label="Close spreadsheet picker">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg>
@@ -1702,11 +1708,15 @@
           </div>
         </div>
         <p class="sheet-picker-message" id="sheet-picker-message" role="status">Loading spreadsheetsÃ¢â‚¬Â¦</p>
-        <label class="sheet-picker-field">
-          Choose a spreadsheet
-          <button type="button" class="sheet-picker-secondary" id="sheet-picker-browse" disabled>Browse with Google Picker</button>
+        <div class="sheet-picker-field">
+          <span>Choose a spreadsheet</span>
+          <div class="sheet-picker-browse-actions">
+            <button type="button" class="sheet-picker-secondary" id="sheet-picker-browse" disabled>Browse with Google Picker</button>
+            <button type="button" class="sheet-picker-secondary" id="sheet-picker-create" disabled>Create new spreadsheet</button>
+          </div>
           <select id="sheet-picker-file" aria-label="Selected spreadsheet" disabled><option value="">No spreadsheet selected</option></select>
-        </label>
+          <a class="sheet-picker-open-file" id="sheet-picker-open-file" href="#" target="_blank" rel="noopener" hidden>Open spreadsheet to add recipients</a>
+        </div>
         <label class="sheet-picker-field">
           Sheet tab
           <select id="sheet-picker-tab" disabled><option value="">Select a sheet tab</option></select>
@@ -1971,7 +1981,23 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
   howSelect.addEventListener("change", syncHow);
   timeInput.addEventListener("change", syncHow);
 
-  function closeEditor() {
+  function closeEditor({ skipPrompt = false } = {}) {
+    if (!skipPrompt && mode === "create" && hasComposerContent()) {
+      const save = window.confirm(
+        "Save this schedule and its Sheets settings as a local draft before closing? The project-level Google Sheets connection will remain available either way.",
+      );
+      if (save) {
+        try {
+          saveCurrentDraft();
+          window.bzComposer.toast?.("success", "Draft saved.");
+        } catch (error) {
+          showError(error.message || "Could not save this draft.");
+          return;
+        }
+      } else {
+        window.bzComposer.setSheetPlan?.(null);
+      }
+    }
     composer.classList.remove("open");
     composer.hidden = true;
     composer.setAttribute("aria-hidden", "true");
@@ -2017,10 +2043,15 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
     editingId = null;
     resetForm();
     nameInput.value = capitalizeScheduleName(draft.name || "");
+    recipientsInput.value = Array.isArray(draft.recipients) ? draft.recipients.join(", ") : "";
     subjectInput.value = draft.subject || "";
     senderNameInput.value = draft.sender_name || "";
     bodyInput.value = draft.body || "";
     window.bzComposer.setSheetPlan?.(draft.spreadsheet || null);
+    dateInput.value = draft.date || dateInput.value;
+    timeInput.value = draft.time || "09:00";
+    howSelect.value = draft.how || "once";
+    howSelect.dispatchEvent(new Event("change", { bubbles: true }));
     setHeading("Edit saved draft", "Create task", "Complete the schedule details to create this task.");
     clearError();
     openEditor();
@@ -2028,33 +2059,59 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
     setTimeout(() => nameInput.focus(), 0);
   }
 
+  function currentDraft() {
+    const name = capitalizeScheduleName(nameInput.value) || "Untitled draft";
+    const recipients = String(recipientsInput.value || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    return {
+      name,
+      recipients,
+      subject: subjectInput.value.trim(),
+      sender_name: senderNameInput.value.trim(),
+      body: bodyInput.value,
+      spreadsheet: window.bzComposer.getSheetPlan?.() || null,
+      how: howSelect.value,
+      date: dateInput.value,
+      time: timeInput.value,
+    };
+  }
+
+  function saveCurrentDraft() {
+    if (typeof window.bzComposer.saveDraft !== "function") {
+      throw new Error("Saving drafts is not available right now.");
+    }
+    return window.bzComposer.saveDraft(currentDraft());
+  }
+
+  function hasComposerContent() {
+    return Boolean(
+      nameInput.value.trim()
+      || recipientsInput.value.trim()
+      || subjectInput.value.trim()
+      || senderNameInput.value.trim()
+      || bodyInput.value.trim()
+      || window.bzComposer.getSheetPlan?.(),
+    );
+  }
+
   window.bzComposer.openCreate = openCreate;
   window.bzComposer.openEdit = openEdit;
   window.bzComposer.openDraft = openDraft;
 
-  closeButton.addEventListener("click", closeEditor);
-  cancelButton.addEventListener("click", closeEditor);
+  closeButton.addEventListener("click", () => closeEditor());
+  cancelButton.addEventListener("click", () => closeEditor());
   composer.addEventListener("click", (event) => {
     if (event.target === composer) closeEditor();
   });
 
   saveDraftButton?.addEventListener("click", () => {
-    const name = capitalizeScheduleName(nameInput.value) || "Untitled draft";
-    nameInput.value = name;
-    const subject = subjectInput.value.trim();
-
     try {
-      if (typeof window.bzComposer.saveDraft === "function") {
-        window.bzComposer.saveDraft({
-          name,
-          subject,
-          sender_name: senderNameInput.value.trim(),
-          body: bodyInput.value,
-          spreadsheet: window.bzComposer.getSheetPlan?.() || null,
-        });
-      }
+      nameInput.value = currentDraft().name;
+      saveCurrentDraft();
       window.bzComposer.toast?.("success", "Draft saved.");
-      closeEditor();
+      closeEditor({ skipPrompt: true });
     } catch (err) {
       showError(err.message || "Could not save this draft.");
     }
@@ -2064,6 +2121,7 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
     if (
       event.key === "Escape" &&
       !composer.hidden &&
+      !composer.classList.contains("google-picker-underlay") &&
       !document.getElementById("sheet-picker-overlay")?.classList.contains("open")
     ) closeEditor();
   });
@@ -2091,16 +2149,28 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
     const senderName = String(data.get("sender_name") || "").trim();
     const html = bodyInput.value.trim();
     const how = howSelect.value;
-    const spreadsheet = window.bzComposer.getSheetPlan?.() || null;
+    const candidateSpreadsheet = window.bzComposer.getSheetPlan?.() || null;
 
     if (!name) return showError("Give this task a job name.");
-    if (recipients.length === 0 && !spreadsheet) return showError("Add at least one recipient or choose a spreadsheet.");
-    if (spreadsheet && recipients.length > 0) return showError("Use direct recipients or spreadsheet recipients, not both.");
     if (!subject) return showError("Add a subject.");
     if (!html) return showError("Write the message in the editor.");
-    const spreadsheetErrors = window.bzComposer.validateSheetPlan?.(subject, html) || [];
-    if (spreadsheetErrors.length) return showError(spreadsheetErrors[0]);
+    const spreadsheetErrors = candidateSpreadsheet
+      ? window.bzComposer.validateSheetPlan?.(subject, html) || []
+      : [];
+    const spreadsheet = candidateSpreadsheet && spreadsheetErrors.length === 0
+      ? candidateSpreadsheet
+      : null;
+
+    if (recipients.length === 0 && !spreadsheet) {
+      return showError(candidateSpreadsheet
+        ? "Enter manual recipients or finish the spreadsheet recipient setup."
+        : "Add at least one recipient or choose a spreadsheet.");
+    }
+    if (spreadsheet && recipients.length > 0) return showError("Use direct recipients or spreadsheet recipients, not both.");
     if (spreadsheet && how === "now") return showError("Spreadsheet emails must be scheduled for a date and time.");
+    if (candidateSpreadsheet && !spreadsheet && recipients.length > 0) {
+      window.bzComposer.toast?.("info", "Spreadsheet setup is incomplete; this schedule will use the manual recipients entered above.");
+    }
 
     const draft = {
       name,
@@ -2136,7 +2206,7 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
       } else {
         await window.bzComposer.onSubmit(draft);
       }
-      closeEditor();
+      closeEditor({ skipPrompt: true });
       resetForm();
       bodyInput.value = "";
     } catch (err) {
@@ -2227,7 +2297,7 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
         <div class="schedule-detail-item"><p class="schedule-detail-label">Type</p><p class="schedule-detail-value" id="schedule-detail-type"></p></div>
         <div class="schedule-detail-item"><p class="schedule-detail-label">Status</p><p class="schedule-detail-value schedule-detail-status" id="schedule-detail-status"></p></div>
         <div class="schedule-detail-item"><p class="schedule-detail-label">Created at</p><p class="schedule-detail-value" id="schedule-detail-created"></p></div>
-        <div class="schedule-detail-item"><p class="schedule-detail-label">Frequency</p><p class="schedule-detail-value" id="schedule-detail-frequency"></p></div>
+        <div class="schedule-detail-item"><p class="schedule-detail-label">Repeat</p><p class="schedule-detail-value" id="schedule-detail-frequency"></p></div>
         <div class="schedule-detail-item"><p class="schedule-detail-label">Next run</p><p class="schedule-detail-value" id="schedule-detail-next"></p></div>
         <div class="schedule-detail-item"><p class="schedule-detail-label">Last run</p><p class="schedule-detail-value" id="schedule-detail-last"></p></div>
         <div class="schedule-detail-item"><p class="schedule-detail-label">Time zone</p><p class="schedule-detail-value" id="schedule-detail-timezone"></p></div>

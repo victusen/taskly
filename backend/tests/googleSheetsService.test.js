@@ -7,6 +7,7 @@ process.env.SUPABASE_SECRET_KEY ||= "test-service-role-key";
 const {
   GoogleSheetsAccessError,
   MAX_SHEET_RECIPIENTS,
+  createSpreadsheetWithHeaders,
   normalizeGoogleSheetsError,
   readSpreadsheetRecipients,
 } = await import("../services/googleSheetsService.js");
@@ -34,6 +35,46 @@ function createSheetsApi(valueRanges) {
     },
   };
 }
+
+test("new spreadsheets create a Recipients tab and write template headers as raw values", async () => {
+  const requests = [];
+  const headers = [" Email ", "first_name", ...Array.from({ length: 28 }, (_, index) => `field_${index}`)];
+  const sheetsApi = {
+    spreadsheets: {
+      create: async (request) => {
+        requests.push({ operation: "create", request });
+        return {
+          data: {
+            spreadsheetId: "spreadsheet_123",
+            spreadsheetUrl: "https://docs.google.com/spreadsheets/d/spreadsheet_123/edit",
+            properties: { title: "Welcome recipients" },
+            sheets: [{ properties: { sheetId: 0, title: "Recipients" } }],
+          },
+        };
+      },
+      values: {
+        update: async (request) => requests.push({ operation: "update", request }),
+      },
+    },
+  };
+
+  const result = await createSpreadsheetWithHeaders(
+    sheetsApi,
+    "Welcome recipients",
+    headers,
+  );
+
+  assert.deepEqual(result, {
+    id: "spreadsheet_123",
+    name: "Welcome recipients",
+    url: "https://docs.google.com/spreadsheets/d/spreadsheet_123/edit",
+    sheet: { id: "0", title: "Recipients" },
+  });
+  assert.equal(requests[0].request.requestBody.sheets[0].properties.title, "Recipients");
+  assert.equal(requests[0].request.requestBody.sheets[0].properties.gridProperties.columnCount, 30);
+  assert.deepEqual(requests[1].request.requestBody.values, [headers.map((header) => header.trim())]);
+  assert.equal(requests[1].request.valueInputOption, "RAW");
+});
 
 test("spreadsheet rows map selected columns and preserve original row numbers", async () => {
   const sheets = createSheetsApi([

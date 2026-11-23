@@ -26,6 +26,44 @@ export function isSpreadsheetId(value) {
   return typeof value === "string" && SPREADSHEET_ID_PATTERN.test(value);
 }
 
+export async function createSpreadsheetWithHeaders(sheetsApi, title, headers) {
+  const { data } = await sheetsApi.spreadsheets.create({
+    requestBody: {
+      properties: { title },
+      sheets: [{
+        properties: {
+          title: "Recipients",
+          gridProperties: { columnCount: Math.max(26, headers.length) },
+        },
+      }],
+    },
+    fields: "spreadsheetId,spreadsheetUrl,properties(title),sheets(properties(sheetId,title,index))",
+  });
+  const spreadsheetId = data?.spreadsheetId;
+  const sheet = data?.sheets?.[0]?.properties;
+  if (!isSpreadsheetId(spreadsheetId) || !Number.isSafeInteger(Number(sheet?.sheetId)) || !sheet?.title) {
+    throw new GoogleSheetsAccessError(
+      502,
+      "GOOGLE_SHEET_CREATE_INCOMPLETE",
+      "Google created a spreadsheet without returning its sheet details.",
+    );
+  }
+
+  await sheetsApi.spreadsheets.values.update({
+    spreadsheetId,
+    range: "'Recipients'!A1",
+    valueInputOption: "RAW",
+    requestBody: { values: [headers.map((header) => header.trim())] },
+  });
+
+  return {
+    id: spreadsheetId,
+    name: data.properties?.title || title,
+    url: data.spreadsheetUrl || null,
+    sheet: { id: String(sheet.sheetId), title: sheet.title },
+  };
+}
+
 export function isSheetRow(value) {
   return Number.isSafeInteger(Number(value)) && Number(value) >= 1 && Number(value) <= MAX_SHEET_ROW;
 }

@@ -43,6 +43,32 @@ export async function getGoogleSheetsPickerConfig(projectId, connectionId) {
   return body.data;
 }
 
+export async function createGoogleSheetsSpreadsheet(projectId, connectionId, title, headers) {
+  assertProject(projectId);
+  if (!connectionId) throw new Error("Choose a Google Sheets connection first.");
+  if (!Array.isArray(headers) || headers.length < 1) {
+    throw new Error("Add at least one column before creating a spreadsheet.");
+  }
+  const body = await authenticatedFetch("/api/google-sheets/spreadsheets", {
+    method: "POST",
+    body: JSON.stringify({
+      project_id: projectId,
+      connection_id: connectionId,
+      title,
+      headers,
+    }),
+  });
+  if (
+    !body.data?.id ||
+    typeof body.data.name !== "string" ||
+    !body.data.sheet?.id ||
+    !body.data.sheet?.title
+  ) {
+    throw new Error("Google did not return the new spreadsheet details.");
+  }
+  return body.data;
+}
+
 export async function disconnectGoogleSheetsConnection(projectId, connectionId) {
   assertProject(projectId);
   if (!connectionId) throw new Error("Choose a Google Sheets connection to disconnect.");
