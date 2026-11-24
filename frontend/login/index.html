@@ -6,7 +6,7 @@
   <title>Sign In - Bzade</title>
   <link rel="icon" type="image/png" href="../logo-2.png" />
   <link rel="stylesheet" href="../scripts/ui/toast.css">
-  <link rel="stylesheet" href="login.css">
+  <link rel="stylesheet" href="/login/login.css">
   <script>
     (function() {
       try {
@@ -24,9 +24,10 @@
   </script>
 </head>
 <body>
+  <script type="module" src="/scripts/ui/feedbackButton.js"></script>
   <!-- Transparent Sticky Header matching SMTP -->
   <header class="auth-header">
-    <a href="/" class="auth-brand">
+    <a href="/" class="auth-brand" aria-label="Back to Bzade home">
       <img src="../logo-bz.png" alt="Bzade logo" style="height: 30px; width: auto;" />
       <span class="auth-brand-name">Bzade</span>
     </a>
@@ -77,7 +78,7 @@
               <a class="forgot-password" href="/login">Forgot password?</a>
             </div>
             <div class="input-wrap password-wrap">
-              <input id="login-password" type="password" placeholder="ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢" required autocomplete="current-password">
+              <input id="login-password" type="password" placeholder="Enter your password" required autocomplete="current-password">
               <button type="button" class="eye-toggle" aria-label="Toggle password visibility" data-target="login-password">
                 <svg class="eye-icon eye-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -100,7 +101,7 @@
           </button>
 
           <p class="auth-switch">
-            Don't have an account? <a href="/signup" class="alt-link">Create account</a>
+            Don't have an account? <a href="../signup" class="alt-link">Create account</a>
           </p>
         </form>
       </div>
@@ -115,6 +116,6 @@
     </div>
   </main>
 
-  <script type="module" src="login.js"></script>
+  <script type="module" src="/login/login.js"></script>
 </body>
 </html>

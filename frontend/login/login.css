@@ -181,7 +181,7 @@ form {
 .field-label-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 6px;
 }
 
 .field-hint {
@@ -349,6 +349,18 @@ form {
   .auth-header {
     background-color: #fff;
     padding: 16px 20px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .auth-main {
+    padding: 12px 16px 28px;
+  }
+  .auth-wrapper {
+    gap: 12px;
+  }
+  .auth-card {
+    border: 0;
+    border-radius: 0;
+    padding: 24px 8px;
   }
   .smtp-footer {
     padding: 20px 20px;
@@ -378,12 +390,12 @@ form {
     flex-direction: column;
     gap: 15px;
   }
-  .auth-card {
-    padding: 24px 20px;
-  }
+  .auth-notice { padding: 8px 4px; }
 }
 
 @media (max-width: 480px) {
+  .auth-main { padding: 8px 16px 24px; }
+  .auth-card { padding: 20px 0; gap: 18px; }
   .social-login-group {
     display: flex !important;
     flex-direction: row !important;

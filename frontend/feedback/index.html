@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>Feedback | Bzade</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; background: #f8f8f6; color: #171717; font-family: system-ui, sans-serif; }
+    header { height: 64px; display: flex; align-items: center; padding: 0 24px; background: #fff; border-bottom: 1px solid #e8e8e5; }
+    header a { display: inline-flex; align-items: center; gap: 8px; color: inherit; font-size: 15px; font-weight: 650; text-decoration: none; }
+    header img { width: 28px; height: 28px; object-fit: contain; }
+    main { width: min(100% - 32px, 560px); margin: 64px auto; padding: 32px; border: 1px solid #e5e5e2; border-radius: 12px; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 25px; letter-spacing: -.02em; }
+    p { margin: 0 0 24px; color: #5f5f5a; font-size: 14px; line-height: 1.6; }
+    .feedback-link { display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border-radius: 7px; background: #111; color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; }
+    .feedback-link:hover { background: #333; }
+    @media (max-width: 520px) {
+      header { height: 58px; padding: 0 16px; }
+      main { margin: 32px auto; padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <script type="module" src="/scripts/ui/feedbackButton.js"></script>
+  <header>
+    <a href="/" aria-label="Bzade home"><img src="/logo-bz.png" alt="">Bzade</a>
+  </header>
+  <main>
+    <h1>Share your feedback</h1>
+    <p>Tell us what’s working well or what we could improve. Your email app will open with the feedback address and subject ready.</p>
+    <a class="feedback-link" href="mailto:support@bzade.app?subject=Product%20feedback">Email your feedback</a>
+  </main>
+</body>
+</html>

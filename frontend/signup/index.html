@@ -24,9 +24,10 @@
   </script>
 </head>
 <body>
+  <script type="module" src="/scripts/ui/feedbackButton.js"></script>
   <!-- Transparent Sticky Header matching SMTP -->
   <header class="auth-header">
-    <a href="/" class="auth-brand">
+    <a href="/" class="auth-brand" aria-label="Back to Bzade home">
       <img src="../logo-bz.png" alt="Bzade logo" style="height: 30px; width: auto;" />
       <span class="auth-brand-name">Bzade</span>
     </a>
@@ -84,8 +85,8 @@
           <!-- Business Name -->
           <div class="form-field">
             <div class="field-label-row">
-              <label for="business">Business name</label>
-              <span class="field-hint">Optional</span>
+              <label for="business">Business Name</label>
+              <span class="field-hint">(Optional)</span>
             </div>
             <div class="input-wrap">
               <input id="business" type="text" placeholder="e.g. Zade's Diner or Brand Ltd" autocomplete="organization">
@@ -94,7 +95,7 @@
 
           <!-- Email Field -->
           <div class="form-field">
-            <label for="email">Work email</label>
+            <label for="email">Email</label>
             <div class="input-wrap">
               <input id="email" type="email" placeholder="you@company.com" autocomplete="email" required>
             </div>
@@ -130,7 +131,7 @@
           </button>
 
           <p class="auth-switch">
-            Already have an account? <a class="alt-link" href="/login">Sign in</a>
+            Already have an account? <a class="alt-link" href="../login">Sign in</a>
           </p>
         </form>
       </div>
@@ -155,6 +156,6 @@
     </div>
   </footer> -->
 
-  <script type="module" src="signup.js"></script>
+  <script type="module" src="/signup/signup.js"></script>
 </body>
 </html>

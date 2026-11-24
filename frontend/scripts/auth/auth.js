@@ -25,45 +25,36 @@ function getDashboardRedirectUrl() {
   return `${window.location.origin}/dashboard`;
 }
 
-export async function signInWithGoogle() {
+async function signInWithProvider(provider, options = {}) {
   ensureNetworkConnection();
-  return supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: getDashboardRedirectUrl(),
-      scopes: 'openid email'
-    }
-  })
+  const { data, error } = await supabase.auth.signInWithOAuth({ provider, options });
+  if (error) throw error;
+  return data;
+}
+
+export async function signInWithGoogle() {
+  return signInWithProvider('google', {
+    redirectTo: getDashboardRedirectUrl(),
+    scopes: 'openid email'
+  });
 }
 
 export async function signInWithGithub() {
-  ensureNetworkConnection();
-  return supabase.auth.signInWithOAuth({
-    provider: 'github',
-    options: {
-      redirectTo: getDashboardRedirectUrl()
-    }
-  })
+  return signInWithProvider('github', {
+    redirectTo: getDashboardRedirectUrl()
+  });
 }
 
 export async function signInWithFacebook() {
-  ensureNetworkConnection();
-  return supabase.auth.signInWithOAuth({
-    provider: 'facebook',
-    options: {
-      redirectTo: getDashboardRedirectUrl()
-    }
-  })
+  return signInWithProvider('facebook', {
+    redirectTo: getDashboardRedirectUrl()
+  });
 }
 
 export async function signInWithX() {
-  ensureNetworkConnection();
-  return supabase.auth.signInWithOAuth({
-    provider: 'x',
-    options: {
-      redirectTo: getDashboardRedirectUrl()
-    }
-  })
+  return signInWithProvider('x', {
+    redirectTo: getDashboardRedirectUrl()
+  });
 }
 
 export async function signIn(email, password) {

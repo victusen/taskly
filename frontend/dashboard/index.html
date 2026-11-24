@@ -755,6 +755,7 @@
   </style>
 </head>
 <body>
+  <script type="module" src="/scripts/ui/feedbackButton.js"></script>
 
   <div class="free-plan-banner" id="free-plan-banner" hidden>
     <span>You're on Free plan. For more projects or schedules, <a href="/account/billing" data-upgrade>upgrade</a> to Paid.</span>
@@ -1069,7 +1070,7 @@
       <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
         <p style="font-size: 14px; color: #4b5563;">Choose how you want to connect your mailing service to start dispatching emails.</p>
         <a href="/smtp?setup=custom" style="padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: #111; font-weight: 500;">
-          <img src="/smtp-icon.png" style="height: 20px;" alt="">
+          <img src="/Custom-email.png" style="height: 20px;" alt="">
           Connect custom domain
         </a>
         <a href="/schedules?connect=gmail" style="padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: #111; font-weight: 500;">
@@ -1263,6 +1264,6 @@
   </script>
   <script src="https://js.paystack.co/v2/inline.js"></script>
   <script type="module" src="../scripts/ui/toast.js"></script>
-  <script type="module" src="dashboard.js"></script>
+  <script type="module" src="/dashboard/dashboard.js"></script>
 </body>
 </html>
