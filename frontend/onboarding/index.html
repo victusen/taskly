@@ -11,7 +11,7 @@
       --text: #111827;
       --muted: #667085;
       --subtle: #98a2b3;
-      --border: #e5e7eb;
+      --border: #d0d5dd;
       --surface: #f8f9fb;
       --dark: #17191c;
     }
@@ -19,7 +19,7 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: #fcfcfd;
+      background: #fff;
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
@@ -28,35 +28,95 @@
     a { color: inherit; text-decoration: none; }
     [hidden] { display: none !important; }
 
-    .topbar {
-      height: 56px;
+    .onboarding-shell {
+      width: min(100%, 900px);
+      min-height: 100vh;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 24px 56px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 42px;
+    }
+    .brand img { display: block; width: 126px; height: auto; }
+    .setup-progress { width: min(560px, 100%); margin-bottom: 38px; }
+    .setup-progress-heading {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 clamp(18px, 4vw, 48px);
-      background: #fff;
-      border-bottom: 1px solid var(--border);
+      gap: 16px;
+      margin-bottom: 12px;
+      color: #344054;
+      font-size: 12px;
+      font-weight: 650;
     }
-    .brand { display: inline-flex; align-items: center; }
-    .brand img { display: block; width: auto; height: 28px; }
-    .step-count { color: var(--muted); font-size: 12px; font-weight: 600; }
-
-    main {
-      width: 100%;
+    .step-count { color: var(--muted); font-weight: 500; }
+    .progress-track {
+      height: 3px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #eaecf0;
+    }
+    .progress-track span {
+      display: block;
+      width: 33.333%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--dark);
+      transition: width .24s ease;
+    }
+    .progress-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 12px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .progress-steps li {
       display: flex;
-      justify-content: center;
-      padding: 38px 20px 56px;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+      color: #98a2b3;
+      font-size: 12px;
+      font-weight: 550;
+    }
+    .progress-steps li[aria-current="step"] { color: #111827; font-weight: 700; }
+    .progress-steps li.is-complete { color: #475467; }
+    .progress-number {
+      width: 21px;
+      height: 21px;
+      display: grid;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 1px solid #d0d5dd;
+      border-radius: 50%;
+      background: #fff;
+      color: inherit;
+      font-size: 10px;
+    }
+    .progress-steps li[aria-current="step"] .progress-number,
+    .progress-steps li.is-complete .progress-number {
+      border-color: var(--dark);
+      background: var(--dark);
+      color: #fff;
     }
     .onboarding-card {
-      width: min(720px, 100%);
-      align-self: flex-start;
-      padding: clamp(24px, 4vw, 38px);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #fff;
-      box-shadow: 0 2px 8px rgba(16, 24, 40, .035);
+      width: min(620px, 100%);
+      padding: 0;
     }
     .step[hidden] { display: none; }
+    .step:not([hidden]) { animation: step-enter .24s ease both; }
+    @keyframes step-enter {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
     h1 {
       margin: 0;
       color: #101828;
@@ -64,12 +124,14 @@
       font-weight: 700;
       letter-spacing: -.035em;
       line-height: 1.2;
+      text-align: center;
     }
     .intro {
-      margin: 9px 0 27px;
+      margin: 10px 0 30px;
       color: var(--muted);
       font-size: 14px;
       line-height: 1.6;
+      text-align: center;
     }
     .form-grid { display: grid; gap: 20px; }
     .field { display: grid; gap: 7px; min-width: 0; }
@@ -101,13 +163,13 @@
       margin-top: 24px;
     }
     .button {
-      min-height: 42px;
+      min-height: 44px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       padding: 0 16px;
       border: 1px solid transparent;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 13px;
       font-weight: 600;
@@ -192,33 +254,49 @@
     }
     .form-error:empty { display: none; }
 
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
     @media (max-width: 620px) {
-      .topbar { height: 52px; padding: 0 16px; }
-      .brand img { height: 26px; }
-      main { padding: 22px 14px 36px; }
-      .onboarding-card { padding: 23px 18px; border-radius: 6px; }
-      .intro { margin-bottom: 22px; }
+      .onboarding-shell { padding: 24px 18px 36px; }
+      .brand { margin-bottom: 32px; }
+      .brand img { width: 112px; }
+      .setup-progress { margin-bottom: 34px; }
+      .progress-steps { gap: 6px; }
+      .progress-steps li { gap: 5px; font-size: 11px; }
+      .progress-number { width: 19px; height: 19px; }
+      .intro { margin-bottom: 24px; }
       .form-grid { gap: 17px; }
       .project-options { grid-template-columns: 1fr; gap: 10px; }
       .project-option { min-height: 100px; padding: 15px; }
       .actions { margin-top: 20px; }
     }
     @media (max-width: 360px) {
-      .onboarding-card { padding-right: 14px; padding-left: 14px; }
+      .onboarding-shell { padding-right: 14px; padding-left: 14px; }
       .button { padding: 0 12px; }
     }
   </style>
 </head>
 <body>
   <script type="module" src="/scripts/ui/feedbackButton.js"></script>
-  <header class="topbar">
+  <main class="onboarding-shell">
     <a class="brand" href="/" aria-label="Bzade home">
-      <img src="../logo-bz.png" alt="Bzade">
+      <img src="../logo-wordmark-black.png" alt="Bzade">
     </a>
-    <span class="step-count" id="step-count">Step 1 of 3</span>
-  </header>
-
-  <main>
+    <div class="setup-progress" aria-label="Onboarding progress">
+      <div class="setup-progress-heading">
+        <span>Workspace setup</span>
+        <span class="step-count" id="step-count">Step 1 of 3</span>
+      </div>
+      <div class="progress-track" id="step-progress" role="progressbar" aria-label="Setup progress" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1">
+        <span id="step-progress-fill"></span>
+      </div>
+      <ol class="progress-steps" aria-label="Setup steps">
+        <li data-progress-step="1" aria-current="step"><span class="progress-number">1</span><span>Profile</span></li>
+        <li data-progress-step="2"><span class="progress-number">2</span><span>Project type</span></li>
+        <li data-progress-step="3"><span class="progress-number">3</span><span>Project details</span></li>
+      </ol>
+    </div>
     <div class="onboarding-card">
       <section class="step" id="step-1" aria-labelledby="step-1-title">
         <h1 id="step-1-title">Tell us about you</h1>

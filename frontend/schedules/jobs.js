@@ -104,6 +104,7 @@ let projectConnectionKnown = false;
 let sheetPlan = null;
 let scheduleDatabaseConnections = [];
 let activeScheduleDatabaseId = null;
+let returnToComposerAfterSheetSetup = false;
 let spreadsheetFiles = [];
 let spreadsheetSheets = [];
 let spreadsheetColumns = [];
@@ -218,7 +219,7 @@ function renderVariableTags() {
       body.dispatchEvent(new Event("input", { bubbles: true }));
     });
 
-    const remove = el("button", "sheet-variable-remove", "Ãƒâ€”");
+    const remove = el("button", "sheet-variable-remove", "\u00D7");
     remove.type = "button";
     remove.setAttribute("aria-label", `Remove spreadsheet variable ${name}`);
     remove.addEventListener("click", () => {
@@ -237,7 +238,7 @@ function renderPickerVariables() {
   if (!sheetPickerVariableList) return;
   sheetPickerVariableList.replaceChildren();
   for (const [name, column] of Object.entries(sheetPlan?.variableColumns || {})) {
-    const item = el("span", "sheet-variable-tag", `{${name}} Ã‚Â· ${column}`);
+    const item = el("span", "sheet-variable-tag", `{${name}} \u00B7 ${column}`);
     sheetPickerVariableList.append(item);
   }
 }
@@ -245,7 +246,7 @@ function renderPickerVariables() {
 function setColumnOptions(select, placeholder, columns, selected = "") {
   setSelectOptions(select, placeholder, columns.map((column) => ({
     value: column.letter,
-    label: `${column.letter} Ã¢â‚¬â€ ${column.header}`,
+    label: `${column.letter} \u2014 ${column.header}`,
   })), selected);
 }
 
@@ -318,7 +319,7 @@ function setSheetPlan(plan) {
 }
 
 async function loadSheetConnections() {
-  setSheetPickerMessage("Loading Google Sheets accountsÃ¢â‚¬Â¦");
+  setSheetPickerMessage("Loading Google Sheets accounts...");
   try {
     scheduleDatabaseConnections = await listProjectScheduleDatabaseConnections(projectId);
     const callbackConnectionId = urlParams.get("google_connection_id");
@@ -389,7 +390,7 @@ async function loadSheetConnections() {
 
 async function loadSheetTabs(spreadsheetId) {
   spreadsheetSheets = [];
-  setSelectOptions(sheetPickerTab, "Loading sheet tabsÃ¢â‚¬Â¦", []);
+  setSelectOptions(sheetPickerTab, "Loading sheet tabs...", []);
   if (sheetPickerTab) sheetPickerTab.disabled = true;
   const applyButton = document.getElementById("sheet-picker-apply");
   if (applyButton) applyButton.disabled = true;
@@ -415,8 +416,8 @@ async function loadSheetTabs(spreadsheetId) {
 
 async function loadSheetColumns(spreadsheetId, sheetId, headerRow) {
   spreadsheetColumns = [];
-  setColumnOptions(sheetPickerEmailColumn, "Loading columnsÃ¢â‚¬Â¦", []);
-  setColumnOptions(sheetPickerVariableColumn, "Loading columnsÃ¢â‚¬Â¦", []);
+  setColumnOptions(sheetPickerEmailColumn, "Loading columns...", []);
+  setColumnOptions(sheetPickerVariableColumn, "Loading columns...", []);
   if (sheetPickerEmailColumn) sheetPickerEmailColumn.disabled = true;
   if (sheetPickerVariableColumn) sheetPickerVariableColumn.disabled = true;
   const row = Number(headerRow);
@@ -447,10 +448,27 @@ async function loadSheetColumns(spreadsheetId, sheetId, headerRow) {
   }
 }
 
+function resumeScheduleComposerAfterSheetSetup() {
+  if (!returnToComposerAfterSheetSetup) return;
+  returnToComposerAfterSheetSetup = false;
+  window.bzComposer?.showAfterSheets?.();
+}
+
+function finishSheetSetup() {
+  closeSheetPicker();
+  resumeScheduleComposerAfterSheetSetup();
+}
+
 function openSheetPicker() {
   if (!sheetPicker) return Promise.resolve(null);
+  const composer = document.getElementById("job-composer");
+  if (composer && !composer.hidden && composer.classList.contains("open")) {
+    returnToComposerAfterSheetSetup = true;
+    window.bzComposer?.hideForSheets?.();
+  }
   sheetPicker.classList.add("open");
   sheetPicker.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
   if (sheetPlan) setSheetPlan(sheetPlan);
   return loadSheetConnections();
 }
@@ -458,6 +476,7 @@ function openSheetPicker() {
 function closeSheetPicker() {
   sheetPicker?.classList.remove("open");
   sheetPicker?.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
 }
 
 let pickerApiPromise = null;
@@ -507,18 +526,20 @@ async function browseGoogleSheets() {
   }
   const browseButton = document.getElementById("sheet-picker-browse");
   if (browseButton) browseButton.disabled = true;
-  setSheetPickerMessage("Opening Google PickerÃ¢â‚¬Â¦");
+  setSheetPickerMessage("Opening Google Picker...");
   showToast("info", "Opening Google Picker...");
-  closeSheetPicker();
   const composer = document.getElementById("job-composer");
-  composer?.classList.add("google-picker-underlay");
+  if (composer && !composer.hidden && composer.classList.contains("open")) {
+    returnToComposerAfterSheetSetup = true;
+    window.bzComposer?.hideForSheets?.();
+  }
+  closeSheetPicker();
   let picker;
   let pickerHandled = false;
   const closeGooglePicker = () => {
     if (pickerHandled) return;
     pickerHandled = true;
     picker?.setVisible(false);
-    composer?.classList.remove("google-picker-underlay");
   };
   try {
     const [config] = await Promise.all([
@@ -536,8 +557,8 @@ async function browseGoogleSheets() {
         if (pickerHandled) return;
         if (data.action === window.google.picker.Action.CANCEL) {
           closeGooglePicker();
-          showToast("info", "You can create a new spreadsheet from the setup panel.");
-          void openSheetPicker();
+          showToast("info", "Spreadsheet selection cancelled.");
+          resumeScheduleComposerAfterSheetSetup();
           return;
         }
         if (data.action !== window.google.picker.Action.PICKED) return;
@@ -545,7 +566,8 @@ async function browseGoogleSheets() {
         if (!document?.id) {
           closeGooglePicker();
           setSheetPickerMessage("Google Picker did not return a spreadsheet.", true);
-          void openSheetPicker();
+          showToast("error", "Google Picker did not return a spreadsheet.");
+          resumeScheduleComposerAfterSheetSetup();
           return;
         }
         const file = { id: String(document.id), name: String(document.name || "Untitled spreadsheet") };
@@ -574,7 +596,7 @@ async function browseGoogleSheets() {
     closeGooglePicker();
     setSheetPickerMessage(`Could not open Google Picker: ${error.message}`, true);
     showToast("error", `Could not open Google Picker: ${error.message}`);
-    void openSheetPicker();
+    resumeScheduleComposerAfterSheetSetup();
   } finally {
     if (browseButton) {
       const selected = scheduleDatabaseConnections.find((connection) => connection.id === activeScheduleDatabaseId);
@@ -640,6 +662,11 @@ function saveSheetsResumeState() {
 async function beginSheetsConnection() {
   try {
     saveSheetsResumeState();
+    const composer = document.getElementById("job-composer");
+    if (composer && !composer.hidden && composer.classList.contains("open")) {
+      returnToComposerAfterSheetSetup = true;
+      window.bzComposer?.hideForSheets?.();
+    }
     closeSheetPicker();
     showToast("info", "Opening Google to connect Sheets.");
     await startGoogleSheetsConnection(projectId);
@@ -647,6 +674,7 @@ async function beginSheetsConnection() {
   } catch (error) {
     sessionStorage.removeItem("bzResumeSheetsPicker");
     sessionStorage.removeItem("bzResumeSheetsComposer");
+    resumeScheduleComposerAfterSheetSetup();
     showToast("error", error.message || "Could not start the Google Sheets connection.");
     return false;
   }
@@ -670,14 +698,14 @@ connectDatabaseBtns.forEach((button) => button.addEventListener("click", () => {
     },
   });
 }));
-document.getElementById("sheet-picker-close")?.addEventListener("click", closeSheetPicker);
-document.getElementById("sheet-picker-cancel")?.addEventListener("click", closeSheetPicker);
+document.getElementById("sheet-picker-close")?.addEventListener("click", finishSheetSetup);
+document.getElementById("sheet-picker-cancel")?.addEventListener("click", finishSheetSetup);
 document.getElementById("sheet-plan-clear")?.addEventListener("click", () => setSheetPlan(null));
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && sheetPicker?.classList.contains("open")) closeSheetPicker();
+  if (event.key === "Escape" && sheetPicker?.classList.contains("open")) finishSheetSetup();
 });
 sheetPicker?.addEventListener("click", (event) => {
-  if (event.target === sheetPicker) closeSheetPicker();
+  if (event.target === sheetPicker) finishSheetSetup();
 });
 document.getElementById("sheet-picker-connect")?.addEventListener("click", async (event) => {
   const button = event.currentTarget;
@@ -697,7 +725,7 @@ document.getElementById("sheet-picker-create")?.addEventListener("click", async 
     return;
   }
 
-  const subject = document.querySelector('#schedule-form [name="subject"]')?.value || "";
+  const subject = document.querySelector('#cmp-form [name="subject"]')?.value || "";
   const body = document.getElementById("cmp-body")?.value || "";
   const variables = inspectTemplateVariables(subject, body).variables;
   if (variables.length > 100) {
@@ -858,7 +886,7 @@ document.getElementById("sheet-picker-apply")?.addEventListener("click", () => {
   }
   updateSheetPlanFromInputs();
   renderSheetSummary();
-  closeSheetPicker();
+  finishSheetSetup();
 });
 
 function hideAllStates() {
@@ -919,21 +947,24 @@ function renderPagination() {
   const canGoBack = hasSchedules && currentPage > 1;
   const canGoForward = hasSchedules && hasMoreSchedules;
   taskPagination.innerHTML = `
-    <span class="page-summary">${firstItem}Ã¢â‚¬â€œ${lastItem} of ${totalSchedules} schedules</span>
+    <span class="page-summary">${firstItem}\u2013${lastItem} of ${totalSchedules} schedules</span>
     <span class="page-mobile-summary">${totalSchedules} ${totalSchedules === 1 ? "schedule" : "schedules"}</span>
     <span class="page-current">${hasSchedules ? currentPage : "0 / 0"}</span>
     <span class="page-mobile-current">${hasSchedules ? `${currentPage} / ${totalSchedules}` : "0 / 0"}</span>
-    <button type="button" class="page-btn" data-page="${currentPage - 1}" ${canGoBack ? "" : "disabled"} aria-label="Previous schedule page">Ã¢â‚¬Â¹</button>
-    <button type="button" class="page-btn" data-page="${currentPage + 1}" ${canGoForward ? "" : "disabled"} aria-label="Next schedule page">Ã¢â‚¬Âº</button>`;
+    <button type="button" class="page-btn" data-page="${currentPage - 1}" ${canGoBack ? "" : "disabled"} aria-label="Previous schedule page">&lsaquo;</button>
+    <button type="button" class="page-btn" data-page="${currentPage + 1}" ${canGoForward ? "" : "disabled"} aria-label="Next schedule page">&rsaquo;</button>`;
   taskPagination.hidden = false;
   taskPagination.style.display = "flex";
   if (taskListFooter) taskListFooter.hidden = false;
 }
 
+const scheduleDateTimeSeparator = " \u00B7 ";
+const missingScheduleValue = "\u2014";
+
 function formatScheduleDateTime(value, timezone = "UTC") {
-  if (!value) return "Ã¢â‚¬â€";
+  if (!value) return missingScheduleValue;
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Ã¢â‚¬â€";
+  if (Number.isNaN(date.getTime())) return missingScheduleValue;
   try {
     const formattedDate = new Intl.DateTimeFormat("en-US", {
       month: "2-digit", day: "2-digit", year: "2-digit", timeZone: timezone,
@@ -941,9 +972,9 @@ function formatScheduleDateTime(value, timezone = "UTC") {
     const formattedTime = new Intl.DateTimeFormat(undefined, {
       hour: "numeric", minute: "2-digit", timeZone: timezone,
     }).format(date);
-    return `${formattedDate} Ã‚Â· ${formattedTime}`;
+    return `${formattedDate}${scheduleDateTimeSeparator}${formattedTime}`;
   } catch {
-    return `${new Intl.DateTimeFormat("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" }).format(date)} Ã‚Â· ${date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+    return `${new Intl.DateTimeFormat("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" }).format(date)}${scheduleDateTimeSeparator}${date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
   }
 }
 
@@ -971,10 +1002,10 @@ function getScheduleFrequencyOption(schedule) {
 
 function getScheduleFrequency(schedule) {
   const labels = {
-    now: "Immediately",
+    now: "Now",
     once: "One time",
     daily: "Daily",
-    weekday: "Every weekday (MonÃ¢â‚¬â€œFri)",
+    weekday: "Every weekday (Mon\u2013Fri)",
     weekends: "Every weekend",
     weekly: "Weekly",
     monthly: "Monthly",
@@ -985,7 +1016,7 @@ function getScheduleFrequency(schedule) {
     "new years-eve": "New Year's Eve",
     valentines: "Valentine's Day",
   };
-  return labels[getScheduleFrequencyOption(schedule)] || "Ã¢â‚¬â€";
+  return labels[getScheduleFrequencyOption(schedule)] || missingScheduleValue;
 }
 
 /**
@@ -1026,6 +1057,7 @@ function renderRows() {
       const statusAction = row.status === "active" ? "Pause" : row.status === "paused" ? "Resume" : "";
       const statusActionIcon = statusAction === "Pause" ? scheduleMenuIcons.pause : scheduleMenuIcons.resume;
       const canEditSchedule = row.status === "active" || row.status === "paused";
+      const canCopySchedule = row.status === "completed";
       const canDeleteSchedule = ["active", "paused", "failed"].includes(row.status);
       return `
         <tr data-id="${esc(row.id)}" data-schedule='${esc(JSON.stringify(row))}'>
@@ -1033,11 +1065,11 @@ function renderRows() {
           <td class="schedule-name-cell" title="${esc(name)}"><button type="button" class="schedule-name-button" data-view-schedule>${esc(name)}</button></td>
           <td class="schedule-type-cell">${esc(type)}</td>
           <td class="schedule-frequency-cell">${esc(frequency)}</td>
-          <td class="schedule-created-column"><div class="schedule-date-time"><strong>${esc(createdAt.split(" Ã‚Â· ")[0])}</strong><span>${esc(createdAt.split(" Ã‚Â· ")[1] || "")}</span></div></td>
-          <td class="schedule-next-run-column"><div class="schedule-date-time"><strong>${esc(nextRun.split(" Ã‚Â· ")[0])}</strong><span>${esc(nextRun.split(" Ã‚Â· ")[1] || "Ã¢â‚¬â€")}</span></div></td>
-          <td class="schedule-last-run-column"><div class="schedule-date-time"><strong>${esc(lastRun.split(" Ã‚Â· ")[0])}</strong><span>${esc(lastRun.split(" Ã‚Â· ")[1] || "Ã¢â‚¬â€")}</span></div></td>
+          <td class="schedule-created-column"><div class="schedule-date-time"><strong>${esc(createdAt.split(scheduleDateTimeSeparator)[0])}</strong><span>${esc(createdAt.split(scheduleDateTimeSeparator)[1] || "")}</span></div></td>
+          <td class="schedule-last-run-column"><div class="schedule-date-time"><strong>${esc(lastRun.split(scheduleDateTimeSeparator)[0])}</strong><span>${esc(lastRun.split(scheduleDateTimeSeparator)[1] || missingScheduleValue)}</span></div></td>
+          <td class="schedule-next-run-column"><div class="schedule-date-time"><strong>${esc(nextRun.split(scheduleDateTimeSeparator)[0])}</strong><span>${esc(nextRun.split(scheduleDateTimeSeparator)[1] || missingScheduleValue)}</span></div></td>
           <td>${recipients.length}</td>
-          <td><span class="badge badge-green schedule-run-count">${runCount}</span></td>
+          <td>${runCount}</td>
           <td class="schedule-status-cell">${statusBadge(row.status)}</td>
           <td class="schedule-actions-cell">
             <div class="schedule-row-actions">
@@ -1047,6 +1079,7 @@ function renderRows() {
               <div class="schedule-row-menu" hidden>
                 <button type="button" data-sidebar-toggle aria-pressed="false">Expand</button>
                 ${canEditSchedule ? `<button type="button" data-edit="${esc(row.id)}">${scheduleMenuIcons.edit}<span>Edit</span></button>` : ""}
+                ${canCopySchedule ? `<button type="button" data-copy-schedule="${esc(row.id)}">${scheduleMenuIcons.edit}<span>Edit</span></button>` : ""}
                 ${statusAction ? `<button type="button" data-schedule-action="${statusAction.toLowerCase()}" data-id="${esc(row.id)}">${statusActionIcon}<span>${statusAction}</span></button>` : ""}
                 ${canDeleteSchedule ? `<button type="button" data-delete-schedule="${esc(row.id)}">${scheduleMenuIcons.delete}<span>Delete</span></button>` : ""}
               </div>
@@ -1059,15 +1092,16 @@ function renderRows() {
       const name = row.name || row.config?.subject || "Untitled task";
       const type = String(row.job_type || "email").replace(/^./, (letter) => letter.toUpperCase());
       const frequency = getScheduleFrequency(row);
-      const createdAt = formatScheduleDateTime(row.created_at).split(" Ã‚Â· ");
-      const nextRun = formatScheduleDateTime(row.next_run_at).split(" Ã‚Â· ");
-      const lastRun = formatScheduleDateTime(row.last_run_at).split(" Ã‚Â· ");
+      const createdAt = formatScheduleDateTime(row.created_at).split(scheduleDateTimeSeparator);
+      const nextRun = formatScheduleDateTime(row.next_run_at).split(scheduleDateTimeSeparator);
+      const lastRun = formatScheduleDateTime(row.last_run_at).split(scheduleDateTimeSeparator);
       const runCount = Math.max(0, Number(row.run_count) || 0);
       const statusAction = row.status === "active" ? "Pause" : row.status === "paused" ? "Resume" : "";
       const statusActionIcon = statusAction === "Pause" ? scheduleMenuIcons.pause : scheduleMenuIcons.resume;
       const canEditSchedule = row.status === "active" || row.status === "paused";
+      const canCopySchedule = row.status === "completed";
       const canDeleteSchedule = ["active", "paused", "failed"].includes(row.status);
-      const dateValue = (parts) => `<span class="schedule-mobile-date"><strong>${esc(parts[0] || "Ã¢â‚¬â€")}</strong><span>${esc(parts[1] || "")}</span></span>`;
+      const dateValue = (parts) => `<span class="schedule-mobile-date"><strong>${esc(parts[0] || missingScheduleValue)}</strong><span>${esc(parts[1] || "")}</span></span>`;
       return `
         <article class="schedule-mobile-card" data-schedule='${esc(JSON.stringify(row))}'>
           <label class="schedule-select-cell schedule-mobile-select" aria-label="Select ${esc(name)}">
@@ -1082,6 +1116,7 @@ function renderRows() {
               <div class="schedule-row-menu" hidden>
                 <button type="button" data-sidebar-toggle aria-pressed="false">Expand</button>
                 ${canEditSchedule ? `<button type="button" data-edit="${esc(row.id)}">${scheduleMenuIcons.edit}<span>Edit</span></button>` : ""}
+                ${canCopySchedule ? `<button type="button" data-copy-schedule="${esc(row.id)}">${scheduleMenuIcons.edit}<span>Edit</span></button>` : ""}
                 ${statusAction ? `<button type="button" data-schedule-action="${statusAction.toLowerCase()}" data-id="${esc(row.id)}">${statusActionIcon}<span>${statusAction}</span></button>` : ""}
                 ${canDeleteSchedule ? `<button type="button" data-delete-schedule="${esc(row.id)}">${scheduleMenuIcons.delete}<span>Delete</span></button>` : ""}
               </div>
@@ -1092,10 +1127,10 @@ function renderRows() {
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Status</span><span class="schedule-mobile-value">${statusBadge(row.status)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Repeat</span><span class="schedule-mobile-value schedule-frequency-cell">${esc(frequency)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Created at</span><span class="schedule-mobile-value">${dateValue(createdAt)}</span></div>
-            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Next run</span><span class="schedule-mobile-value">${dateValue(nextRun)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Last run</span><span class="schedule-mobile-value">${dateValue(lastRun)}</span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Next run</span><span class="schedule-mobile-value">${dateValue(nextRun)}</span></div>
             <div class="schedule-mobile-field"><span class="schedule-mobile-label">Recipients</span><span class="schedule-mobile-value">${recipients.length}</span></div>
-            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Run count</span><span class="schedule-mobile-value"><span class="badge badge-green schedule-run-count">${runCount}</span></span></div>
+            <div class="schedule-mobile-field"><span class="schedule-mobile-label">Times run</span><span class="schedule-mobile-value">${runCount}</span></div>
           </div>
         </article>`;
     }).join("");
@@ -1104,7 +1139,7 @@ function renderRows() {
         <table class="schedule-table">
           <thead><tr>
             <th class="schedule-select-cell">Select</th>
-            <th>Name</th><th>Type</th><th>Repeat</th><th class="schedule-created-column">Created at</th><th class="schedule-next-run-column">Next run</th><th class="schedule-last-run-column">Last run</th><th>Recipients</th><th>Run count</th><th>Status</th>
+            <th>Name</th><th>Type</th><th>Repeat</th><th class="schedule-created-column">Created at</th><th class="schedule-last-run-column">Last run</th><th class="schedule-next-run-column">Next run</th><th>Recipients</th><th>Times run</th><th>Status</th>
             <th aria-label="More actions"></th>
           </tr></thead>
           <tbody>${tableRows}</tbody>
@@ -1450,7 +1485,7 @@ async function updateProjectUI(project) {
         item.style.padding = "6px 10px";
         item.style.fontSize = "13px";
         item.title = p.business_name && p.business_name !== projectName
-          ? `${projectName} Ã¢â‚¬â€ ${p.business_name}`
+          ? `${projectName} \u2014 ${p.business_name}`
           : projectName;
         item.setAttribute("aria-label", item.title);
         container.appendChild(item);
@@ -1576,7 +1611,7 @@ function openScheduleDetails(rowElement) {
   const config = schedule.config || {};
   const value = (id, content) => {
     const node = document.getElementById(id);
-    if (node) node.textContent = content || "Ã¢â‚¬â€";
+    if (node) node.textContent = content || missingScheduleValue;
   };
   const recipients = Array.isArray(config.recipients) ? config.recipients.join(", ") : "";
   const parser = new DOMParser();
@@ -1597,17 +1632,25 @@ function openScheduleDetails(rowElement) {
   const errorWrap = document.getElementById("schedule-detail-error-wrap");
   if (errorWrap) errorWrap.hidden = !schedule.last_failure_reason;
   const detailEditButton = document.getElementById("schedule-detail-edit");
+  const detailFooter = document.getElementById("schedule-detail-footer");
+  const canEditSchedule = schedule.status === "active" || schedule.status === "paused";
+  const canCopySchedule = schedule.status === "completed";
+  if (detailFooter) detailFooter.hidden = !canEditSchedule && !canCopySchedule;
   if (detailEditButton) {
-    detailEditButton.hidden = schedule.status !== "active" && schedule.status !== "paused";
+    detailEditButton.hidden = !canEditSchedule && !canCopySchedule;
+    const label = detailEditButton.querySelector("[data-detail-edit-label]");
+    if (label) label.textContent = "Edit";
   }
   scheduleDetailOverlay.dataset.schedule = JSON.stringify(schedule);
   scheduleDetailOverlay.classList.add("open");
   scheduleDetailOverlay.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
 }
 
 function closeScheduleDetails() {
   scheduleDetailOverlay?.classList.remove("open");
   scheduleDetailOverlay?.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
 }
 
 scheduleDetailOverlay?.addEventListener("click", (event) => {
@@ -1617,6 +1660,11 @@ scheduleDetailOverlay?.addEventListener("click", (event) => {
   }
   if (event.target.closest("[data-detail-edit]")) {
     const schedule = JSON.parse(scheduleDetailOverlay.dataset.schedule || "null");
+    if (schedule?.status === "completed" && typeof window.bzComposer?.openCopy === "function") {
+      closeScheduleDetails();
+      window.bzComposer.openCopy(schedule);
+      return;
+    }
     if (schedule && typeof window.bzComposer?.openEdit === "function") {
       closeScheduleDetails();
       window.bzComposer.openEdit(null, schedule);
@@ -1674,6 +1722,17 @@ jobRows?.addEventListener("click", async (event) => {
     const schedule = row ? JSON.parse(row.dataset.schedule || "null") : null;
     if (schedule && typeof window.bzComposer?.openEdit === "function") {
       window.bzComposer.openEdit(null, schedule);
+    }
+    return;
+  }
+
+  const copyButton = event.target.closest("[data-copy-schedule]");
+  if (copyButton) {
+    const row = copyButton.closest("[data-schedule]");
+    const schedule = row ? JSON.parse(row.dataset.schedule || "null") : null;
+    if (schedule && typeof window.bzComposer?.openCopy === "function") {
+      closeScheduleMenus();
+      window.bzComposer.openCopy(schedule);
     }
     return;
   }
@@ -1748,10 +1807,10 @@ window.addEventListener("resize", () => {
 });
 
 const NAV_TOASTS = {
-  audiences: "Audiences Ã¢â‚¬â€ coming soon. Track subscriber segments here.",
+  audiences: "Audiences \u2014 coming soon. Track subscriber segments here.",
   notifications: "Coming soon.",
   "api-keys": "Coming soon.",
-  "email-template": "Email templates Ã¢â‚¬â€ coming soon. Save and reuse your best emails here.",
+  "email-template": "Email templates \u2014 coming soon. Save and reuse your best emails here.",
 };
 
 let draftsOverlay = null;

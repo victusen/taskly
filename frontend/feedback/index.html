@@ -4,33 +4,173 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#ffffff">
+  <link rel="icon" type="image/png" href="../../logo-2.png">
   <title>Feedback | Bzade</title>
   <style>
+    :root {
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #17191c;
+      background: #fff;
+    }
     * { box-sizing: border-box; }
-    body { min-height: 100vh; margin: 0; background: #f8f8f6; color: #171717; font-family: system-ui, sans-serif; }
-    header { height: 64px; display: flex; align-items: center; padding: 0 24px; background: #fff; border-bottom: 1px solid #e8e8e5; }
-    header a { display: inline-flex; align-items: center; gap: 8px; color: inherit; font-size: 15px; font-weight: 650; text-decoration: none; }
-    header img { width: 28px; height: 28px; object-fit: contain; }
-    main { width: min(100% - 32px, 560px); margin: 64px auto; padding: 32px; border: 1px solid #e5e5e2; border-radius: 12px; background: #fff; }
-    h1 { margin: 0 0 8px; font-size: 25px; letter-spacing: -.02em; }
-    p { margin: 0 0 24px; color: #5f5f5a; font-size: 14px; line-height: 1.6; }
-    .feedback-link { display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border-radius: 7px; background: #111; color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; }
-    .feedback-link:hover { background: #333; }
-    @media (max-width: 520px) {
-      header { height: 58px; padding: 0 16px; }
-      main { margin: 32px auto; padding: 24px 20px; }
+    body { min-height: 100vh; margin: 0; background: #fff; -webkit-font-smoothing: antialiased; }
+    button, textarea { font: inherit; }
+    .feedback-shell {
+      width: min(100%, 900px);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0 auto;
+      padding: 30px 24px 48px;
+    }
+    .brand { position: fixed; top: 30px; left: 32px; z-index: 2; display: inline-flex; align-items: center; justify-content: center; }
+    .brand img { display: block; width: 50px; height: auto; }
+    .feedback-content { width: min(560px, 100%); margin: auto 0; padding: 28px 0 52px; }
+    .feedback-intro { margin: 0 0 30px; text-align: center; }
+    .feedback-icon {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 18px;
+      border-radius: 12px;
+      background: #f3f4f6;
+      color: #25282d;
+    }
+    .feedback-icon svg { width: 23px; height: 23px; }
+    .eyebrow { margin: 0 0 8px; color: #667085; font-size: 12px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; }
+    h1 { margin: 0; color: #111827; font-size: clamp(26px, 4vw, 34px); font-weight: 700; letter-spacing: -.035em; line-height: 1.2; }
+    .feedback-description { max-width: 430px; margin: 12px auto 0; color: #667085; font-size: 14px; line-height: 1.6; }
+    fieldset { min-width: 0; margin: 0 0 23px; padding: 0; border: 0; }
+    legend, .message-label { display: block; margin-bottom: 11px; color: #344054; font-size: 13px; font-weight: 650; }
+    .feedback-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .feedback-choice { position: relative; min-width: 0; cursor: pointer; }
+    .feedback-choice input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .choice-content {
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid #d0d5dd;
+      border-radius: 7px;
+      background: #fff;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+    .choice-content svg { width: 18px; height: 18px; flex: 0 0 auto; }
+    .feedback-choice input:checked + .choice-content { border-color: #344054; background: #f8f9fa; box-shadow: 0 0 0 1px #344054; color: #111827; }
+    .feedback-choice input:focus-visible + .choice-content { outline: 3px solid rgba(52, 64, 84, .2); outline-offset: 2px; }
+    .message-label { margin-bottom: 8px; }
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      display: block;
+      padding: 13px 14px;
+      border: 1px solid #d0d5dd;
+      border-radius: 7px;
+      outline: none;
+      background: #fff;
+      color: #101828;
+      font-size: 14px;
+      line-height: 1.55;
+      resize: vertical;
+    }
+    textarea::placeholder { color: #98a2b3; }
+    textarea:focus { border-color: #667085; box-shadow: 0 0 0 3px rgba(16, 24, 40, .08); }
+    .feedback-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px; }
+    .feedback-message { margin: 0; color: #475467; font-size: 13px; line-height: 1.5; }
+    .feedback-message[data-state="success"] { color: #15803d; }
+    .feedback-message[data-state="error"] { color: #b42318; }
+    .feedback-message:empty { display: none; }
+    .feedback-message:not(:empty) { margin-top: 14px; }
+    .submit-button {
+      min-height: 44px;
+      flex: 0 0 auto;
+      padding: 0 18px;
+      border: 1px solid #17191c;
+      border-radius: 6px;
+      background: #17191c;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .submit-button:hover:not(:disabled) { background: #30343a; }
+    .submit-button:disabled { cursor: not-allowed; opacity: .55; }
+    .submit-button:focus-visible { outline: 3px solid rgba(52, 64, 84, .25); outline-offset: 2px; }
+    .feedback-form[aria-busy="true"] { opacity: .85; }
+    @media (max-width: 560px) {
+      .feedback-shell { padding: 24px 18px 34px; }
+      .brand { position: static; }
+      .brand img { width: 60px; }
+      .feedback-content { padding: 42px 0 30px; }
+      .feedback-intro { margin-bottom: 26px; }
+      .feedback-options { grid-template-columns: 1fr; gap: 8px; }
+      .choice-content { min-height: 48px; justify-content: flex-start; padding: 10px 13px; text-align: left; }
+      .feedback-actions { align-items: stretch; flex-direction: column; }
+      .submit-button { width: 100%; }
     }
   </style>
 </head>
 <body>
-  <script type="module" src="/scripts/ui/feedbackButton.js"></script>
-  <header>
-    <a href="/" aria-label="Bzade home"><img src="/logo-bz.png" alt="">Bzade</a>
-  </header>
-  <main>
-    <h1>Share your feedback</h1>
-    <p>Tell us what’s working well or what we could improve. Your email app will open with the feedback address and subject ready.</p>
-    <a class="feedback-link" href="mailto:support@bzade.app?subject=Product%20feedback">Email your feedback</a>
-  </main>
+  <div class="feedback-shell">
+    <a class="brand" href="/" aria-label="Bzade home">
+      <img src="../logo-bz.png" alt="Bzade">
+    </a>
+    <main class="feedback-content">
+      <div class="feedback-intro">
+        <span class="feedback-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg>
+        </span>
+        <p class="eyebrow">Product feedback</p>
+        <h1>Help us make Bzade better</h1>
+        <p class="feedback-description">Tell us what’s working or what could be improved. Your feedback helps us focus on the things that matter.</p>
+      </div>
+
+      <form class="feedback-form" id="feedback-form">
+        <fieldset>
+          <legend>What is your feedback about?</legend>
+          <div class="feedback-options">
+            <label class="feedback-choice">
+              <input type="radio" name="feedback_about" value="idea" checked>
+              <span class="choice-content">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M8.2 14.5A7 7 0 1 1 15.8 14.5c-.9.7-1.3 1.5-1.5 2.5h-4.6c-.2-1-.6-1.8-1.5-2.5Z"/></svg>
+                <span>An idea</span>
+              </span>
+            </label>
+            <label class="feedback-choice">
+              <input type="radio" name="feedback_about" value="issue">
+              <span class="choice-content">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3l-7.5-13.1a2 2 0 0 0-3.4 0Z"/></svg>
+                <span>An issue</span>
+              </span>
+            </label>
+            <label class="feedback-choice">
+              <input type="radio" name="feedback_about" value="something_else">
+              <span class="choice-content">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
+                <span>Something else</span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <label class="message-label" for="feedback-message">Message</label>
+        <textarea id="feedback-message" name="message" maxlength="20000" required placeholder="Share as much detail as you like..."></textarea>
+        <p class="feedback-message" id="feedback-status" role="status" aria-live="polite"></p>
+        <div class="feedback-actions">
+          <button class="submit-button" id="feedback-submit" type="submit">Send Us</button>
+        </div>
+      </form>
+    </main>
+  </div>
+  <script type="module" src="/feedback/feedback.js"></script>
 </body>
 </html>

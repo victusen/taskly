@@ -81,7 +81,7 @@
       border-bottom: 1px solid #eee;
       flex-shrink: 0;
     }
-    /* X close btn Ã¢â‚¬â€ no bg by default, only shows bg on hover */
+    /* X close button - no bg by default, only shows bg on hover */
     #sidebar-close-btn {
       background: transparent;
       border: none;
@@ -94,7 +94,7 @@
     #sidebar-close-btn:hover { background: #f3f4f6; }
     .mobile-sidebar-body { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 20px; }
 
-    /* Skeleton shimmer Ã¢â‚¬â€ shows before sub-nav items load */
+    /* Skeleton shimmer - shows before sub-nav items load */
     @keyframes shimmer {
       0%   { background-position: -400px 0; }
       100% { background-position:  400px 0; }
@@ -218,7 +218,7 @@
       align-items: flex-start;
     }
 
-    /* Laptop sidebar card Ã¢â‚¬â€ full height, sticky, space-between */
+    /* Laptop sidebar card - full height, sticky, space-between */
     .left-sidebar { display: none; }
     .left-sidebar-card {
       background: white;
@@ -708,13 +708,12 @@
       backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
     }
     .sched-editor-overlay.open { display: flex; }
-    .sched-editor-overlay.google-picker-underlay { z-index: 1; }
     .sched-editor-card {
       width: min(1180px, calc(100vw - 48px));
       height: auto; max-height: min(860px, calc(100vh - 48px));
       background: #ffffff; border-radius: 16px;
       box-shadow: 0 24px 70px rgba(0,0,0,0.28);
-      display: flex; flex-direction: column; overflow: auto;
+      display: flex; flex-direction: column; overflow: hidden;
     }
     .sched-editor-head {
       display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -729,8 +728,8 @@
     .sched-time-fields .cmp-field { min-width: 0; width: 100%; }
     .sched-editor-title { font-size: 22px; font-weight: 700; color: #111827; letter-spacing: -0.01em; margin: 0; line-height: 1.25; }
     .sched-editor-sub { margin-top: 4px; font-size: 13px; color: #6b7280; line-height: 1.45; }
-    .sched-editor-card .cmp-form { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 0; }
-    .sched-editor-body { flex: 0 0 auto; min-height: 0; overflow: visible; padding: 22px 26px; }
+    .sched-editor-card .cmp-form { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 0; overflow: hidden; }
+    .sched-editor-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 22px 26px; }
     .sched-editor-grid {
       display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.28fr);
       gap: 22px; align-items: start;
@@ -740,12 +739,17 @@
     .sched-panel-composition { display: flex; flex-direction: column; gap: 20px; }
     .sched-bordered-card { padding: 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: #ffffff; min-width: 0; }
     .sched-email-meta { display: grid; gap: 14px; }
-    .sched-email-field { display: grid; grid-template-columns: 108px minmax(0, 1fr); align-items: center; gap: 16px; min-width: 0; }
+    .sched-email-field { display: grid; grid-template-columns: 108px minmax(0, 1fr); align-items: start; gap: 16px; min-width: 0; }
     .sched-email-field .cmp-label { margin: 0; }
-    .sched-sender-control { display: flex; min-width: 0; gap: 8px; }
-    .sched-sender-control .cmp-input { flex: 1; min-width: 0; }
-    .sched-use-project-name { flex: 0 0 auto; padding: 0 11px; border: 1px solid #d1d5db; border-radius: 7px; background: #fff; color: #374151; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
-    .sched-use-project-name:hover { border-color: #9ca3af; background: #f9fafb; }
+    .sched-sender-control { position: relative; display: flex; min-width: 0; }
+    .sched-sender-control .cmp-input { flex: 1; min-width: 0; padding-right: 148px; }
+    .sched-use-project-name {
+      position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
+      padding: 6px 9px; border: 1px solid #d1d5db; border-radius: 6px;
+      background: #f9fafb; color: #374151; font: inherit; font-size: 12px;
+      font-weight: 600; white-space: nowrap; cursor: pointer;
+    }
+    .sched-use-project-name:hover { border-color: #9ca3af; background: #f3f4f6; }
     .sched-panel-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; font-weight: 700; margin: 0 0 14px; }
     .sched-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
     .sched-fields .cmp-input { height: 44px; }
@@ -811,15 +815,13 @@
     .sched-editor-body .cmp-editor { border-radius: 10px; }
     .sched-editor-foot {
       display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
-      padding: 14px 26px; border-top: 1px solid #e5e7eb; background: #ffffff; flex-shrink: 0;
+      position: relative; z-index: 1; padding: 14px 26px; border-top: 1px solid #e5e7eb;
+      background: #ffffff; box-shadow: 0 -4px 12px rgba(17,24,39,.04); flex-shrink: 0;
     }
     .sched-editor-foot .cmp-error { margin-right: auto; align-self: center; }
-    .sched-editor-cancel-outside { position: absolute; top: 50%; left: calc(50% + min(590px, calc(50vw - 24px)) + 12px); transform: translateY(-50%); padding: 8px 12px; border: 1px solid rgba(255,255,255,.55); border-radius: 8px; background: rgba(255,255,255,.96); color: #374151; font: inherit; font-size: 12px; cursor: pointer; }
-    .sched-editor-cancel-outside:hover { background: #fff; color: #111827; }
 
     @media (max-width: 1340px) {
       .sched-editor-card { max-height: calc(100vh - 100px); }
-      .sched-editor-cancel-outside { top: auto; bottom: 14px; left: auto; right: 16px; transform: none; }
     }
     @media (max-width: 980px) {
       .sched-editor-grid { grid-template-columns: 1fr; }
@@ -839,8 +841,7 @@
       .sched-editor-title { font-size: 19px; }
       .sched-editor-body .cmp-code { min-height: 260px; height: 260px; }
       .sched-email-field { grid-template-columns: 1fr; gap: 6px; }
-      .sched-sender-control { flex-direction: column; }
-      .sched-use-project-name { min-height: 38px; }
+      .sched-sender-control .cmp-input { padding-right: 142px; }
     }
 
     .tpl-backdrop { position: fixed; inset: 0; background: rgba(17,24,39,0.7); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 3500; }
@@ -890,7 +891,6 @@
     .schedule-date-time span { color: #4b5563; font-size: 12px; }
     .schedule-table .badge, .schedule-mobile-list .badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 999px; color: #fff; font-size: 11px; font-weight: 650; line-height: 1.3; }
     .schedule-table .badge-green, .schedule-mobile-list .badge-green { background: #15803d; }
-    .schedule-table .schedule-run-count, .schedule-mobile-list .schedule-run-count { border-radius: 5px; }
     .schedule-table .badge-warn, .schedule-mobile-list .badge-warn { background: #b45309; }
     .schedule-table .badge-red, .schedule-mobile-list .badge-red { background: #b91c1c; }
     .schedule-table .badge-blue, .schedule-mobile-list .badge-blue { background: #2563eb; }
@@ -924,12 +924,12 @@
     .schedule-mobile-meta .schedule-mobile-field:last-child > * { border-bottom: 0; }
     .schedule-detail-overlay { position: fixed; inset: 0; z-index: 4200; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(17,24,39,.52); }
     .schedule-detail-overlay.open { display: flex; }
-    .schedule-detail-card { width: min(580px,100%); max-height: min(760px,90vh); overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; box-shadow: 0 24px 70px rgba(0,0,0,.2); }
+    .schedule-detail-card { display: flex; flex-direction: column; width: min(580px,100%); max-height: min(760px,calc(100vh - 40px)); overflow: hidden; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; box-shadow: 0 24px 70px rgba(0,0,0,.2); }
     .schedule-detail-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 20px; border-bottom: 1px solid #e5e7eb; }
     .schedule-detail-title { color: #111827; font-size: 20px; font-weight: 700; }
     .schedule-detail-close { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: #6b7280; cursor: pointer; }
     .schedule-detail-close:hover { background: #f3f4f6; color: #111827; }
-    .schedule-detail-body { display: flex; flex-direction: column; padding: 4px 20px; }
+    .schedule-detail-body { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 20px; }
     .schedule-detail-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; min-width: 0; padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
     .schedule-detail-item.full { grid-column: auto; }
     .schedule-detail-label { flex: 0 0 32%; color: #374151; font-size: 13px; font-weight: 700; }
@@ -939,7 +939,8 @@
     .schedule-detail-status .badge-warn { background: #b45309; }
     .schedule-detail-status .badge-red { background: #b91c1c; }
     .schedule-detail-status .badge-blue { background: #2563eb; }
-    .schedule-detail-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 20px; border-top: 1px solid #e5e7eb; }
+    .schedule-detail-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 20px; border-top: 1px solid #e5e7eb; background: #fff; flex-shrink: 0; }
+    .schedule-detail-footer[hidden] { display: none; }
     .schedule-detail-footer button { padding: 9px 16px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #374151; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
     .schedule-detail-footer [data-detail-edit] { border-color: #111827; background: #111827; color: #fff; }
     @media (max-width: 767px) {
@@ -956,8 +957,8 @@
       .page-summary { display: none; }
       .page-mobile-summary { display: inline; color: #6b7280; font-size: 11px; white-space: nowrap; }
       .task-pagination { margin-left: auto; gap: 7px; }
-      .schedule-detail-overlay { padding: 12px; }
-      .schedule-detail-card { max-height: 94vh; }
+      .schedule-detail-overlay { padding: 16px; }
+      .schedule-detail-card { width: min(420px, calc(100vw - 32px)); max-height: min(600px, calc(100vh - 48px)); border-radius: 12px; }
       .schedule-detail-header, .schedule-detail-body { padding-left: 16px; padding-right: 16px; }
       .schedule-detail-footer { padding: 8px 16px; }
       .schedule-row-menu button[data-sidebar-toggle] { display: none; }
@@ -965,6 +966,32 @@
     @media (min-width: 768px) and (max-width: 1050px) {
       .schedule-table th:nth-child(3), .schedule-table td:nth-child(3) { display: none; }
       .schedule-table th:nth-child(2) { width: 22%; }
+    }
+    @media (min-width: 1051px) {
+      .schedule-table-scroll { overflow-x: auto; }
+      .schedule-table th:nth-child(2) { width: 20%; }
+      .schedule-table th:nth-child(3) { width: 7%; }
+      .schedule-table th:nth-child(4) { width: 8%; }
+      .schedule-table th.schedule-created-column,
+      .schedule-table td.schedule-created-column,
+      .schedule-table th.schedule-last-run-column,
+      .schedule-table td.schedule-last-run-column,
+      .schedule-table th.schedule-next-run-column,
+      .schedule-table td.schedule-next-run-column { width: 120px; }
+      .schedule-table th:nth-child(8) { width: 9%; }
+      .schedule-table th:nth-child(9) { width: 8%; }
+      .schedule-table th:nth-child(10) { width: 8%; }
+    }
+
+    @media (max-width: 1024px) {
+      .proj-display #project-title { font-size: clamp(17px, 3vw, 24px) !important; }
+      .proj-display .proj-menu-icon-wrap { width: clamp(22px, 3vw, 28px) !important; height: clamp(22px, 3vw, 28px) !important; }
+      .proj-display .proj-menu-icon-wrap img { width: clamp(12px, 1.6vw, 15px) !important; height: auto !important; }
+    }
+    @media (max-width: 767px) {
+      .proj-display #project-title { font-size: clamp(16px, 4vw, 20px) !important; }
+      .proj-display .proj-menu-icon-wrap { width: clamp(21px, 5vw, 25px) !important; height: clamp(21px, 5vw, 25px) !important; }
+      .proj-display .proj-menu-icon-wrap img { width: clamp(11px, 3vw, 13px) !important; }
     }
 
     .cmp-details-grid {
@@ -1480,8 +1507,8 @@
                             <option value="now">Now (immediately)</option>
                             <option value="once" selected>Once</option>
                             <option value="daily">Daily</option>
-                            <option value="weekday">Every weekday (MonÃ¢â‚¬â€œFri)</option>
-                            <option value="weekends">Every weekend (SatÃ¢â‚¬â€œSun)</option>
+                            <option value="weekday">Every weekday (Mon&ndash;Fri)</option>
+                            <option value="weekends">Every weekend (Sat&ndash;Sun)</option>
                             <option value="weekly">Weekly</option>
                             <option value="monthly">Monthly</option>
                             <option value="yearly">Yearly</option>
@@ -1607,7 +1634,6 @@
                 </div>
               </form>
             </section>
-            <button type="button" id="cmp-cancel" class="sched-editor-cancel-outside">Cancel</button>
           </div>
 
           <!-- Tasks appear here -->
@@ -1712,7 +1738,7 @@
             <button type="button" class="sheet-picker-secondary" id="sheet-picker-disconnect" disabled>Disconnect</button>
           </div>
         </div>
-        <p class="sheet-picker-message" id="sheet-picker-message" role="status">Loading spreadsheetsÃ¢â‚¬Â¦</p>
+        <p class="sheet-picker-message" id="sheet-picker-message" role="status">Loading spreadsheets...</p>
         <div class="sheet-picker-field">
           <span>Choose a spreadsheet</span>
           <div class="sheet-picker-browse-actions">
@@ -2064,6 +2090,26 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
     setTimeout(() => nameInput.focus(), 0);
   }
 
+  function openCopy(schedule) {
+    mode = "create";
+    editingId = null;
+    resetForm();
+    fillFromSchedule(schedule);
+    if (howSelect.value !== "now") {
+      const scheduledAt = dateInput.value
+        ? Date.parse(`${dateInput.value}T${timeInput.value || "09:00"}:00Z`)
+        : NaN;
+      if (!Number.isFinite(scheduledAt) || scheduledAt <= Date.now()) {
+        dateInput.value = ymd(new Date(Date.now() + 86400000));
+      }
+    }
+    setHeading("Create similar schedule", "Create a new task", "Review the details and create a new schedule based on this completed one.");
+    clearError();
+    openEditor();
+    window.bzComposer.refreshSender?.();
+    setTimeout(() => nameInput.focus(), 0);
+  }
+
   function currentDraft() {
     const name = capitalizeScheduleName(nameInput.value) || "Untitled draft";
     const recipients = String(recipientsInput.value || "")
@@ -2101,12 +2147,29 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
     );
   }
 
+  function hideEditorForSheets() {
+    composer.classList.remove("open");
+    composer.hidden = true;
+    composer.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  function showEditorAfterSheets() {
+    composer.hidden = false;
+    composer.classList.add("open");
+    composer.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+
   window.bzComposer.openCreate = openCreate;
   window.bzComposer.openEdit = openEdit;
   window.bzComposer.openDraft = openDraft;
+  window.bzComposer.openCopy = openCopy;
+  window.bzComposer.hideForSheets = hideEditorForSheets;
+  window.bzComposer.showAfterSheets = showEditorAfterSheets;
 
   closeButton.addEventListener("click", () => closeEditor());
-  cancelButton.addEventListener("click", () => closeEditor());
+  cancelButton?.addEventListener("click", () => closeEditor());
   composer.addEventListener("click", (event) => {
     if (event.target === composer) closeEditor();
   });
@@ -2126,7 +2189,6 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
     if (
       event.key === "Escape" &&
       !composer.hidden &&
-      !composer.classList.contains("google-picker-underlay") &&
       !document.getElementById("sheet-picker-overlay")?.classList.contains("open")
     ) closeEditor();
   });
@@ -2292,7 +2354,7 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
   <div class="schedule-detail-overlay" id="schedule-detail-overlay" aria-hidden="true">
     <section class="schedule-detail-card" role="dialog" aria-modal="true" aria-labelledby="schedule-detail-title">
       <div class="schedule-detail-header">
-        <h2 class="schedule-detail-title" id="schedule-detail-title">Edit schedule</h2>
+        <h2 class="schedule-detail-title" id="schedule-detail-title">Schedule details</h2>
         <button type="button" class="schedule-detail-close" data-detail-close aria-label="Close schedule details">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg>
         </button>
@@ -2311,9 +2373,11 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
         <div class="schedule-detail-item full"><p class="schedule-detail-label">Message</p><p class="schedule-detail-value" id="schedule-detail-message"></p></div>
         <div class="schedule-detail-item full" id="schedule-detail-error-wrap" hidden><p class="schedule-detail-label">Last error</p><p class="schedule-detail-value" id="schedule-detail-error"></p></div>
       </div>
-      <footer class="schedule-detail-footer">
-        <button type="button" data-detail-close>Close</button>
-        <button type="button" data-detail-edit id="schedule-detail-edit">Edit schedule</button>
+      <footer class="schedule-detail-footer" id="schedule-detail-footer" hidden>
+        <button type="button" data-detail-edit id="schedule-detail-edit" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
+          <span data-detail-edit-label>Edit schedule</span>
+        </button>
       </footer>
     </section>
   </div>

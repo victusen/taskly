@@ -14,6 +14,9 @@ const onboardingState = {
 };
 
 const stepCount = document.getElementById("step-count");
+const stepProgress = document.getElementById("step-progress");
+const stepProgressFill = document.getElementById("step-progress-fill");
+const progressSteps = [...document.querySelectorAll("[data-progress-step]")];
 const steps = [
   document.getElementById("step-1"),
   document.getElementById("step-2"),
@@ -57,7 +60,7 @@ function detectedTimezone() {
 }
 
 function timezoneLabel(value) {
-  return value === "UTC" ? "UTC Ã¢â‚¬â€ Coordinated Universal Time" : value.replace(/_/g, " ");
+  return value === "UTC" ? "UTC \u2014 Coordinated Universal Time" : value.replace(/_/g, " ");
 }
 
 function stateStorageKey() {
@@ -172,6 +175,15 @@ function showStep(step, { updateUrl = true, focus = true } = {}) {
     element.hidden = index + 1 !== visibleStep;
   });
   stepCount.textContent = `Step ${visibleStep} of 3`;
+  stepProgress?.setAttribute("aria-valuenow", String(visibleStep));
+  stepProgress?.setAttribute("aria-valuetext", `Step ${visibleStep} of 3`);
+  if (stepProgressFill) stepProgressFill.style.width = `${(visibleStep / steps.length) * 100}%`;
+  progressSteps.forEach((element, index) => {
+    const stepNumber = index + 1;
+    element.classList.toggle("is-complete", stepNumber < visibleStep);
+    if (stepNumber === visibleStep) element.setAttribute("aria-current", "step");
+    else element.removeAttribute("aria-current");
+  });
   if (visibleStep === 3) updateProjectTypeSummary();
 
   if (updateUrl) {
@@ -251,7 +263,7 @@ async function finishOnboarding(event) {
   saveDraft();
   isSubmitting = true;
   finishButton.disabled = true;
-  finishButton.textContent = "Creating projectÃ¢â‚¬Â¦";
+  finishButton.textContent = "Creating project\u2026";
 
   try {
     const projects = await loadProjects();
