@@ -1,6 +1,7 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { feedbackController } from "../controllers/feedbackController.js";
+import { optionalAuthMiddleware } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -16,6 +17,6 @@ const submitFeedbackLimit = rateLimit({
   },
 });
 
-router.post("/", submitFeedbackLimit, feedbackController.submit);
+router.post("/", submitFeedbackLimit, optionalAuthMiddleware, feedbackController.submit);
 
 export default router;

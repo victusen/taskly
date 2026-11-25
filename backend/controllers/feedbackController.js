@@ -8,7 +8,7 @@ export const feedbackController = {
   async submit(req, res) {
     let feedback;
     try {
-      feedback = normalizeFeedbackSubmission(req.body);
+      feedback = normalizeFeedbackSubmission(req.body, req.user?.id || null);
     } catch (error) {
       if (error instanceof FeedbackValidationError) {
         return res.status(400).json({
@@ -38,7 +38,10 @@ export const feedbackController = {
         },
       });
     } catch (error) {
-      console.error("[SUBMIT FEEDBACK]", { code: error.code || "UNKNOWN" });
+      console.error("[SUBMIT FEEDBACK]", {
+        code: error.code || "UNKNOWN",
+        message: error.message || "Unknown feedback insert error.",
+      });
       return res.status(500).json({
         success: false,
         code: "SERVER_ERROR",

@@ -17,6 +17,19 @@ test("manual schedules use the manual recipient handler", async () => {
   assert.deepEqual(prepared.recipients, recipients);
 });
 
+test("manual schedules count each repeated Cc and Bcc delivery", async () => {
+  const prepared = await dispatchRecipientSource({
+    config: {
+      recipient_source: { type: "manual" },
+      recipients: ["ada@example.com", "grace@example.com"],
+      cc: ["team@example.com"],
+      bcc: ["archive@example.com"],
+    },
+  });
+
+  assert.equal(prepared.recipientCount, 6);
+});
+
 test("unknown database providers fail explicitly", async () => {
   await assert.rejects(
     dispatchRecipientSource({

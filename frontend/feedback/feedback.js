@@ -1,14 +1,23 @@
 import { BACKEND_URL } from "../scripts/config.js";
+import { getSession } from "../scripts/auth/auth.js";
 
 const form = document.getElementById("feedback-form");
 const messageInput = document.getElementById("feedback-message");
 const submitButton = document.getElementById("feedback-submit");
 const statusMessage = document.getElementById("feedback-status");
 let isSubmitting = false;
+const MAX_FEEDBACK_LENGTH = 10_000;
+const UNSUPPORTED_CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/;
+const FEEDBACK_CATEGORIES = new Set(["idea", "issue", "something_else"]);
 
 messageInput?.addEventListener("input", () => {
-  const isTooLong = Array.from(messageInput.value).length > 10_000;
-  messageInput.setCustomValidity(isTooLong ? "Feedback must be no more than 10,000 characters." : "");
+  const message = messageInput.value;
+  const error = Array.from(message).length > MAX_FEEDBACK_LENGTH
+    ? `Feedback must be no more than ${MAX_FEEDBACK_LENGTH} characters.`
+    : UNSUPPORTED_CONTROL_CHARS.test(message)
+      ? "Remove unsupported control characters from your feedback."
+      : "";
+  messageInput.setCustomValidity(error);
 });
 
 function feedbackSourceUrl() {
@@ -37,9 +46,16 @@ form?.addEventListener("submit", async (event) => {
   if (isSubmitting || !form.reportValidity()) return;
 
   const formData = new FormData(form);
+  const message = String(formData.get("message") || "");
+  const feedbackAbout = String(formData.get("feedback_about") || "");
+  if (!FEEDBACK_CATEGORIES.has(feedbackAbout)) {
+    showStatus("Choose a feedback category.", "error");
+    return;
+  }
+
   const payload = {
-    message: String(formData.get("message") || ""),
-    feedback_about: String(formData.get("feedback_about") || ""),
+    message,
+    feedback_about: feedbackAbout,
     pageurl: feedbackSourceUrl(),
   };
 
@@ -51,9 +67,18 @@ form?.addEventListener("submit", async (event) => {
   delete statusMessage.dataset.state;
 
   try {
+    const session = await getSession();
+    const headers = { "Content-Type": "application/json" };
+    if (session) {
+      if (!session.access_token) {
+        throw new Error("Could not verify your signed-in account. Please refresh and try again.");
+      }
+      headers.Authorization = `Bearer ${session.access_token}`;
+    }
+
     const response = await fetch(`${BACKEND_URL}/api/feedback`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
     });
     let result = {};

@@ -9,14 +9,23 @@
 </head>
 <body>
   <script type="module" src="/scripts/ui/feedbackButton.js"></script>
+  <header class="legal-site-header">
+    <a class="legal-site-brand" href="/">
+      <img src="../logo-bz.png" alt="">
+      <span>Bzade</span>
+    </a>
+    <nav aria-label="Page actions">
+      <a class="legal-console-link" href="/dashboard">Back to Console</a>
+    </nav>
+  </header>
+  <div class="legal-layout">
   <main class="legal-page">
     <header class="legal-header">
-      <p class="legal-eyebrow"><a href="/">Bzade.app</a></p>
       <h1>Terms of Use</h1>
-      <p class="legal-effective">Effective date: October 9, 2026</p>
+      <p class="legal-effective">Effective date: November 25, 2026</p>
     </header>
 
-    <section class="legal-section">
+    <section class="legal-section" id="agreement">
       <h2>1. Agreement</h2>
       <p>
         These Terms govern your use of Bzade, operated by Victor Usen from Nigeria
@@ -30,18 +39,18 @@
       </p>
     </section>
 
-    <section class="legal-section">
+    <section class="legal-section" id="what-bzade-does">
       <h2>2. What Bzade does</h2>
       <p>
-        Bzade lets you write an email and schedule it to be sent once or on a
-        repeating basis from a mail account you connect. Email is the current
-        feature. Other channels may be added later and will be covered by these
-        Terms when they launch. Features may change, and some features are limited
-        or in testing.
+        Bzade lets you prepare and schedule individual emails through a connected
+        Gmail or SMTP account. You can enter recipients or select recipient and
+        personalization columns from Google Sheets. You can schedule one-time or
+        repeating sends and add Cc or Bcc recipients. Features may change or be
+        limited.
       </p>
     </section>
 
-    <section class="legal-section">
+    <section class="legal-section" id="account">
       <h2>3. Your account</h2>
       <ul>
         <li>You must be at least 18 years old.</li>
@@ -50,29 +59,29 @@
       </ul>
     </section>
 
-    <section class="legal-section">
+    <section class="legal-section" id="connected-accounts">
       <h2>4. Connecting a mail account</h2>
       <p>
-        When you connect Gmail or an SMTP account, you authorize Bzade to send
-        emails from that account on your instructions and only for the schedules
-        you create. You confirm that you own the account or have the right to use
-        it for this purpose.
+        When you connect Gmail or SMTP, you authorize Bzade to send emails from
+        that account on your instructions. You confirm that you own the account or
+        have permission to use it.
       </p>
       <ul>
-        <li><strong>Gmail.</strong> Bzade asks Google only for permission to send email. We cannot read your mailbox. While Google verification is in progress, the Gmail connection is available only to approved test users, and Google may require you to reconnect every seven days.</li>
-        <li><strong>Custom SMTP.</strong> You provide the server details and credentials. Use an account or an app specific password that you are allowed to share with a service. You remain bound by your mail provider's own terms, including its sending limits.</li>
-        <li>You can disconnect an account at any time, and doing so deletes the stored credentials.</li>
+        <li><strong>Gmail.</strong> Bzade requests permission to send email. It does not request permission to read your Gmail inbox.</li>
+        <li><strong>Custom SMTP.</strong> You provide the server details and credentials. Use an account or an app-specific password that you are allowed to share with a service. You remain bound by your mail provider's own terms, including its sending limits.</li>
+        <li><strong>Google Sheets.</strong> This is a separate connection. Bzade reads the spreadsheet headers and recipient or personalization columns you select. If you ask Bzade to create a spreadsheet, it creates the file and writes its header row.</li>
+        <li>You can disconnect an account in Bzade. Disconnecting removes its stored credentials. You may also revoke Google access in your Google Account.</li>
       </ul>
     </section>
 
-    <section class="legal-section">
+    <section class="legal-section" id="acceptable-use">
       <h2>5. Acceptable use</h2>
       <p>You agree not to use Bzade to:</p>
       <ul>
         <li>send unsolicited bulk email, or email to people who have not agreed to hear from you where the law requires agreement;</li>
         <li>send phishing, scams, malware, or content that is deceptive, unlawful, threatening, or that infringes another person's rights;</li>
         <li>pretend to be another person or business, or forge sender details;</li>
-        <li>break the rules of Google, your SMTP provider, or any law that applies to you, including data protection and anti spam law;</li>
+        <li>break the rules of Google, your SMTP provider, or any law that applies to you, including data protection and anti-spam law;</li>
         <li>probe, overload or bypass the security or limits of Bzade.</li>
       </ul>
       <p>
@@ -81,7 +90,7 @@
       </p>
     </section>
 
-    <section class="legal-section">
+    <section class="legal-section" id="delivery">
       <h2>6. Limits and delivery</h2>
       <p>
         Bzade sets limits, such as the number of recipients per schedule and the
@@ -89,23 +98,27 @@
       </p>
       <p>
         We try to send each email at the scheduled time, but we do not guarantee
-        the time or the delivery. An email can be late, rejected by your provider or
-        the recipient's server, or fail because a connection has expired or been
-        revoked. Failures are shown on your dashboard.
+        timing, delivery or inbox placement. Messages may be delayed, rejected,
+        filtered as spam, or fail because a connection expires or is revoked.
+        Failures are shown on your dashboard.
       </p>
     </section>
 
-    <section class="legal-section">
+    <section class="legal-section" id="content">
       <h2>7. Your content</h2>
       <p>
-        You keep ownership of your messages and recipient lists. You give Bzade the
-        permission needed to store them and send them on your instructions. We do not
-        use your content for advertising, and Bzade staff do not read it except as
-        described in the Privacy Policy.
+        You keep ownership of your messages and recipient lists. You give Bzade
+        permission to process them to prepare and send emails on your instructions.
+        Bzade does not sell personal data, use it for advertising, or use connected
+        email or Google data to train AI or machine-learning models. We do not
+        routinely review message or recipient data. The Bzade operator may access
+        stored data when necessary for support, security, abuse investigation or
+        legal compliance. Bzade processes spreadsheet values and message content
+        to provide the features you request; it does not read your Gmail inbox.
       </p>
     </section>
 
-    <section class="legal-section">
+    <section class="legal-section" id="payments">
       <h2>8. Payments</h2>
       <ul>
         <li>Paid features are charged as shown at checkout, in the currency shown.</li>
@@ -115,27 +128,31 @@
       </ul>
     </section>
 
-    <section class="legal-section">
-      <h2>9. Third party services</h2>
+    <section class="legal-section" id="third-party-services">
+      <h2>9. Third-party services</h2>
       <p>
-        Bzade works with Supabase, Render, Cloudflare, Paystack, Google and the mail
-        provider you choose. Those services follow their own terms and may be
-        unavailable at times. We are not responsible for their acts or outages,
-        although we choose them with care.
+        Bzade uses Supabase for authentication and database services, Render for
+        backend hosting, Cloudflare for domain and network services, Paystack for
+        payments, Google for sign-in/Gmail/Sheets, GitHub, Facebook and X for
+        optional sign-in, and the SMTP provider you choose. Supabase Auth sends
+        account emails through its configured email service. These providers have
+        their own terms and privacy notices and may be unavailable.
       </p>
     </section>
 
-    <section class="legal-section">
+    <section class="legal-section" id="ending-service">
       <h2>10. Suspension and ending</h2>
       <p>
-        You can stop using Bzade and delete your account at any time. We may suspend
-        or end an account without notice if you break these Terms, if your use
-        harms others or the service, or if the law requires. After an account ends,
-        we handle your data as described in the Privacy Policy.
+        You can stop using Bzade and request account deletion by contacting us.
+        Deleting a schedule stops future sends but retains its record. Deleting a
+        project marks it deleted; associated records may remain stored. We may
+        suspend or end an account if you break these Terms, harm others or the
+        service, or if the law requires. See the <a href="/privacy-policy">Privacy
+        Policy</a> for data handling and deletion requests.
       </p>
     </section>
 
-    <section class="legal-section">
+    <section class="legal-section" id="disclaimers">
       <h2>11. Disclaimers and liability</h2>
       <p>
         Bzade is provided "as is" and "as available". To the extent the law allows,
@@ -152,7 +169,7 @@
       </p>
     </section>
 
-    <section class="legal-section">
+    <section class="legal-section" id="changes-law">
       <h2>12. Changes and governing law</h2>
       <p>
         We may update these Terms. The effective date above shows the latest
@@ -163,15 +180,35 @@
       </p>
     </section>
 
-    <section class="legal-section">
+    <section class="legal-section" id="contact">
       <h2>13. Contact</h2>
       <address>
         Victor Usen, Bzade<br>
         Nigeria<br>
-        Email: <a href="mailto:victor@bzade.app">victor@bzade.app</a>
+        Email: <a href="mailto:Victor@bzade.app">Victor@bzade.app</a>
       </address>
-      <p>See also our <a href="/privacy-policy">Privacy Policy</a>, & <a href="/data-protection">Data Protection</a>.</p>
+      <p>See also our <a href="/privacy-policy">Privacy Policy</a> and <a href="/data-protection">Data Protection</a>.</p>
     </section>
   </main>
+    <aside class="legal-toc-column" aria-label="Terms sections">
+      <p class="legal-toc-title">On this page</p>
+      <nav class="legal-toc-nav">
+        <a class="legal-toc-link active" href="#agreement" aria-current="location">Agreement</a>
+        <a class="legal-toc-link" href="#what-bzade-does">What Bzade does</a>
+        <a class="legal-toc-link" href="#account">Your account</a>
+        <a class="legal-toc-link" href="#connected-accounts">Connected accounts</a>
+        <a class="legal-toc-link" href="#acceptable-use">Acceptable use</a>
+        <a class="legal-toc-link" href="#delivery">Limits and delivery</a>
+        <a class="legal-toc-link" href="#content">Your content</a>
+        <a class="legal-toc-link" href="#payments">Payments</a>
+        <a class="legal-toc-link" href="#third-party-services">Third-party services</a>
+        <a class="legal-toc-link" href="#ending-service">Ending service</a>
+        <a class="legal-toc-link" href="#disclaimers">Disclaimers</a>
+        <a class="legal-toc-link" href="#changes-law">Changes and law</a>
+        <a class="legal-toc-link" href="#contact">Contact</a>
+      </nav>
+    </aside>
+  </div>
+  <script type="module" src="/scripts/ui/legalPageNavigation.js"></script>
 </body>
 </html>

@@ -621,8 +621,9 @@
       .col-tasks-area { flex: 1 1 auto; }
       .task-toggle { flex: 1 1 auto; }
       .col-empty-third { display: none; }
-      .task-list { min-height: 360px; overflow: visible; }
-      #job-rows { overflow: visible; }
+      .task-list { flex: 0 0 auto; height: auto; min-height: 0; overflow: visible; }
+      .task-list > #task-loader { min-height: 0 !important; }
+      #job-rows { flex: 0 0 auto; min-height: 0; overflow: visible; }
       .task-list-footer { min-height: 40px; gap: 8px; }
       .page-summary { display: inline; color: #6b7280; font-size: 10px; white-space: nowrap; }
       .task-pagination { gap: 6px; }
@@ -905,7 +906,7 @@
     .schedule-row-menu button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 9px; border: 0; border-radius: 0; background: transparent; color: #374151; font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
     .schedule-row-menu button:hover { background: #f3f4f6; }
     .schedule-row-menu button[data-delete-schedule] { color: #b91c1c; }
-    .schedule-row-menu button svg { width: 14px; height: 14px; flex: 0 0 14px; }
+    .schedule-row-menu button svg { width: 16px; height: 16px; flex: 0 0 16px; }
     .schedule-mobile-list { display: none; }
     .schedule-mobile-card { display: grid; grid-template-columns: 28px minmax(0,1fr) minmax(0,1.25fr); align-items: stretch; gap: 0 12px; min-width: 0; padding: 12px; border-bottom: 1px solid #e5e7eb; background: #fff; }
     .schedule-mobile-card:last-child { border-bottom: 0; }
@@ -989,7 +990,7 @@
       .proj-display .proj-menu-icon-wrap img { width: clamp(12px, 1.6vw, 15px) !important; height: auto !important; }
     }
     @media (max-width: 767px) {
-      .proj-display #project-title { font-size: clamp(16px, 4vw, 20px) !important; }
+      .proj-display #project-title { font-size: clamp(18px, 4.5vw, 21px) !important; }
       .proj-display .proj-menu-icon-wrap { width: clamp(21px, 5vw, 25px) !important; height: clamp(21px, 5vw, 25px) !important; }
       .proj-display .proj-menu-icon-wrap img { width: clamp(11px, 3vw, 13px) !important; }
     }
@@ -1254,7 +1255,7 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
             <span>API Reference</span>
           </a>
-          <a href="mailto:support@bzade.app?subject=Feedback" class="header-dd-item">
+          <a href="mailto:Victor@bzade.app?subject=Feedback" class="header-dd-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span>Feedbacks</span>
           </a>
@@ -1262,7 +1263,7 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             <span>Terms of Service</span>
           </a>
-          <a href="mailto:support@bzade.app" class="header-dd-item" style="border-top: 1px solid #e5e7eb; margin-top: 4px; padding-top: 10px;">
+          <a href="mailto:Victor@bzade.app" class="header-dd-item" style="border-top: 1px solid #e5e7eb; margin-top: 4px; padding-top: 10px;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             <span>Support</span>
           </a>
@@ -1540,6 +1541,14 @@
                             </button>
                           </div>
                         </div>
+                        <label class="cmp-field">
+                          <span class="cmp-label">Cc (optional, each email)</span>
+                          <input class="cmp-input" name="cc" autocomplete="off" placeholder="colleague@example.com">
+                        </label>
+                        <label class="cmp-field">
+                          <span class="cmp-label">Bcc (optional, each email)</span>
+                          <input class="cmp-input" name="bcc" autocomplete="off" placeholder="archive@example.com">
+                        </label>
                         <div class="sched-time-fields">
                           <label class="cmp-field">
                             <span class="cmp-label">Date</span>
@@ -1710,7 +1719,7 @@
 
     <!-- Column 3: Third Side -->
     <div class="col-empty-third">
-      <p>Hi, User. We are still working on this page. Can you tell us what you'd like to see <a href="mailto:support@bzade.app?subject=Schedules%20page%20feedback">here</a></p>
+      <p>Hi, User. We are still working on this page. Can you tell us what you'd like to see <a href="www.bzade.app/feedback">here</a></p>
     </div>
   </div>
 
@@ -1878,6 +1887,8 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
   const useProjectNameButton = document.getElementById("cmp-use-project-name");
   const senderEmail = document.getElementById("cmp-mail-account-email");
   const recipientsInput = form.elements.namedItem("recipients");
+  const ccInput = form.elements.namedItem("cc");
+  const bccInput = form.elements.namedItem("bcc");
   const subjectInput = form.elements.namedItem("subject");
   const howSelect = document.getElementById("cmp-how");
   const dateInput = document.getElementById("cmp-date");
@@ -1895,6 +1906,8 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
     .replace(/(^|[\s'-])([a-z])/gi, (match, separator, letter) => `${separator}${letter.toUpperCase()}`);
   const capitalizeScheduleNameWhileTyping = (value) =>
     String(value || "").replace(/(^|[\s'-])([a-z])/gi, (match, separator, letter) => `${separator}${letter.toUpperCase()}`);
+  const parseAddressList = (value) =>
+    String(value || "").split(",").map((address) => address.trim().toLowerCase()).filter(Boolean);
 
   nameInput.addEventListener("input", () => {
     const caret = nameInput.selectionStart;
@@ -1935,6 +1948,35 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
     createButton.textContent = label;
   }
 
+  function updateScheduleTimeConstraints() {
+    const now = new Date();
+    const earliest = new Date(now.getTime() + 60_000);
+    if (earliest.getUTCSeconds() || earliest.getUTCMilliseconds()) {
+      earliest.setUTCMinutes(earliest.getUTCMinutes() + 1);
+    }
+    earliest.setUTCSeconds(0, 0);
+
+    dateInput.min = ymd(now);
+    const minDate = ymd(earliest);
+    const minTime = `${String(earliest.getUTCHours()).padStart(2, "0")}:${String(earliest.getUTCMinutes()).padStart(2, "0")}`;
+    const message = "Pick a time at least a minute from now.";
+
+    dateInput.setCustomValidity(
+      dateInput.value && dateInput.value < minDate && howSelect.value !== "now"
+        ? message
+        : "",
+    );
+    timeInput.min = dateInput.value === minDate ? minTime : "";
+    timeInput.setCustomValidity(
+      !timeInput.disabled &&
+      dateInput.value === minDate &&
+      timeInput.value &&
+      timeInput.value < minTime
+        ? message
+        : "",
+    );
+  }
+
   initEmailComposerEditor({
     root: form,
     bodyInput,
@@ -1961,6 +2003,7 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
     timeInput.disabled = isNow;
     dateInput.disabled = isNow || isFixedDate;
     if (isFixedDate) dateInput.value = nextFixedDate(how);
+    updateScheduleTimeConstraints();
   }
 
   function nextFixedDate(how) {
@@ -1992,6 +2035,8 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
 
     nameInput.value = capitalizeScheduleName(schedule.name || "");
     recipientsInput.value = (config.recipients || []).join(", ");
+    ccInput.value = (config.cc || []).join(", ");
+    bccInput.value = (config.bcc || []).join(", ");
     subjectInput.value = config.subject || "";
     senderNameInput.value = config.sender_name || "";
     bodyInput.value = config.body || "";
@@ -2011,6 +2056,8 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
 
   howSelect.addEventListener("change", syncHow);
   timeInput.addEventListener("change", syncHow);
+  dateInput.addEventListener("input", updateScheduleTimeConstraints);
+  dateInput.addEventListener("change", updateScheduleTimeConstraints);
 
   function closeEditor({ skipPrompt = false } = {}) {
     if (!skipPrompt && mode === "create" && hasComposerContent()) {
@@ -2075,6 +2122,8 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
     resetForm();
     nameInput.value = capitalizeScheduleName(draft.name || "");
     recipientsInput.value = Array.isArray(draft.recipients) ? draft.recipients.join(", ") : "";
+    ccInput.value = Array.isArray(draft.cc) ? draft.cc.join(", ") : "";
+    bccInput.value = Array.isArray(draft.bcc) ? draft.bcc.join(", ") : "";
     subjectInput.value = draft.subject || "";
     senderNameInput.value = draft.sender_name || "";
     bodyInput.value = draft.body || "";
@@ -2112,13 +2161,12 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
 
   function currentDraft() {
     const name = capitalizeScheduleName(nameInput.value) || "Untitled draft";
-    const recipients = String(recipientsInput.value || "")
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
+    const recipients = parseAddressList(recipientsInput.value);
     return {
       name,
       recipients,
+      cc: parseAddressList(ccInput.value),
+      bcc: parseAddressList(bccInput.value),
       subject: subjectInput.value.trim(),
       sender_name: senderNameInput.value.trim(),
       body: bodyInput.value,
@@ -2140,6 +2188,8 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
     return Boolean(
       nameInput.value.trim()
       || recipientsInput.value.trim()
+      || ccInput.value.trim()
+      || bccInput.value.trim()
       || subjectInput.value.trim()
       || senderNameInput.value.trim()
       || bodyInput.value.trim()
@@ -2203,15 +2253,23 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    updateScheduleTimeConstraints();
+    if (!dateInput.checkValidity() || !timeInput.checkValidity()) {
+      showError(
+        dateInput.validationMessage ||
+        timeInput.validationMessage ||
+        "Pick a time at least a minute from now.",
+      );
+      return;
+    }
     clearError();
 
     const data = new FormData(form);
     const name = capitalizeScheduleName(data.get("name"));
     nameInput.value = name;
-    const recipients = String(data.get("recipients") || "")
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
+    const recipients = parseAddressList(data.get("recipients"));
+    const cc = parseAddressList(data.get("cc"));
+    const bcc = parseAddressList(data.get("bcc"));
     const subject = String(data.get("subject") || "").trim();
     const senderName = String(data.get("sender_name") || "").trim();
     const html = bodyInput.value.trim();
@@ -2242,6 +2300,8 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
     const draft = {
       name,
       recipients,
+      cc,
+      bcc,
       subject,
       sender_name: senderName,
       body: html,
@@ -2374,7 +2434,7 @@ import { initEmailComposerEditor, readImageAsDataUrl } from "../scripts/ui/email
         <div class="schedule-detail-item full" id="schedule-detail-error-wrap" hidden><p class="schedule-detail-label">Last error</p><p class="schedule-detail-value" id="schedule-detail-error"></p></div>
       </div>
       <footer class="schedule-detail-footer" id="schedule-detail-footer" hidden>
-        <button type="button" data-detail-edit id="schedule-detail-edit" hidden>
+        <button style="display: flex;" type="button" data-detail-edit id="schedule-detail-edit" hidden>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
           <span data-detail-edit-label>Edit schedule</span>
         </button>

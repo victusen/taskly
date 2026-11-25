@@ -18,7 +18,8 @@ export async function prepareGoogleSheetsRecipientSource(schedule, source) {
       provider: "google_sheets",
       connectionId: connection.id,
       recipientCount: prepared.messages.reduce(
-        (total, message) => total + message.recipients.length,
+        (total, message) =>
+          total + message.recipients.length + (message.cc?.length || 0) + (message.bcc?.length || 0),
         0,
       ),
       messages: prepared.messages,

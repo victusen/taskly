@@ -65,6 +65,36 @@ test("spreadsheet schedules require mappings for every template variable", () =>
   );
 });
 
+test("spreadsheet schedules preserve normalized Cc and Bcc recipients", () => {
+  const payload = validPayload();
+  payload.config.cc = ["  Team@Example.com "];
+  payload.config.bcc = [" archive@example.com "];
+
+  const result = validateScheduleInput(payload, now);
+
+  assert.deepEqual(result.config.cc, ["team@example.com"]);
+  assert.deepEqual(result.config.bcc, ["archive@example.com"]);
+});
+
+test("copy recipients reject duplicates, overlap, and excess addresses", () => {
+  const duplicate = validPayload();
+  duplicate.config.cc = ["team@example.com", "TEAM@example.com"];
+  assert.throws(() => validateScheduleInput(duplicate, now), (error) => Boolean(error.fieldErrors.cc));
+
+  const overlap = validPayload();
+  delete overlap.config.spreadsheet;
+  overlap.config.recipients = ["team@example.com"];
+  overlap.config.cc = ["team@example.com"];
+  assert.throws(() => validateScheduleInput(overlap, now), (error) => Boolean(error.fieldErrors.cc));
+
+  const tooMany = validPayload();
+  tooMany.config.bcc = Array.from(
+    { length: LIMITS.MAX_COPY_RECIPIENTS + 1 },
+    (_, index) => `person${index}@example.com`,
+  );
+  assert.throws(() => validateScheduleInput(tooMany, now), (error) => Boolean(error.fieldErrors.cc));
+});
+
 test("spreadsheet schedules reject mixed direct recipients, oversized ranges, and send-now", () => {
   const mixed = validPayload();
   mixed.config.recipients = ["person@example.com"];

@@ -15,6 +15,7 @@ export const UUID_PATTERN =
 
 export const LIMITS = {
   MAX_SHEET_RECIPIENTS: 50_000,
+  MAX_COPY_RECIPIENTS: 499,
   MAX_SUBJECT: 300,
   MAX_SENDER_NAME: 100,
   /* Gmail clips messages above about 102 KB. Measured in bytes, not characters. */
@@ -290,6 +291,40 @@ export function validateScheduleInput(input, now = new Date(), { allowImmediateS
     }
   }
 
+  const normalizeCopyRecipients = (value, field) => {
+    if (value === undefined || value === null) return [];
+    if (!Array.isArray(value)) {
+      errors[field] = "Enter copy recipients as an array of email addresses.";
+      return [];
+    }
+
+    const addresses = [];
+    const seen = new Set();
+    for (const rawAddress of value) {
+      const address = typeof rawAddress === "string" ? rawAddress.trim().toLowerCase() : "";
+      if (!isValidEmail(address)) {
+        errors[field] = "Enter valid email addresses.";
+      } else if (seen.has(address)) {
+        errors[field] = "Remove duplicate email addresses.";
+      } else {
+        seen.add(address);
+        addresses.push(address);
+      }
+    }
+    return addresses;
+  };
+  const cc = normalizeCopyRecipients(config.cc, "cc");
+  const bcc = normalizeCopyRecipients(config.bcc, "bcc");
+  if (cc.some((address) => bcc.includes(address))) {
+    errors.bcc = "An address cannot be listed in both Cc and Bcc.";
+  }
+  if ([...cc, ...bcc].some((address) => recipients.includes(address))) {
+    errors.cc = "A recipient cannot be listed in To and Cc or Bcc.";
+  }
+  if (cc.length + bcc.length > LIMITS.MAX_COPY_RECIPIENTS) {
+    errors.cc = `Cc and Bcc can include no more than ${LIMITS.MAX_COPY_RECIPIENTS} addresses combined.`;
+  }
+
   const subject = rawSubject;
 
   if (!subject) {
@@ -394,6 +429,8 @@ export function validateScheduleInput(input, now = new Date(), { allowImmediateS
     email_connection_id: connectionId,
     config: {
       recipients,
+      cc,
+      bcc,
       subject,
       sender_name: rawSenderName,
       body,

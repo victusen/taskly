@@ -40,6 +40,8 @@ export async function buildSpreadsheetMessages(connection, config) {
 
       messages.push({
         recipients: [row.email],
+        cc: config.cc || [],
+        bcc: config.bcc || [],
         subject,
         body,
         body_type: config.body_type,

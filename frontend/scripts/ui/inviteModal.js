@@ -1,5 +1,6 @@
 import { showToast } from "./toast.js";
 import { loadProjects } from "../data/source.js";
+import { createInvitations } from "../api/invitations.js";
 
 /**
  * Slide-over drawer modal for inviting team members.
@@ -283,9 +284,10 @@ export function initInviteModal(options = {}) {
           <div class="invite-field-row">
             <label class="invite-label" for="invite-role-select">Role & permissions</label>
             <select class="invite-select" id="invite-role-select">
-              <option value="Admin">Admin (Full project and settings management)</option>
-              <option value="Editor" selected>Editor (Create, edit & dispatch schedules)</option>
-              <option value="Viewer">Viewer (Read-only status & report views)</option>
+              <option value="owner">Owner</option>
+              <option value="admin">Admin (Full project and settings management)</option>
+              <option value="editor" selected>Editor (Create, edit & dispatch schedules)</option>
+              <option value="viewer">Viewer (Read-only status & report views)</option>
             </select>
           </div>
         </div>
@@ -315,7 +317,7 @@ export function initInviteModal(options = {}) {
         <div class="invite-field">
           <div class="invite-field-row">
             <label class="invite-label" for="invite-note-input">Personal note (optional)</label>
-            <textarea class="invite-textarea" id="invite-note-input" rows="4" placeholder="Hey! Joining our Bzade workspace to manage our upcoming scheduled campaigns..."></textarea>
+            <textarea class="invite-textarea" id="invite-note-input" rows="4" maxlength="500" placeholder="Hey! Joining our Bzade workspace to manage our upcoming scheduled campaigns..."></textarea>
           </div>
         </div>
       </div>
@@ -349,6 +351,7 @@ export function initInviteModal(options = {}) {
   const projectSelect = overlay.querySelector("#invite-project-select");
   const noteInput = overlay.querySelector("#invite-note-input");
   const submitBtn = overlay.querySelector("#btn-submit-invite");
+  let projectLoadPromise = null;
 
   if (!scopeSelect) {
     console.error("Invite modal is missing its access-scope selector.");
@@ -359,32 +362,46 @@ export function initInviteModal(options = {}) {
     activeScope = scopeSelect?.value || "project";
     if (projectGroup) projectGroup.hidden = activeScope === "account";
   };
-  scopeSelect?.addEventListener("change", updateScope);
+  scopeSelect?.addEventListener("change", () => {
+    updateScope();
+    if (activeScope === "project") void populateProjects();
+  });
   updateScope();
 
   // Load Projects into Select
   async function populateProjects() {
+    if (projectLoadPromise) return projectLoadPromise;
+
+    projectLoadPromise = (async () => {
+      try {
+        const projects = await loadProjects();
+        projectSelect.replaceChildren(new Option("Choose a project...", ""));
+        if (!projects || projects.length === 0) {
+          projectSelect.replaceChildren(new Option("No projects available", ""));
+          return;
+        }
+        for (const p of projects) {
+          const opt = document.createElement("option");
+          opt.value = p.id;
+          opt.textContent = p.project_name || p.business_name || "Project";
+          projectSelect.appendChild(opt);
+        }
+      } catch (e) {
+        projectSelect.replaceChildren(new Option("Could not load projects", ""));
+        showToast("error", e.message || "Could not load projects for the invitation.");
+      }
+    })();
+
     try {
-      const projects = await loadProjects();
-      projectSelect.innerHTML = "";
-      if (!projects || projects.length === 0) {
-        projectSelect.innerHTML = `<option value="">No projects found (using default)</option>`;
-        return;
-      }
-      for (const p of projects) {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.textContent = p.project_name || p.business_name || "Project";
-        projectSelect.appendChild(opt);
-      }
-    } catch (e) {
-      projectSelect.innerHTML = `<option value="current">Current Project</option>`;
+      await projectLoadPromise;
+    } finally {
+      projectLoadPromise = null;
     }
   }
 
   // Open & Close Handlers
   function openDrawer() {
-    populateProjects();
+    if (activeScope === "project") void populateProjects();
     overlay.classList.add("open");
     document.body.style.overflow = "hidden";
     if (!window.matchMedia("(max-width: 767px)").matches) {
@@ -418,7 +435,7 @@ export function initInviteModal(options = {}) {
   });
 
   // Handle Invitation Submit
-  submitBtn?.addEventListener("click", () => {
+  submitBtn?.addEventListener("click", async () => {
     const rawEmails = emailsInput.value.trim();
     if (!rawEmails) {
       showToast("error", "Enter at least one email address to send an invitation.");
@@ -426,33 +443,60 @@ export function initInviteModal(options = {}) {
       return;
     }
 
-    const emailList = rawEmails.split(",").map(e => e.trim()).filter(Boolean);
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const invalid = emailList.find(e => !emailRegex.test(e));
+    const emailList = rawEmails.split(",").map((email) => email.trim()).filter(Boolean);
+    if (emailList.length > 10) {
+      showToast("error", "Invite no more than 10 people at a time.");
+      emailsInput.focus();
+      return;
+    }
+    const normalizedEmails = emailList.map((email) => email.toLowerCase());
+    const invalid = normalizedEmails.find((email) => !/^[^\s@<>()[\]\\,;:"]{1,64}@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i.test(email));
     if (invalid) {
       showToast("error", `"${invalid}" is not a valid email address.`);
       emailsInput.focus();
+      return;
+    }
+    if (new Set(normalizedEmails).size !== normalizedEmails.length) {
+      showToast("error", "Remove duplicate email addresses.");
+      emailsInput.focus();
+      return;
+    }
+    if (activeScope === "project" && !projectSelect.value) {
+      showToast("error", "Choose a project for this invitation.");
+      projectSelect.focus();
+      return;
+    }
+    const personalNote = noteInput?.value.trim() || null;
+    if (personalNote && Array.from(personalNote).length > 500) {
+      showToast("error", "The personal note must be 500 characters or fewer.");
+      noteInput.focus();
       return;
     }
 
     submitBtn.disabled = true;
     submitBtn.textContent = "Sending...";
 
-    const role = roleSelect.value;
-    const targetDesc = activeScope === "account" ? "entire account" : (projectSelect.selectedOptions[0]?.text || "selected project");
-
-    setTimeout(() => {
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Invite";
+    try {
+      const response = await createInvitations({
+        emails: normalizedEmails,
+        role: roleSelect.value,
+        scope: activeScope,
+        project_id: activeScope === "project" ? projectSelect.value : null,
+        personal_note: personalNote,
+      });
+      if (!Number.isInteger(response.data?.created) || response.data.created !== normalizedEmails.length) {
+        throw new Error("The invitation service returned an unexpected response.");
+      }
       closeDrawer();
       emailsInput.value = "";
       if (noteInput) noteInput.value = "";
-
-      const msg = emailList.length === 1
-        ? `Invitation sent to ${emailList[0]} (${role} · ${targetDesc}).`
-        : `Invitations sent to ${emailList.length} members (${role} · ${targetDesc}).`;
-      showToast("success", msg);
-    }, 450);
+      showToast("info", "Invites saved, but team access is not wired up yet. You can manage schedules personally for now.");
+    } catch (error) {
+      showToast("error", error.message || "Could not save the invitations.");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Invite";
+    }
   });
 
   return { open: openDrawer, close: closeDrawer };

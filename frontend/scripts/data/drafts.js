@@ -13,6 +13,8 @@ export function readDrafts() {
 export function saveDraft({
   name,
   recipients,
+  cc,
+  bcc,
   subject,
   sender_name,
   body,
@@ -26,6 +28,12 @@ export function saveDraft({
     name: String(name || "Untitled draft").slice(0, 120),
     recipients: Array.isArray(recipients)
       ? recipients.map((email) => String(email).trim()).filter(Boolean)
+      : [],
+    cc: Array.isArray(cc)
+      ? cc.map((email) => String(email).trim()).filter(Boolean)
+      : [],
+    bcc: Array.isArray(bcc)
+      ? bcc.map((email) => String(email).trim()).filter(Boolean)
       : [],
     subject: String(subject || "").slice(0, 300),
     sender_name: String(sender_name || "").slice(0, 100),

@@ -40,8 +40,9 @@ if (!document.getElementById("bzade-feedback-tab")) {
   const link = document.createElement("a");
   link.id = "bzade-feedback-tab";
   link.href = "/feedback";
-  link.textContent = "Feedback";
-  link.setAttribute("aria-label", "Share feedback");
-  link.title = "Share feedback";
+  const isHomePage = window.location.pathname === "/";
+  link.textContent = isHomePage ? "Feedback" : "Feedback";
+  link.setAttribute("aria-label", isHomePage ? "Ask a question" : "Share feedback");
+  link.title = isHomePage ? "Ask a question" : "Share feedback";
   document.body.append(link);
 }

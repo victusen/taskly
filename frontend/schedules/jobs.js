@@ -120,6 +120,7 @@ const scheduleMenuIcons = {
   pause: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14"/><path d="M16 5v14"/></svg>',
   resume: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 5 12 7-12 7z"/></svg>',
   delete: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>',
+  analytics: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/></svg>',
 };
 
 const formatDateTime = (iso) =>
@@ -649,6 +650,8 @@ function saveSheetsResumeState() {
   sessionStorage.setItem("bzResumeSheetsComposer", JSON.stringify({
     name: document.getElementById("cmp-name")?.value || "",
     recipients: document.getElementById("cmp-recipients")?.value || "",
+    cc: document.querySelector('#cmp-form [name="cc"]')?.value || "",
+    bcc: document.querySelector('#cmp-form [name="bcc"]')?.value || "",
     subject: document.querySelector('#cmp-form [name="subject"]')?.value || "",
     sender_name: document.getElementById("cmp-sender-name")?.value || "",
     body: document.getElementById("cmp-body")?.value || "",
@@ -1082,6 +1085,7 @@ function renderRows() {
                 ${canCopySchedule ? `<button type="button" data-copy-schedule="${esc(row.id)}">${scheduleMenuIcons.edit}<span>Edit</span></button>` : ""}
                 ${statusAction ? `<button type="button" data-schedule-action="${statusAction.toLowerCase()}" data-id="${esc(row.id)}">${statusActionIcon}<span>${statusAction}</span></button>` : ""}
                 ${canDeleteSchedule ? `<button type="button" data-delete-schedule="${esc(row.id)}">${scheduleMenuIcons.delete}<span>Delete</span></button>` : ""}
+                <button type="button" data-view-analytics>${scheduleMenuIcons.analytics}<span>View analytics</span></button>
               </div>
             </div>
           </td>
@@ -1119,6 +1123,7 @@ function renderRows() {
                 ${canCopySchedule ? `<button type="button" data-copy-schedule="${esc(row.id)}">${scheduleMenuIcons.edit}<span>Edit</span></button>` : ""}
                 ${statusAction ? `<button type="button" data-schedule-action="${statusAction.toLowerCase()}" data-id="${esc(row.id)}">${statusActionIcon}<span>${statusAction}</span></button>` : ""}
                 ${canDeleteSchedule ? `<button type="button" data-delete-schedule="${esc(row.id)}">${scheduleMenuIcons.delete}<span>Delete</span></button>` : ""}
+                <button type="button" data-view-analytics>${scheduleMenuIcons.analytics}<span>View analytics</span></button>
               </div>
             </div>
           </div>
@@ -1716,6 +1721,13 @@ jobRows?.addEventListener("click", async (event) => {
     return;
   }
 
+  const analyticsButton = event.target.closest("[data-view-analytics]");
+  if (analyticsButton) {
+    closeScheduleMenus();
+    showToast("info", "We're integrating analytics soon.");
+    return;
+  }
+
   const editButton = event.target.closest("[data-edit]");
   if (editButton) {
     const row = editButton.closest("[data-schedule]");
@@ -1785,7 +1797,14 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeScheduleDetails();
 });
 
+function blockPayloadTaskCreation() {
+  if (currentChannel !== "payload") return false;
+  showToast("info", "Payloads are not ready yet.");
+  return true;
+}
+
 footerAddScheduleBtn?.addEventListener("click", () => {
+  if (blockPayloadTaskCreation()) return;
   if (typeof window.bzComposer?.openCreate === "function") window.bzComposer.openCreate();
 });
 
@@ -1961,6 +1980,7 @@ connectGmailBtn?.addEventListener("click", () => {
 });
 
 addScheduleBtn?.addEventListener("click", () => {
+  if (blockPayloadTaskCreation()) return;
   const composer = document.getElementById("job-composer");
   if (composer?.classList.contains("sched-editor-overlay") && typeof window.bzComposer?.openCreate === "function") {
     window.bzComposer.openCreate();
@@ -1969,6 +1989,7 @@ addScheduleBtn?.addEventListener("click", () => {
   openScheduleModal();
 });
 emptyAddScheduleBtn?.addEventListener("click", () => {
+  if (blockPayloadTaskCreation()) return;
   if (typeof window.bzComposer?.openCreate === "function") {
     window.bzComposer.openCreate();
     return;
@@ -2036,6 +2057,14 @@ scheduleForm?.addEventListener("submit", async (event) => {
           .split(",")
           .map((email) => email.trim().toLowerCase())
           .filter(Boolean),
+        cc: String(form.get("cc") || "")
+          .split(",")
+          .map((email) => email.trim().toLowerCase())
+          .filter(Boolean),
+        bcc: String(form.get("bcc") || "")
+          .split(",")
+          .map((email) => email.trim().toLowerCase())
+          .filter(Boolean),
         subject: String(form.get("subject") || "").trim(),
         body: String(form.get("body") || ""),
         body_type: "html",
@@ -2080,6 +2109,8 @@ function payloadFor(draft, sender) {
     timezone: "UTC",
     config: {
       recipients: draft.recipients,
+      cc: draft.cc || [],
+      bcc: draft.bcc || [],
       subject: draft.subject,
       sender_name: draft.sender_name || "",
       body: draft.body,
@@ -2319,6 +2350,8 @@ if (
       window.bzComposer.openCreate?.();
       document.getElementById("cmp-name").value = state.name || "";
       document.getElementById("cmp-recipients").value = state.recipients || "";
+      document.querySelector('#cmp-form [name="cc"]').value = state.cc || "";
+      document.querySelector('#cmp-form [name="bcc"]').value = state.bcc || "";
       document.querySelector('#cmp-form [name="subject"]').value = state.subject || "";
       document.getElementById("cmp-sender-name").value = state.sender_name || "";
       document.getElementById("cmp-body").value = state.body || "";
