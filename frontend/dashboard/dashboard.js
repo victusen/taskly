@@ -8,6 +8,7 @@ import { initAccountMenu } from "../scripts/ui/accountMenu.js";
 import { openConnectModal } from "../scripts/ui/connectModal.js";
 import { showGoogleResult } from "../scripts/ui/shell.js";
 import { authenticatedFetch } from "../scripts/auth/api.js";
+import { getDashboardScheduleMetrics } from "../scripts/api/dashboardMetrics.js";
 
 // Stub navigations for Audiences and Team members (real pages come later)
 window.bzShowAudiences = () => showToast("info", "Audiences are coming soon. Track subscriber segments here.");
@@ -60,6 +61,8 @@ let projectMailConnectionsRequest = null;
 let projectMailConnectionsLoaded = false;
 let isCreatingBusiness = false;
 let dashboardProjectRenderVersion = 0;
+let dashboardMetricsPeriod = "7d";
+let dashboardMetricsRequestVersion = 0;
 let selectedProjectType = null;
 
 const session = await requireAuth();
@@ -121,6 +124,52 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+function formatMetric(value) {
+  return new Intl.NumberFormat().format(value);
+}
+
+async function refreshDashboardMetrics({ notifyError = true } = {}) {
+  const requestVersion = ++dashboardMetricsRequestVersion;
+  const setMetric = (id, value) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  };
+
+  try {
+    const metrics = await getDashboardScheduleMetrics(dashboardMetricsPeriod);
+    if (requestVersion !== dashboardMetricsRequestVersion) return;
+
+    setMetric("metric-schedules", formatMetric(metrics.schedules.total));
+    setMetric("metric-period-schedules", formatMetric(metrics.schedules.period_schedules));
+    setMetric("metric-lifetime-runs", formatMetric(metrics.schedules.lifetime_runs));
+    setMetric("metric-sent-period", formatMetric(metrics.runs.succeeded));
+    for (const [status, count] of Object.entries(metrics.schedules.by_status)) {
+      setMetric(`metric-status-${status}`, formatMetric(count));
+    }
+  } catch (error) {
+    if (requestVersion !== dashboardMetricsRequestVersion) return;
+    console.error("Could not load dashboard schedule metrics:", error);
+    ["metric-schedules", "metric-period-schedules", "metric-lifetime-runs", "metric-sent-period",
+      "metric-status-active", "metric-status-paused", "metric-status-failed",
+      "metric-status-completed", "metric-status-cancelled"]
+      .forEach((id) => setMetric(id, "—"));
+    if (notifyError) showToast("error", error.message || "Could not load schedule metrics. Please try again.");
+  }
+}
+
+document.querySelectorAll(".dp-pill[data-period]").forEach((button) => {
+  button.addEventListener("click", () => {
+    if (button.dataset.period === dashboardMetricsPeriod) return;
+    dashboardMetricsPeriod = button.dataset.period;
+    document.querySelectorAll(".dp-pill[data-period]").forEach((pill) => {
+      const active = pill === button;
+      pill.classList.toggle("active", active);
+      pill.setAttribute("aria-pressed", String(active));
+    });
+    void refreshDashboardMetrics();
+  });
+});
 
 async function refreshProjectMailConnections({ notify = false } = {}) {
   if (projectMailConnectionsRequest) return projectMailConnectionsRequest;
@@ -387,11 +436,6 @@ async function renderDashboardProjects({ fallbackProject = null, useFallback = f
         </div>
       `;
     }
-    // Still clear metric skeletons with zeroes
-    ["metric-dispatched", "metric-delivered", "metric-bounced", "metric-failed"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = "Ã¢â‚¬â€";
-    });
     return;
   }
 
@@ -428,10 +472,6 @@ async function renderDashboardProjects({ fallbackProject = null, useFallback = f
         </div>
       `;
     }
-    ["metric-dispatched", "metric-delivered", "metric-bounced", "metric-failed"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = "0";
-    });
     return;
   }
 
@@ -515,15 +555,6 @@ async function renderDashboardProjects({ fallbackProject = null, useFallback = f
       .join("");
   }
 
-  // Populate synced metrics, replacing skeleton placeholders
-  const mDisp = document.getElementById("metric-dispatched");
-  const mDel = document.getElementById("metric-delivered");
-  const mBnc = document.getElementById("metric-bounced");
-  const mFail = document.getElementById("metric-failed");
-  if (mDisp) mDisp.textContent = "0";
-  if (mDel) mDel.textContent = "0%";
-  if (mBnc) mBnc.textContent = "0%";
-  if (mFail) mFail.textContent = "0%";
   void refreshProjectMailConnections({ notify: true }).then(() => refreshProjectScheduleInsights());
 }
 
@@ -620,6 +651,7 @@ deleteModalConfirm?.addEventListener("click", async () => {
     closeSettingsModal();
     showToast("success", "Project deleted successfully.");
     await renderDashboardProjects();
+    void refreshDashboardMetrics();
   } catch (err) {
     showToast("error", err.message || "Failed to delete project.");
   } finally {
@@ -859,6 +891,7 @@ async function createBusiness(input) {
     closeModal();
     showToast("success", "Project created successfully.");
     await renderDashboardProjects({ fallbackProject: createdProject, useFallback: true });
+    void refreshDashboardMetrics();
   } catch (err) {
     const first = err.fieldErrors ? Object.values(err.fieldErrors)[0] : null;
     modal?.classList.remove("is-loading");
@@ -883,9 +916,11 @@ async function createBusiness(input) {
 }
 
 // Initial load
+void refreshDashboardMetrics();
 renderDashboardProjects();
 window.setInterval(() => {
   if (document.visibilityState === "visible") {
+    void refreshDashboardMetrics({ notifyError: false });
     void refreshProjectMailConnections().then(() => refreshProjectScheduleInsights());
   }
 }, 60_000);

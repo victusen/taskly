@@ -284,46 +284,6 @@
       font-weight: 600;
       box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     }
-    /* Empty chart box */
-    .dp-chart-box {
-      min-height: 140px;
-      border-bottom: 1px solid #e5e7eb;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      background: #ffffff;
-      padding: 24px;
-    }
-    .dp-chart-icon {
-      display: flex;
-      align-items: flex-end;
-      gap: 3px;
-      margin-bottom: 4px;
-    }
-    .dp-chart-icon span {
-      display: inline-block;
-      width: 5px;
-      background-color: #d1d5db;
-      border-radius: 2px 2px 0 0;
-    }
-    .dp-chart-icon span:nth-child(1) { height: 16px; }
-    .dp-chart-icon span:nth-child(2) { height: 28px; }
-    .dp-chart-icon span:nth-child(3) { height: 20px; }
-    .dp-chart-icon span:nth-child(4) { height: 36px; }
-    .dp-chart-icon span:nth-child(5) { height: 24px; }
-    .dp-chart-icon span:nth-child(6) { height: 12px; }
-    .dp-empty-label {
-      font-size: 13px;
-      font-weight: 500;
-      color: #374151;
-    }
-    .dp-empty-sub {
-      font-size: 12px;
-      color: #9ca3af;
-    }
-    /* Error card */
     .dp-card {
       padding: 16px 20px;
       border-bottom: 1px solid #e5e7eb;
@@ -335,53 +295,23 @@
       color: #111827;
       margin-bottom: 12px;
     }
-    .dp-inline-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: #374151;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
-      padding: 10px 14px;
-    }
-    .dp-inline-status strong { color: #111827; }
-    /* Two-column usage grid */
-    .dp-usage-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-    }
-    .dp-usage-col {
-      padding: 16px 20px;
+    .dp-status-list {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      padding: 8px 20px 16px;
     }
-    .dp-usage-col:first-child { border-right: 1px solid #e5e7eb; }
-    .dp-usage-stats {
+    .dp-status-row {
       display: flex;
-      gap: 24px;
-      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f3f4f6;
+      color: #4b5563;
+      font-size: 13px;
     }
-    .dp-usage-stat label {
-      display: block;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: #9ca3af;
-      margin-bottom: 2px;
-    }
-    .dp-usage-stat span {
-      font-size: 22px;
-      font-weight: 700;
-      color: #111827;
-    }
+    .dp-status-row:last-child { border-bottom: 0; }
+    .dp-status-value { color: #111827; font-weight: 600; }
     @media (max-width: 640px) {
-      .dp-usage-grid { grid-template-columns: 1fr; }
-      .dp-usage-col:first-child { border-right: none; border-bottom: 1px solid #e5e7eb; }
       .dp-metrics-bar { flex-direction: column; align-items: flex-start; gap: 8px; padding: 14px 16px; }
       .dp-metric { border-right: none; padding: 6px 0; margin-right: 0; }
       .dp-time-pills { margin-left: 0; }
@@ -962,92 +892,39 @@
       <!-- Stats Panel ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â clean light theme, after project cards -->
       <section class="dashboard-panel">
 
-        <!-- Top metrics bar -->
+        <!-- Schedule metrics -->
         <div class="dp-metrics-bar">
           <div class="dp-metric">
-            <div class="dp-metric-label"><span class="dot"></span> TOTAL DISPATCHED</div>
-            <div class="dp-metric-value" id="metric-dispatched">0</div>
+            <div class="dp-metric-label"><span class="dot"></span> SCHEDULES</div>
+            <div class="dp-metric-value" id="metric-schedules">0</div>
           </div>
           <div class="dp-metric">
-            <div class="dp-metric-label"><span class="dot green"></span> DELIVERED</div>
-            <div class="dp-metric-value" id="metric-delivered">0%</div>
+            <div class="dp-metric-label"><span class="dot green"></span> SCHEDULES RUN IN PERIOD</div>
+            <div class="dp-metric-value" id="metric-period-schedules">0</div>
           </div>
           <div class="dp-metric">
-            <div class="dp-metric-label"><span class="dot orange"></span> BOUNCED</div>
-            <div class="dp-metric-value" id="metric-bounced">0%</div>
+            <div class="dp-metric-label"><span class="dot orange"></span> SUCCESSFUL RUNS ALL TIME</div>
+            <div class="dp-metric-value" id="metric-lifetime-runs">0</div>
           </div>
           <div class="dp-metric">
-            <div class="dp-metric-label"><span class="dot red"></span> FAILED</div>
-            <div class="dp-metric-value" id="metric-failed">0%</div>
+            <div class="dp-metric-label"><span class="dot green"></span> SUCCESSFUL RUNS IN PERIOD</div>
+            <div class="dp-metric-value" id="metric-sent-period">0</div>
           </div>
-          <!-- Time-range pills -->
           <div class="dp-time-pills" role="group" aria-label="Timeframe">
-            <button type="button" class="dp-pill active" data-days="7">7d</button>
-            <button type="button" class="dp-pill" data-days="1">1d</button>
-            <button type="button" class="dp-pill" data-days="3">3h</button>
-            <button type="button" class="dp-pill" data-days="30">30d</button>
+            <button type="button" class="dp-pill" data-period="3h" aria-pressed="false">3h</button>
+            <button type="button" class="dp-pill" data-period="1d" aria-pressed="false">1d</button>
+            <button type="button" class="dp-pill active" data-period="7d" aria-pressed="true">7d</button>
+            <button type="button" class="dp-pill" data-period="30d" aria-pressed="false">30d</button>
           </div>
         </div>
-
-        <!-- Empty state chart -->
-        <div class="dp-chart-box">
-          <div class="dp-chart-icon">
-            <span></span><span></span><span></span><span></span><span></span><span></span>
-          </div>
-          <p class="dp-empty-label">No data to show</p>
-          <p class="dp-empty-sub">It may take up to 24 hours for data to refresh</p>
-        </div>
-
-        <!-- Errors in last 24h -->
         <div class="dp-card">
-          <p class="dp-card-title">Errors in the last 24h</p>
-          <div class="dp-inline-status">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            There have been <strong>0 dispatches</strong> since last run and <strong>no errors</strong>.
-          </div>
-        </div>
-
-        <!-- Performance -->
-        <div class="dp-card">
-          <p class="dp-card-title">Performance</p>
-          <div class="dp-usage-stats">
-            <div class="dp-usage-stat">
-              <label>AVG. SEND TIME</label>
-              <span>0ms</span>
-            </div>
-            <div class="dp-usage-stat">
-              <label>MAX SEND TIME</label>
-              <span>0ms</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Usage two columns -->
-        <div class="dp-usage-grid">
-          <div class="dp-usage-col">
-            <p class="dp-card-title" style="margin-bottom:0;">CPU usage</p>
-            <div class="dp-usage-stats">
-              <div class="dp-usage-stat"><label>AVG CPU TIME</label><span>0ms</span></div>
-              <div class="dp-usage-stat"><label>MAX CPU TIME</label><span>0ms</span></div>
-            </div>
-            <div class="dp-chart-box" style="min-height:100px; margin: 0 -20px -16px; border-bottom:none; border-top:1px solid #e5e7eb;">
-              <div class="dp-chart-icon"><span></span><span></span><span></span><span></span><span></span><span></span></div>
-              <p class="dp-empty-label">No data to show</p>
-              <p class="dp-empty-sub">It may take up to 24 hours for data to refresh</p>
-            </div>
-          </div>
-          <div class="dp-usage-col">
-            <p class="dp-card-title" style="margin-bottom:0;">Memory usage</p>
-            <div class="dp-usage-stats">
-              <div class="dp-usage-stat"><label>AVG MEMORY</label><span>0MB</span></div>
-              <div class="dp-usage-stat"><label>HEAP</label><span>0%</span></div>
-              <div class="dp-usage-stat"><label>EXTERNAL</label><span>0%</span></div>
-            </div>
-            <div class="dp-chart-box" style="min-height:100px; margin: 0 -20px -16px; border-bottom:none; border-top:1px solid #e5e7eb;">
-              <div class="dp-chart-icon"><span></span><span></span><span></span><span></span><span></span><span></span></div>
-              <p class="dp-empty-label">No data to show</p>
-              <p class="dp-empty-sub">It may take up to 24 hours for data to refresh</p>
-            </div>
+          <p class="dp-card-title">Schedule status</p>
+          <div class="dp-status-list" aria-live="polite">
+            <div class="dp-status-row"><span>Active</span><span class="dp-status-value" id="metric-status-active">0</span></div>
+            <div class="dp-status-row"><span>Paused</span><span class="dp-status-value" id="metric-status-paused">0</span></div>
+            <div class="dp-status-row"><span>Failed</span><span class="dp-status-value" id="metric-status-failed">0</span></div>
+            <div class="dp-status-row"><span>Completed</span><span class="dp-status-value" id="metric-status-completed">0</span></div>
+            <div class="dp-status-row"><span>Cancelled</span><span class="dp-status-value" id="metric-status-cancelled">0</span></div>
           </div>
         </div>
 

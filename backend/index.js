@@ -11,6 +11,7 @@ import emailConnectionRoute from './routes/emailConnectionRoute.js';
 import googleSheetsRoute from './routes/googleSheetsRoute.js';
 import feedbackRoute from "./routes/feedbackRoute.js";
 import invitationRoute from "./routes/invitationRoute.js";
+import dashboardRoute from "./routes/dashboardRoute.js";
 import { startScheduler } from "./workers/startScheduler.js";
 import { getPlannerStatus } from "./workers/planDay.js";
 import { getBillingExpiryStatus } from "./workers/expireBillingPlans.js";
@@ -118,6 +119,7 @@ app.use('/api/email-connections', emailConnectionRoute);
 app.use('/api/google-sheets', googleSheetsRoute);
 app.use("/api/feedback", feedbackRoute);
 app.use("/api/invitations", invitationRoute);
+app.use("/api/dashboard", dashboardRoute);
 
 app.use((err, req, res, next) => {
   console.error("[UNHANDLED]", err);
